@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "889387616330",
+    "project_id": "help-desk-bc2ac",
+    "storage_bucket": "help-desk-bc2ac.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:889387616330:android:9ec47b56abe886093a7eb3",
+        "android_client_info": {
+          "package_name": "com.example.help_desk"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "889387616330-r95aimgidmsm36sgmmq5igo284htme45.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.help_desk",
+            "certificate_hash": "c35f0a794727b4a868c9e5514facfab4885fe104"
+          }
+        },
+        {
+          "client_id": "889387616330-if6spakdgv632f4oofi1f1u36jo5qets.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGMfWi27EGU9LYF54OCsAefmAB4Lq5vNg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "889387616330-if6spakdgv632f4oofi1f1u36jo5qets.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "889387616330-6r2p8q17rq7p8ieap6066fa8cd96l5qh.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.helpDesk"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
