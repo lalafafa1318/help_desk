@@ -94,6 +94,8 @@ class BottomNavigationBarController extends GetxController {
     // 로그
     print('BottomNavigationBarController onClose() 호출');
 
+    print('변화');
+
     super.onClose();
   }
 }
