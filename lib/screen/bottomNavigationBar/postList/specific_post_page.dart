@@ -15,6 +15,16 @@ class SpecificPostPage extends StatelessWidget {
   // 아니면 KeywordPostListPage에서 라우팅 되었는지 확인하는 변수
   DistinguishRouting? whereRoute;
 
+  // PostListPage에서 Routing 됐는지
+  // KeywordPostListPage에서 Routing 됐는지 여부를 결정하는 Widget 입니다.
+  DistinguishRouting decideRouting() {
+    return Get.arguments[2] ==
+            DistinguishRouting.postListPage_to_specificPostPage
+        ? whereRoute = DistinguishRouting.postListPage_to_specificPostPage
+        : whereRoute =
+            DistinguishRouting.keywordPostListPage_to_specificPostPage;
+  }
+
   // 이전 가기, 알림 표시, 새로 고침을 표시하는 Widget 입니다.
   Widget topView() {
     return SizedBox(
@@ -186,7 +196,7 @@ class SpecificPostPage extends StatelessWidget {
       showTextTitle_showTextContent_showPhotos_showTextLike_showTextComment() {
     return Container(
       width: Get.width,
-      padding: const EdgeInsets.all(18.0),
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -203,8 +213,10 @@ class SpecificPostPage extends StatelessWidget {
           // 사진이 있는지 확인하는 Widget
           checkPhotos(),
 
+          const SizedBox(height: 10),
+
           // 좋아요와 댓글 수 입니다.
-          Text('안녕하세요'),
+          showLike_showComment(),
         ],
       ),
     );
@@ -261,12 +273,12 @@ class SpecificPostPage extends StatelessWidget {
                 child: ListView.builder(
                   shrinkWrap: true,
                   scrollDirection: Axis.horizontal,
-                  itemCount: PostListController.to.postDatas[Get.arguments[0]].imageList!.length,
+                  itemCount: PostListController
+                      .to.postDatas[Get.arguments[0]].imageList!.length,
                   itemBuilder: (context, index) {
                     return showPhotos(index);
                   },
-                )
-              )
+                ))
             : const Visibility(
                 child: Text('Visibility 테스트'),
                 visible: false,
@@ -279,12 +291,15 @@ class SpecificPostPage extends StatelessWidget {
                 child: ListView.builder(
                   shrinkWrap: true,
                   scrollDirection: Axis.horizontal,
-                  itemCount: PostListController.to.conditionKeywordPostDatas[Get.arguments[0]].imageList!.length,
+                  itemCount: PostListController
+                      .to
+                      .conditionKeywordPostDatas[Get.arguments[0]]
+                      .imageList!
+                      .length,
                   itemBuilder: (context, imageIndex) {
                     return showPhotos(imageIndex);
                   },
-                )
-              )
+                ))
             : const Visibility(
                 child: Text('Visibility 테스트'),
                 visible: false,
@@ -297,11 +312,18 @@ class SpecificPostPage extends StatelessWidget {
       borderRadius: BorderRadius.circular(20), // Image border
       child: Container(
         width: 250,
-        margin: const EdgeInsets.symmetric(horizontal: 10),
+        margin: const EdgeInsets.symmetric(horizontal: 5),
         child: CachedNetworkImage(
-          imageUrl: whereRoute == DistinguishRouting.postListPage_to_specificPostPage 
-          ? PostListController.to.postDatas[Get.arguments[0]].imageList![imageIndex].toString()
-          : PostListController.to.conditionKeywordPostDatas[Get.arguments[0]].imageList![imageIndex].toString(),
+          imageUrl:
+              whereRoute == DistinguishRouting.postListPage_to_specificPostPage
+                  ? PostListController
+                      .to.postDatas[Get.arguments[0]].imageList![imageIndex]
+                      .toString()
+                  : PostListController
+                      .to
+                      .conditionKeywordPostDatas[Get.arguments[0]]
+                      .imageList![imageIndex]
+                      .toString(),
           imageBuilder: (context, imageProvider) => Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
@@ -319,7 +341,77 @@ class SpecificPostPage extends StatelessWidget {
     );
   }
 
+  // 좋아요 수와 댓글 수를 보여주는 Widget 입니다.
+  Widget showLike_showComment() {
+    return Padding(
+      padding: const EdgeInsets.all(5),
+      child: Row(
+        children: [
+          // 좋아요 수를 보여준다.
+          showLike(),
+
+          const SizedBox(width: 10),
+
+          // 댓글 수를 보여준다.
+          showComment(),
+        ],
+      ),
+    );
+  }
+
+  // 좋아요 수를 보여주는 Widget 입니다.
+  Widget showLike() {
+    return Row(
+      children: [
+        // 좋아요 아이콘 입니다.
+        const Icon(
+          Icons.favorite,
+          color: Colors.red,
+          size: 20,
+        ),
+
+        const SizedBox(width: 3),
+
+        // 좋아요 수 입니다.
+        Text('1', style: const TextStyle(fontSize: 20)),
+      ],
+    );
+  }
+
+  // 댓글 수를 보여주는 Widget 입니다.
+  Widget showComment() {
+    return Row(
+      children: [
+        // 댓글 아이콘 입니다.
+        Icon(
+          Icons.comment_outlined,
+          color: Colors.blue[300],
+          size: 20,
+        ),
+
+        const SizedBox(width: 3),
+
+        // 댓글 수 입니다.
+        Text('1', style: const TextStyle(fontSize: 20)),
+      ],
+    );
+  }
+
   // 글에 대한 공감을 누를 수 있는 Widget 입니다.
+  Widget clickSympathy() {
+    return Container(
+      margin: const EdgeInsets.only(left: 20),
+      child: ElevatedButton.icon(
+          onPressed: () {
+            // 게시물에 대한 공감을 1 올리는 코드를 작성한다.
+          },
+          style: const ButtonStyle(
+            backgroundColor: MaterialStatePropertyAll(Colors.grey),
+          ),
+          icon: const Icon(Icons.favorite),
+          label: const Text('공감')),
+    );
+  }
 
   // 댓글 목록을 ListView로 나타내는 Widget 입니다.
 
@@ -328,18 +420,7 @@ class SpecificPostPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // PostListPage에서 라우팅 되었다면...
-    if (Get.arguments[2] ==
-        DistinguishRouting.postListPage_to_specificPostPage) {
-      print('PostListPage에서 라우팅 되었습니다 :)');
-
-      whereRoute = DistinguishRouting.postListPage_to_specificPostPage;
-    }
-    // KeywordPostListPage에서 라우팅 되었다면...
-    else {
-      print('KeywordPostListPage에서 라우팅 되었습니다 :)');
-
-      whereRoute = DistinguishRouting.keywordPostListPage_to_specificPostPage;
-    }
+    decideRouting();
 
     // 화면을 그린다.
     return SafeArea(
@@ -347,6 +428,7 @@ class SpecificPostPage extends StatelessWidget {
         body: SingleChildScrollView(
           physics: const PageScrollPhysics(),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 이전 가기, 알림 표시, 새로 고침을 표시하는 Widget 입니다.
               topView(),
@@ -358,6 +440,11 @@ class SpecificPostPage extends StatelessWidget {
 
               // 글 제목과 내용, 사진(있으면 보여주고 없으면 보여주지 않기), 좋아요, 댓글 수를 보여주는 Widget 입니다.
               showTextTitle_showTextContent_showPhotos_showTextLike_showTextComment(),
+
+              const SizedBox(height: 5),
+
+              // 공감을 클릭할 수 있는 버튼
+              clickSympathy(),
             ],
           ),
         ),
