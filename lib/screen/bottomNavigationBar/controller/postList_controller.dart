@@ -66,8 +66,8 @@ class PostListController extends GetxController {
     return conditionKeywordPostDatas;
   }
 
-  // 검색창에 입력한 Keyword를 validation하는 method
-  void validKeyord() {
+  // PostListPage 검색창에 입력한 Keyword를 validation하는 method
+  void validKeywordFromPostListPage() {
     // 키워드가 빈칸 인 경우
     if (PostListController.to.keywordController!.text.isEmpty) {
       FocusManager.instance.primaryFocus?.unfocus();
@@ -84,6 +84,27 @@ class PostListController extends GetxController {
     // 키워드 목록 페이지로 이동합니다.
     else {
       Get.to(() => KeywordPostListPage());
+    }
+  }
+
+  // KeywordPostListPage 검색창에 입력한 Keyword를 validation하는 method
+  void validKeywordFromKeywordPostListPage() {
+    // 키워드가 빈칸 인 경우
+    if (PostListController.to.keywordController!.text.isEmpty) {
+      FocusManager.instance.primaryFocus?.unfocus();
+
+      ToastUtil.showToastMessage('키워드가 빈칸 입니다 :)');
+    }
+    // 키워드가 한 글자 인 경우
+    else if (PostListController.to.keywordController!.text.length == 1) {
+      FocusManager.instance.primaryFocus?.unfocus();
+
+      ToastUtil.showToastMessage('두 글자 이상 입력해주세요 :)');
+    }
+    // 키워드가 두 글자 이상인 경우
+    // 업데이트된 Keyword를 가지고 KeywordPostListPage를 재랜더링 합니다.
+    else {
+      update();
     }
   }
 

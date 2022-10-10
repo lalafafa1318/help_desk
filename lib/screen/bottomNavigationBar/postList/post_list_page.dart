@@ -11,6 +11,7 @@ import 'package:help_desk/const/const.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
+import 'package:help_desk/screen/bottomNavigationBar/postList/distinguishRouting.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/keyword_post_list_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_post_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
@@ -62,7 +63,7 @@ class PostListPage extends StatelessWidget {
             child: IconButton(
               onPressed: () {
                 // 사용자가 입력한 Keyword를 검증합니다.
-                PostListController.to.validKeyord();
+                PostListController.to.validKeywordFromPostListPage();
               },
               icon: Icon(Icons.search, color: Colors.grey[800]),
             ),
@@ -78,13 +79,8 @@ class PostListPage extends StatelessWidget {
   Widget writeIconWidget() {
     return IconButton(
       onPressed: () {
-        // 검색창에 Keyword를 입력했으면 빈칸으로 만든다.
-        if (PostListController.to.keywordController!.text.isNotEmpty) {
-          PostListController.to.keywordController!.text = '';
-        }
-
         // 글쓰기 페이지로 이동한다.
-        BottomNavigationBarController.to.addBottomNaviBarHistory(1);
+        BottomNavigationBarController.to.checkBottomNaviState(1);
       },
       icon: const Icon(PhosphorIcons.pencil),
     );
@@ -116,7 +112,7 @@ class PostListPage extends StatelessWidget {
           // 변경사항을 Post Data에 넣어주는 작업
           PostListController.to.getPostData(snapshot.data!.docs);
 
-          // 토스트 메시지로 데이터가 업데이트 됐다는 것을 알린다. -> 이 부분이 해결이 되지 않고 있다.
+          // 토스트 메시지로 데이터가 업데이트 됐다는 것을 알린다. 
           ToastUtil.showToastMessage('게시물 데이터가\n 업데이트 되었습니다 :)');
 
           // ListView를 보여준다.
@@ -192,7 +188,17 @@ class PostListPage extends StatelessWidget {
         // User 정보가 도착했다면?
         return GestureDetector(
           onTap: () {
-            Get.to(() => SpecificPostPage());
+            // 업로드된 게시물에 대한 PostDatas에 대한 index와  PostDatas에 대한 User Data가 필요하다.
+            // 따라서 index와 User Data를 argument로 전달한다.
+            // 마지막으로 PostListPage에서 Routing 됐다는 것을 증명하기 위해서 enum를 argument로 전달한다.
+            Get.to(
+              () => SpecificPostPage(),
+              arguments: [
+                index,
+                snapshot.data!,
+                DistinguishRouting.postListPage_to_specificPostPage,
+              ],
+            );
           },
           child: showPostDataElement(index, snapshot.data!),
         );

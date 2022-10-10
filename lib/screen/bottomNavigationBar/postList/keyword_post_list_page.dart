@@ -11,6 +11,7 @@ import 'package:getwidget/position/gf_position.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
+import 'package:help_desk/screen/bottomNavigationBar/postList/distinguishRouting.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/post_list_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_post_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
@@ -73,7 +74,9 @@ class KeywordPostListPage extends StatelessWidget {
           prefixIcon: Container(
             margin: const EdgeInsets.only(left: 5),
             child: IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  PostListController.to.validKeywordFromKeywordPostListPage();
+                },
                 icon: Icon(Icons.search, color: Colors.grey[800])),
           ),
           hintText: '글 제목, 내용 그리고 작성자',
@@ -147,7 +150,17 @@ class KeywordPostListPage extends StatelessWidget {
         itemBuilder: (BuildContext context, int index) {
           return GestureDetector(
             onTap: () {
-              Get.to(() => SpecificPostPage());
+              // PostListController의 conditionKeyWordPostDatas와 conditionKeywordUserDatas에 대한 index만 필요하다.
+              // 따라서 index를 argument로 전달한다.
+              // 마지막으로 KeywordPostListPage에서 Routing 됐다는 것을 증명하기 위해서 enum를 argument로 전달한다.
+              Get.to(
+                () => SpecificPostPage(),
+                arguments: [
+                  index,
+                  '',
+                  DistinguishRouting.keywordPostListPage_to_specificPostPage,
+                ],
+              );
             },
             child: showConditionKeywordPostDataElement(index),
           );
@@ -205,7 +218,8 @@ class KeywordPostListPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              PostListController.to.conditionKeywordPostDatas[index].postContent.toString(),
+              PostListController.to.conditionKeywordPostDatas[index].postContent
+                  .toString(),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -281,20 +295,24 @@ class KeywordPostListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     print('argument : ${PostListController.to.keywordController!.text}');
 
-    return SafeArea(
-      child: Scaffold(
-        body: Column(
-          children: [
-            // 검색창, 글쓰기를 지원하는 View
-            topView(),
+    return GetBuilder<PostListController>(
+      builder: (controller) {
+        return SafeArea(
+          child: Scaffold(
+            body: Column(
+              children: [
+                // 검색창, 글쓰기를 지원하는 View
+                topView(),
 
-            // 사용자가 입력한 Keyword를 가지고 서버에 Keyword를 포함하거나 일치하는 게시글이 있는지 확인한다.
-            // 이 부분을 StreamBuilder로 받아올 수 있으나,
-            // 실시간으로 업데이트할 필요성이 적다고 생각해 FutureBuilder를 활용한다.
-            checkConditionKeywordPostDatas(),
-          ],
-        ),
-      ),
+                // 사용자가 입력한 Keyword를 가지고 서버에 Keyword를 포함하거나 일치하는 게시글이 있는지 확인한다.
+                // 이 부분을 StreamBuilder로 받아올 수 있으나,
+                // 실시간으로 업데이트할 필요성이 적다고 생각해 FutureBuilder를 활용한다.
+                checkConditionKeywordPostDatas(),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
