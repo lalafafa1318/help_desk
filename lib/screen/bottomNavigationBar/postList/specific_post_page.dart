@@ -280,8 +280,8 @@ class SpecificPostPage extends StatelessWidget {
                   shrinkWrap: true,
                   scrollDirection: Axis.horizontal,
                   itemCount: PostListController.to.conditionKeywordPostDatas[Get.arguments[0]].imageList!.length,
-                  itemBuilder: (context, index) {
-                    return showPhotos(index);
+                  itemBuilder: (context, imageIndex) {
+                    return showPhotos(imageIndex);
                   },
                 )
               )
@@ -292,14 +292,16 @@ class SpecificPostPage extends StatelessWidget {
   }
 
   // 사진을 보여주는 Widget 입니다. (optional)
-  Widget showPhotos(int index) {
+  Widget showPhotos(int imageIndex) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20), // Image border
       child: Container(
         width: 250,
         margin: const EdgeInsets.symmetric(horizontal: 10),
         child: CachedNetworkImage(
-          imageUrl: ,
+          imageUrl: whereRoute == DistinguishRouting.postListPage_to_specificPostPage 
+          ? PostListController.to.postDatas[Get.arguments[0]].imageList![imageIndex].toString()
+          : PostListController.to.conditionKeywordPostDatas[Get.arguments[0]].imageList![imageIndex].toString(),
           imageBuilder: (context, imageProvider) => Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
