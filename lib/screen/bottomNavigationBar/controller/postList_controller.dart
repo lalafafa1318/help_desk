@@ -37,6 +37,7 @@ class PostListController extends GetxController {
 
       postDatas.add(postElement);
     }
+    
     print('postDatas 개수 : ${postDatas.length}');
   }
 
@@ -81,7 +82,7 @@ class PostListController extends GetxController {
       ToastUtil.showToastMessage('두 글자 이상 입력해주세요 :)');
     }
     // 키워드가 두 글자 이상인 경우
-    // 키워드 목록 페이지로 이동합니다.
+    // KeywordPostListPage로 Routing 한다.
     else {
       Get.to(() => KeywordPostListPage());
     }
@@ -106,6 +107,12 @@ class PostListController extends GetxController {
     else {
       update();
     }
+  }
+
+  // 사용자가 게시물에 대해서 좋아요 버튼을 클릭할 떄
+  // 게시물의 좋아요 속성에 사용자가 있는지 판별하는 method
+  void checkLikeUsersFromThePost() {
+    CommunicateFirebase.checkLikeUsersFromThePost();
   }
 
   // PostListController가 메모리에 처음 올라갈 떄 호출되는 method

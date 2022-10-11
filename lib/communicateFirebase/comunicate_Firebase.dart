@@ -19,8 +19,7 @@ class CommunicateFirebase {
   static final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
 
   // Firebase Database에서 uid가 있는지 확인하는 method
-  static Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(
-      String userUid) async {
+  static Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(String userUid) async {
     QuerySnapshot<Map<String, dynamic>> userData = await _firebaseFirestore
         .collection('users')
         .where('userUid', isEqualTo: userUid)
@@ -40,8 +39,7 @@ class CommunicateFirebase {
   }
 
   // "회원가입" 페이지에 있는 Image를 Firebase Storage에 upload하는 method
-  static UploadTask signInUploadImage(
-      {required File imageFile, required String userUid}) {
+  static UploadTask signInUploadImage({required File imageFile, required String userUid}) {
     // substring을 왜 써야 하는지 알 수 있는 코드 (jpg' or jpg 인가 차이)
     // print('imageFile : ${imageFile.toString()}');
     // print('substring을 사용하지 않는 예 : ${imageFile.toString().split('.').last}');
@@ -64,8 +62,7 @@ class CommunicateFirebase {
 
   // "Posting" 페이지에 게시물을 업로드할 떄 Image를
   //  Firebase Stroage에 upload하는 method
-  static Map<String, dynamic> postUploadImage(
-      {required RxList<File> imageList, required String userUid}) {
+  static Map<String, dynamic> postUploadImage({required RxList<File> imageList, required String userUid}) {
     // UploadTask을 관리하는 배열 입니다.
     List<UploadTask> uploadTasks = [];
 
@@ -97,8 +94,7 @@ class CommunicateFirebase {
   }
 
   // "프로필 수정" 페이지에서 수정한 Image를 Firebase Storage에 update하는 method
-  static Future<UploadTask> editUploadImage(
-      {required File imageFile, required String userUid}) async {
+  static Future<UploadTask> editUploadImage({required File imageFile, required String userUid}) async {
     // ImageFile의 확장자(png, jpg) 가져오기
     String imageFileExt = imageFile.toString().split('.').last.substring(0, 3);
 
@@ -160,4 +156,12 @@ class CommunicateFirebase {
         .doc(postUUid)
         .set(PostModel.toMap(post));
   }
+
+  // Firebase DataBase Post 정보의 whoLikeThePost 속성에 접근하여 좋아요를 누른 사용자를 확인하는 method
+  static void checkLikeUsersFromThePost(){
+    
+
+
+  }
+
 }

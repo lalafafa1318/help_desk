@@ -24,10 +24,13 @@ import '../kakaoAuthentication/kakao_login.dart';
 class AuthController extends GetxController {
   // Field
   // User 정보를 관리하는 Field
-  Rx<UserModel> user = UserModel().obs;
+  Rx<UserModel> user =
+      UserModel(userName: '', description: '', image: '', userUid: '').obs;
 
   // Kakao 로고인에 필요한 것입니다.
   MainViewModel viewModel = MainViewModel(KakaoLogin());
+
+
 
   // Method
   // AuthController를 쉽게 사용할 수 있도록 하는 method
@@ -126,8 +129,7 @@ class AuthController extends GetxController {
     else if (loginResult.status == LoginStatus.failed) {
       EasyLoading.dismiss();
 
-      ToastUtil.showToastMessage(
-          '알 수 없는 이유로 Facebook 로고인이 취소되었습니다.');
+      ToastUtil.showToastMessage('알 수 없는 이유로 Facebook 로고인이 취소되었습니다.');
     }
   }
 
@@ -177,8 +179,7 @@ class AuthController extends GetxController {
       // 알 수 없는 이유로 Twitter 로고인 에러날 경우
       case TwitterLoginStatus.error:
       case null:
-        ToastUtil.showToastMessage(
-            '알 수 없는 이유로 Twitter 로고인이 취소되었습니다.');
+        ToastUtil.showToastMessage('알 수 없는 이유로 Twitter 로고인이 취소되었습니다.');
 
         break;
     }

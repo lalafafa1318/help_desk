@@ -45,11 +45,11 @@ class KeywordPostListPage extends StatelessWidget {
       margin: const EdgeInsets.only(left: 5),
       child: IconButton(
         onPressed: () {
-          // 사용자가 검색한 키워드를 빈칸으로 원상복구 한다.
-          PostListController.to.keywordController!.text = '';
-
           // 이전 페이지로 가기
           Get.back();
+
+          // 사용자가 검색한 키워드를 빈칸으로 원상복구 한다.
+          PostListController.to.keywordController!.text = '';
         },
         icon: const Icon(Icons.arrow_back),
       ),
@@ -147,7 +147,7 @@ class KeywordPostListPage extends StatelessWidget {
       flex: 1,
       child: ListView.builder(
         itemCount: PostListController.to.conditionKeywordPostDatas.length,
-        itemBuilder: (BuildContext context, int index) {
+        itemBuilder: (BuildContext context, int conditionKeywordPostDatasIndex) {
           return GestureDetector(
             onTap: () {
               // PostListController의 conditionKeyWordPostDatas와 conditionKeywordUserDatas에 대한 index만 필요하다.
@@ -156,13 +156,13 @@ class KeywordPostListPage extends StatelessWidget {
               Get.to(
                 () => SpecificPostPage(),
                 arguments: [
-                  index,
+                  conditionKeywordPostDatasIndex,
                   '',
                   DistinguishRouting.keywordPostListPage_to_specificPostPage,
                 ],
               );
             },
-            child: showConditionKeywordPostDataElement(index),
+            child: showConditionKeywordPostDataElement(conditionKeywordPostDatasIndex),
           );
         },
       ),
@@ -170,7 +170,7 @@ class KeywordPostListPage extends StatelessWidget {
   }
 
   // 각각의 게시물을 표현하는 widget
-  Widget showConditionKeywordPostDataElement(int index) {
+  Widget showConditionKeywordPostDataElement(int conditionKeywordPostDatasIndex) {
     return GFCard(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
       elevation: 2.0,
@@ -185,26 +185,26 @@ class KeywordPostListPage extends StatelessWidget {
         avatar: GFAvatar(
           radius: 30,
           backgroundImage: CachedNetworkImageProvider(
-            PostListController.to.conditionKeywordUserDatas[index]['image']
+            PostListController.to.conditionKeywordUserDatas[conditionKeywordPostDatasIndex]['image']
                 .toString(),
           ),
         ),
 
         // 사용자 이름
         titleText: PostListController
-            .to.conditionKeywordUserDatas[index]['userName']
+            .to.conditionKeywordUserDatas[conditionKeywordPostDatasIndex]['userName']
             .toString(),
 
         // 게시물 제목
         subTitleText: PostListController
-            .to.conditionKeywordPostDatas[index].postTitle
+            .to.conditionKeywordPostDatas[conditionKeywordPostDatasIndex].postTitle
             .toString(),
 
         // 게시물 올린 날짜
         description: Container(
           margin: const EdgeInsets.only(top: 5),
           child: Text(
-              PostListController.to.conditionKeywordPostDatas[index].postTime
+              PostListController.to.conditionKeywordPostDatas[conditionKeywordPostDatasIndex].postTime
                   .toString(),
               style: const TextStyle(fontSize: 10)),
         ),
@@ -218,7 +218,7 @@ class KeywordPostListPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              PostListController.to.conditionKeywordPostDatas[index].postContent
+              PostListController.to.conditionKeywordPostDatas[conditionKeywordPostDatasIndex].postContent
                   .toString(),
               overflow: TextOverflow.ellipsis,
             ),
@@ -228,7 +228,7 @@ class KeywordPostListPage extends StatelessWidget {
 
           // 게시물에 이미지가 있으면 이를 알려주고, 없으면 빈칸으로 보여준다.
           PostListController
-                  .to.conditionKeywordPostDatas[index].imageList!.isNotEmpty
+                  .to.conditionKeywordPostDatas[conditionKeywordPostDatasIndex].imageList!.isNotEmpty
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -245,7 +245,7 @@ class KeywordPostListPage extends StatelessWidget {
                     // 이미지 아이콘 개수
                     Text(
                       PostListController
-                          .to.conditionKeywordPostDatas[index].imageList!.length
+                          .to.conditionKeywordPostDatas[conditionKeywordPostDatasIndex].imageList!.length
                           .toString(),
                     ),
                   ],

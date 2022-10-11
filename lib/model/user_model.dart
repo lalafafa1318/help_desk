@@ -3,20 +3,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserModel {
   // 이름
-  String? userName;
+  String userName;
   // 설명
-  String? description;
+  String description;
   // 활동사진
-  String? image;
+  String image;
   // Uid
-  String? userUid;
+  String userUid;
 
   // Default Constructor
   UserModel({
-    this.userName,
-    this.description,
-    this.image,
-    this.userUid,
+    required this.userName,
+    required this.description,
+    required this.image,
+    required this.userUid,
   });
 
   // Instance를 복제하는 method
@@ -31,18 +31,18 @@ class UserModel {
 
   // Map를 Model class로 바꾸는 constructor
   UserModel.fromMap(Map<String, dynamic> mapData)
-      : userName = mapData['userName'] ?? '',
-        description = mapData['description'] ?? '',
-        image = mapData['image'] ?? '',
-        userUid = mapData['userUid'] ?? '';
+      : userName = mapData['userName'].toString(),
+        description = mapData['description'].toString(),
+        image = mapData['image'].toString(),
+        userUid = mapData['userUid'].toString();
 
   // Model class를 Map으로 바꾸는 method
   static Map<String, dynamic> toMap(UserModel user) {
     return {
-      'userName': user.userName ?? '',
-      'description': user.description ?? '',
-      'image': user.image ?? '',
-      'userUid': user.userUid ?? '',
+      'userName': user.userName,
+      'description': user.description,
+      'image': user.image,
+      'userUid': user.userUid,
     };
   }
 }

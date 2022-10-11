@@ -6,17 +6,31 @@ import 'package:get/get.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/distinguishRouting.dart';
+import 'package:help_desk/screen/bottomNavigationBar/postList/specific_photo_view_page.dart';
 
 // 게시한 글과 댓글을 보여주는 Page 입니다.
-class SpecificPostPage extends StatelessWidget {
-  SpecificPostPage({super.key});
+class SpecificPostPage extends StatefulWidget {
+  const SpecificPostPage({super.key});
 
+  @override
+  State<SpecificPostPage> createState() => _SpecificPostPageState();
+}
+
+class _SpecificPostPageState extends State<SpecificPostPage> {
   // PostListPage에서 라우팅 되었는지
-  // 아니면 KeywordPostListPage에서 라우팅 되었는지 확인하는 변수
+  // KeywordPostListPage에서 라우팅 되었는지 여부를 확인하는 변수
   DistinguishRouting? whereRoute;
 
+  // PostListPage에서 Routing되었을 떄 Index를 받게 되는 변수
+  int? postDataIndex;
+  // PostListPage에서 Routing되었을 떄 User 정보를 받게 되는 변수
+  Map<String, dynamic>? userInfo;
+
+  // KeywordPostListPage에서 Routing되었을 떄 index를 받게 되는 변수
+  int? conditionKeywordPostDatasOrUserDatasIndex;
+
   // PostListPage에서 Routing 됐는지
-  // Keyㅈ
+  // KeyWordPostListPage에서 Routing 됐는지 결정한다.
   DistinguishRouting decideRouting() {
     return Get.arguments[2] ==
             DistinguishRouting.postListPage_to_specificPostPage
@@ -35,8 +49,8 @@ class SpecificPostPage extends StatelessWidget {
           // 이전 가기 버튼 입니다.
           backIcon(),
 
-          // 알림 버튼, 새로 고침 버튼 입니다.
-          noticiationIcon_refreshIcon(),
+          // 북마크 버튼, 알림 버튼, 새로 고침 버튼 입니다.
+          bookMarkIcon_noticiationIcon_refreshIcon(),
         ],
       ),
     );
@@ -56,14 +70,17 @@ class SpecificPostPage extends StatelessWidget {
     );
   }
 
-  // 알림 버튼과 새로 고침 버튼을 표시하는 Widget 입니다.
-  Widget noticiationIcon_refreshIcon() {
+  // 북마크 버튼과 알림 버튼과 새로 고침 버튼을 표시하는 Widget 입니다.
+  Widget bookMarkIcon_noticiationIcon_refreshIcon() {
     return Container(
       width: Get.width / 1.2,
       margin: const EdgeInsets.only(top: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          // 북마크 버튼 입니다.
+          bookMarkIcon(),
+
           // 알림 버튼 입니다.
           notificationIcon(),
 
@@ -71,6 +88,20 @@ class SpecificPostPage extends StatelessWidget {
           refreshIcon(),
         ],
       ),
+    );
+  }
+
+  // 북마크 버튼 입니다.
+  Widget bookMarkIcon() {
+    return IconButton(
+      onPressed: () {
+        // 알림 여부를 변경하는 코드를 작성한다.
+
+        // 토스트로 알림 표시를 제공한다.
+      },
+
+      // 알림 신청을 했으면 알림 아이콘을 표시하고, 그렇지 않으면 알림 거부 아이콘을 표시한다.
+      icon: const Icon(Icons.bookmark_border_outlined, color: Colors.grey),
     );
   }
 
@@ -122,14 +153,16 @@ class SpecificPostPage extends StatelessWidget {
         radius: 30,
         // PostListPage에서 Routing 되었는지
         // KeywordPostListPage에서 Routing 되었는지 여부에 따라 다른 로직 적용
-        backgroundImage: whereRoute ==
-                DistinguishRouting.postListPage_to_specificPostPage
-            ? CachedNetworkImageProvider(Get.arguments[1]['image'].toString())
-            : CachedNetworkImageProvider(
-                PostListController
-                    .to.conditionKeywordUserDatas[Get.arguments[0]]['image']
-                    .toString(),
-              ),
+        backgroundImage:
+            whereRoute == DistinguishRouting.postListPage_to_specificPostPage
+                ? CachedNetworkImageProvider(userInfo!['image'].toString())
+                : CachedNetworkImageProvider(
+                    PostListController
+                        .to
+                        .conditionKeywordUserDatas[
+                            conditionKeywordPostDatasOrUserDatasIndex!]['image']
+                        .toString(),
+                  ),
       ),
     );
   }
@@ -161,12 +194,14 @@ class SpecificPostPage extends StatelessWidget {
       width: 300,
       child: whereRoute == DistinguishRouting.postListPage_to_specificPostPage
           ? Text(
-              Get.arguments[1]['userName'].toString(),
+              userInfo!['userName'].toString(),
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             )
           : Text(
               PostListController
-                  .to.conditionKeywordUserDatas[Get.arguments[0]]['userName']
+                  .to
+                  .conditionKeywordUserDatas[
+                      conditionKeywordPostDatasOrUserDatasIndex!]['userName']
                   .toString(),
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
@@ -179,13 +214,15 @@ class SpecificPostPage extends StatelessWidget {
     // KeywordPostListPage에서 Routing 되었는지 여부에 따라 다른 로직 적용
     return whereRoute == DistinguishRouting.postListPage_to_specificPostPage
         ? Text(
-            PostListController.to.postDatas[Get.arguments[0]].postTime
-                .toString(),
+            PostListController.to.postDatas[postDataIndex!].postTime.toString(),
             style: const TextStyle(fontSize: 13),
           )
         : Text(
             PostListController
-                .to.conditionKeywordPostDatas[Get.arguments[0]].postTime
+                .to
+                .conditionKeywordPostDatas[
+                    conditionKeywordPostDatasOrUserDatasIndex!]
+                .postTime
                 .toString(),
             style: const TextStyle(fontSize: 13),
           );
@@ -228,13 +265,16 @@ class SpecificPostPage extends StatelessWidget {
     // KeywordPostListPage에서 Routing 되었는지 여부에 따라 다른 로직 적용
     return whereRoute == DistinguishRouting.postListPage_to_specificPostPage
         ? Text(
-            PostListController.to.postDatas[Get.arguments[0]].postTitle
+            PostListController.to.postDatas[postDataIndex!].postTitle
                 .toString(),
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           )
         : Text(
             PostListController
-                .to.conditionKeywordPostDatas[Get.arguments[0]].postTitle
+                .to
+                .conditionKeywordPostDatas[
+                    conditionKeywordPostDatasOrUserDatasIndex!]
+                .postTitle
                 .toString(),
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           );
@@ -246,14 +286,17 @@ class SpecificPostPage extends StatelessWidget {
     // KeywordPostListPage에서 Routing 되었는지 여부에 따라 다른 로직 적용
     return whereRoute == DistinguishRouting.postListPage_to_specificPostPage
         ? Text(
-            PostListController.to.postDatas[Get.arguments[0]].postContent
+            PostListController.to.postDatas[postDataIndex!].postContent
                 .toString(),
             style: const TextStyle(
                 color: Colors.grey, fontSize: 15, fontWeight: FontWeight.bold),
           )
         : Text(
             PostListController
-                .to.conditionKeywordPostDatas[Get.arguments[0]].postContent
+                .to
+                .conditionKeywordPostDatas[
+                    conditionKeywordPostDatasOrUserDatasIndex!]
+                .postContent
                 .toString(),
             style: const TextStyle(
                 color: Colors.grey, fontSize: 15, fontWeight: FontWeight.bold),
@@ -265,8 +308,7 @@ class SpecificPostPage extends StatelessWidget {
     // PostListPage에서 Routing 되었는지
     // KeywordPostListPage에서 Routing 되었는지 여부에 따라 다른 로직 적용
     return whereRoute == DistinguishRouting.postListPage_to_specificPostPage
-        ? PostListController
-                .to.postDatas[Get.arguments[0]].imageList!.isNotEmpty
+        ? PostListController.to.postDatas[postDataIndex!].imageList!.isNotEmpty
             ? SizedBox(
                 width: double.infinity,
                 height: 250,
@@ -274,17 +316,21 @@ class SpecificPostPage extends StatelessWidget {
                   shrinkWrap: true,
                   scrollDirection: Axis.horizontal,
                   itemCount: PostListController
-                      .to.postDatas[Get.arguments[0]].imageList!.length,
-                  itemBuilder: (context, index) {
-                    return showPhotos(index);
+                      .to.postDatas[postDataIndex!].imageList!.length,
+                  itemBuilder: (context, imageIndex) {
+                    return showPhotos(imageIndex);
                   },
                 ))
             : const Visibility(
                 child: Text('Visibility 테스트'),
                 visible: false,
               )
-        : PostListController.to.conditionKeywordPostDatas[Get.arguments[0]]
-                .imageList!.isNotEmpty
+        : PostListController
+                .to
+                .conditionKeywordPostDatas[
+                    conditionKeywordPostDatasOrUserDatasIndex!]
+                .imageList!
+                .isNotEmpty
             ? SizedBox(
                 width: double.infinity,
                 height: 250,
@@ -293,7 +339,8 @@ class SpecificPostPage extends StatelessWidget {
                   scrollDirection: Axis.horizontal,
                   itemCount: PostListController
                       .to
-                      .conditionKeywordPostDatas[Get.arguments[0]]
+                      .conditionKeywordPostDatas[
+                          conditionKeywordPostDatasOrUserDatasIndex!]
                       .imageList!
                       .length,
                   itemBuilder: (context, imageIndex) {
@@ -313,29 +360,47 @@ class SpecificPostPage extends StatelessWidget {
       child: Container(
         width: 250,
         margin: const EdgeInsets.symmetric(horizontal: 5),
-        child: CachedNetworkImage(
-          imageUrl:
-              whereRoute == DistinguishRouting.postListPage_to_specificPostPage
-                  ? PostListController
-                      .to.postDatas[Get.arguments[0]].imageList![imageIndex]
-                      .toString()
-                  : PostListController
-                      .to
-                      .conditionKeywordPostDatas[Get.arguments[0]]
-                      .imageList![imageIndex]
-                      .toString(),
-          imageBuilder: (context, imageProvider) => Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              image: DecorationImage(
-                image: imageProvider,
-                fit: BoxFit.cover,
+        child:
+            // 사진을 Tap하면?
+            GestureDetector(
+          onTap: () {
+            int datasIndex = (whereRoute ==
+                    DistinguishRouting.postListPage_to_specificPostPage
+                ? postDataIndex!
+                : conditionKeywordPostDatasOrUserDatasIndex!);
+
+            // PhotoView 페이지로 이동한다.
+            // index 정보와 어디서 Routing 됐는지 정보를 arguments로 전달한다.
+            Get.to(
+              () => SpecificPhotoViewPage(),
+              arguments: [whereRoute, datasIndex, imageIndex],
+            );
+          },
+          // 사진을 그린다.
+          child: CachedNetworkImage(
+            imageUrl: whereRoute ==
+                    DistinguishRouting.postListPage_to_specificPostPage
+                ? PostListController
+                    .to.postDatas[Get.arguments[0]].imageList![imageIndex]
+                    .toString()
+                : PostListController
+                    .to
+                    .conditionKeywordPostDatas[Get.arguments[0]]
+                    .imageList![imageIndex]
+                    .toString(),
+            imageBuilder: (context, imageProvider) => Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                image: DecorationImage(
+                  image: imageProvider,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
+            placeholder: (context, url) =>
+                const Center(child: CircularProgressIndicator()),
+            errorWidget: (context, url, error) => const Icon(Icons.error),
           ),
-          placeholder: (context, url) =>
-              const Center(child: CircularProgressIndicator()),
-          errorWidget: (context, url, error) => const Icon(Icons.error),
         ),
       ),
     );
@@ -373,7 +438,9 @@ class SpecificPostPage extends StatelessWidget {
         const SizedBox(width: 3),
 
         // 좋아요 수 입니다.
-        Text('1', style: const TextStyle(fontSize: 20)),
+        Text('1',
+            style: const TextStyle(
+                color: Colors.red, fontSize: 15, fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -392,18 +459,23 @@ class SpecificPostPage extends StatelessWidget {
         const SizedBox(width: 3),
 
         // 댓글 수 입니다.
-        Text('1', style: const TextStyle(fontSize: 20)),
+        Text(
+          '1',
+          style: const TextStyle(
+              color: Colors.blue, fontSize: 15, fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }
 
-  // 글에 대한 공감을 누를 수 있는 Widget 입니다.
+  // 게시물에 대한 공감을 누를 수 있는 Widget 입니다.
   Widget clickSympathy() {
     return Container(
       margin: const EdgeInsets.only(left: 20),
       child: ElevatedButton.icon(
-          onPressed: () {
-            // 게시물에 대한 공감을 1 올리는 코드를 작성한다.
+          onPressed: () async {
+            // AlertDialog를 통해 공감할 것인지 묻는다.
+            await dialog();
           },
           style: const ButtonStyle(
             backgroundColor: MaterialStatePropertyAll(Colors.grey),
@@ -413,15 +485,96 @@ class SpecificPostPage extends StatelessWidget {
     );
   }
 
-  // 댓글 목록을 ListView로 나타내는 Widget 입니다.
+  // 게시물에 대한 공감을 클릭했을 떄 나타나는 AlertDialog 입니다.
+  Future<Widget?> dialog() async {
+    return showDialog(
+      context: context,
+      //barrierDismissible - Dialog를 제외한 다른 화면 터치 x
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          // RoundedRectangleBorder - Dialog 화면 모서리 둥글게 조절
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text('이 글을 공감하시겠습니까?'),
+            ],
+          ),
+          actions: [
+            // 취소 버튼
+            TextButton(
+              child: const Text(
+                '취소',
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: () {
+                // 이전 페이지로 돌아가기
+                Get.back();
+              },
+            ),
+            // 확인 버튼
+            TextButton(
+              child: const Text(
+                '확인',
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: () {
+                // 서버를 통해 게시물에 대해서 사용자가 좋아요를 누른 적이 있는지 확인한다.
+                PostListController.to.checkLikeUsersFromThePost();
 
-  // 댓글, 대댓글을 입력할 수 있는 Widget 입니다.
+                // 이전 페이지 돌아가기 
+                // 리스트에 없으면, 서버 Post 속성 whoLikeThePost에 사용자를 추가한다. (이전과는 다른 방식을 요구할 것이다)
+                // 화면을 재랜더링하면서 좋아요 숫자가 증가한다.
+                // 하단 snackBar로 "공감을 했습니다." 표시한다.
 
+                // 이전 페이지 돌아가기
+                // 리스트에 있으면 하단 snackBar로 "이미 공감한 글 입니다 :)" 표시한다.
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // specific Post Pager가 처음 불릴 떄 호출되는 method
   @override
-  Widget build(BuildContext context) {
-    // PostListPage에서 라우팅 되었다면...
+  void initState() {
+    super.initState();
+
+    print('SpecificPostPage - initState() 호출');
+
+    // PostListPage에서 Routing 됐는지
+    // KeywordPostListPage에서 Routing 됐는지 결정한다.
     decideRouting();
 
+    // PostListPage에서 Routing 됐는가, KeywordPostListPage에서 Routing 됐는가에 따라
+    // 변수를 달리 대입한다.
+    if (whereRoute == DistinguishRouting.postListPage_to_specificPostPage) {
+      postDataIndex = Get.arguments[0];
+      userInfo = Get.arguments[1];
+    }
+    //
+    else {
+      conditionKeywordPostDatasOrUserDatasIndex = Get.arguments[0];
+    }
+  }
+
+  // specific Post Page가 사라질 떄 호출되는 method
+  @override
+  void dispose() {
+    // 변수 초기화
+    print('SpecificPostPage - dispose() 호출');
+
+    super.dispose();
+  }
+
+  // 댓글 목록을 ListView로 나타내는 Widget 입니다.
+  @override
+  Widget build(BuildContext context) {
     // 화면을 그린다.
     return SafeArea(
       child: Scaffold(

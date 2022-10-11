@@ -161,18 +161,19 @@ class PostListPage extends StatelessWidget {
   Widget preparePostDatas() {
     return Expanded(
       child: ListView.builder(
+        reverse: false,
         itemCount: PostListController.to.postDatas.length,
-        itemBuilder: (BuildContext context, int index) {
-          return getUserData(index);
+        itemBuilder: (BuildContext context, int postDatasIndex) {
+          return getUserData(postDatasIndex);
         },
       ),
     );
   }
 
   // 게시물 정보에 있는 사용자 Uid를 바탕으로 사용자 정보를 가져오는 Widget
-  Widget getUserData(int index) {
+  Widget getUserData(int postDatasIndex) {
     // 사용자 Uid를 뽑는다.
-    String userUid = PostListController.to.postDatas[index].userUid.toString();
+    String userUid = PostListController.to.postDatas[postDatasIndex].userUid.toString();
 
     // 사용자 Uid를 이용하여 User 정보를 가져오고 활용한다. + Post 정보도 활용한다.
     return FutureBuilder(
@@ -194,20 +195,20 @@ class PostListPage extends StatelessWidget {
             Get.to(
               () => SpecificPostPage(),
               arguments: [
-                index,
+                postDatasIndex,
                 snapshot.data!,
                 DistinguishRouting.postListPage_to_specificPostPage,
               ],
             );
           },
-          child: showPostDataElement(index, snapshot.data!),
+          child: showPostDataElement(postDatasIndex, snapshot.data!),
         );
       },
     );
   }
 
   // 각각의 게시물을 표현하는 widget
-  Widget showPostDataElement(int index, Map<String, dynamic> data) {
+  Widget showPostDataElement(int postDatasIndex, Map<String, dynamic> userInfo) {
     return GFCard(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
       elevation: 2.0,
@@ -221,21 +222,21 @@ class PostListPage extends StatelessWidget {
         // User 이미지
         avatar: GFAvatar(
           radius: 30,
-          backgroundImage: CachedNetworkImageProvider(data['image'].toString()),
+          backgroundImage: CachedNetworkImageProvider(userInfo['image'].toString()),
         ),
 
         // User 이름
-        titleText: data['userName'].toString(),
+        titleText: userInfo['userName'].toString(),
 
         // 게시물 제목
         subTitleText:
-            PostListController.to.postDatas[index].postTitle.toString(),
+            PostListController.to.postDatas[postDatasIndex].postTitle.toString(),
 
         // 게시물 올린 날짜
         description: Container(
           margin: const EdgeInsets.only(top: 5),
           child: Text(
-              PostListController.to.postDatas[index].postTime.toString(),
+              PostListController.to.postDatas[postDatasIndex].postTime.toString(),
               style: const TextStyle(fontSize: 10)),
         ),
       ),
@@ -248,7 +249,7 @@ class PostListPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              PostListController.to.postDatas[index].postContent.toString(),
+              PostListController.to.postDatas[postDatasIndex].postContent.toString(),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -256,7 +257,7 @@ class PostListPage extends StatelessWidget {
           const SizedBox(height: 10),
 
           // 게시물에 이미지가 있으면 이를 알려주고, 없으면 빈칸으로 보여준다.
-          PostListController.to.postDatas[index].imageList!.isNotEmpty
+          PostListController.to.postDatas[postDatasIndex].imageList!.isNotEmpty
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -272,7 +273,7 @@ class PostListPage extends StatelessWidget {
 
                     // 이미지 아이콘 개수
                     Text(
-                      PostListController.to.postDatas[index].imageList!.length
+                      PostListController.to.postDatas[postDatasIndex].imageList!.length
                           .toString(),
                     ),
                   ],

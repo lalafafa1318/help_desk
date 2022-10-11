@@ -116,7 +116,8 @@ class PostingController extends GetxController {
         userUid: AuthController.to.user.value.userUid,
         postUid: postMap['postUUid'],
         postTime: formatDate,
-        changePostTime: formatDate,
+        changePostTime: formatDate, 
+        whoLikeThePost: [],
       );
 
       // Firebase DataBase에 게시물 upload
