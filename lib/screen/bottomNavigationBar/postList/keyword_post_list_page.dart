@@ -147,7 +147,8 @@ class KeywordPostListPage extends StatelessWidget {
       flex: 1,
       child: ListView.builder(
         itemCount: PostListController.to.conditionKeywordPostDatas.length,
-        itemBuilder: (BuildContext context, int conditionKeywordPostDatasIndex) {
+        itemBuilder:
+            (BuildContext context, int conditionKeywordPostDatasIndex) {
           return GestureDetector(
             onTap: () {
               // PostListController의 conditionKeyWordPostDatas와 conditionKeywordUserDatas에 대한 index만 필요하다.
@@ -162,7 +163,8 @@ class KeywordPostListPage extends StatelessWidget {
                 ],
               );
             },
-            child: showConditionKeywordPostDataElement(conditionKeywordPostDatasIndex),
+            child: showConditionKeywordPostDataElement(
+                conditionKeywordPostDatasIndex),
           );
         },
       ),
@@ -185,26 +187,34 @@ class KeywordPostListPage extends StatelessWidget {
         avatar: GFAvatar(
           radius: 30,
           backgroundImage: CachedNetworkImageProvider(
-            PostListController.to.conditionKeywordUserDatas[conditionKeywordPostDatasIndex]['image']
+            PostListController
+                .to
+                .conditionKeywordUserDatas[conditionKeywordPostDatasIndex]
+                    ['image']
                 .toString(),
           ),
         ),
 
         // 사용자 이름
         titleText: PostListController
-            .to.conditionKeywordUserDatas[conditionKeywordPostDatasIndex]['userName']
+            .to
+            .conditionKeywordUserDatas[conditionKeywordPostDatasIndex]
+                ['userName']
             .toString(),
 
         // 게시물 제목
-        subTitleText: PostListController
-            .to.conditionKeywordPostDatas[conditionKeywordPostDatasIndex].postTitle
+        subTitleText: PostListController.to
+            .conditionKeywordPostDatas[conditionKeywordPostDatasIndex].postTitle
             .toString(),
 
         // 게시물 올린 날짜
         description: Container(
           margin: const EdgeInsets.only(top: 5),
           child: Text(
-              PostListController.to.conditionKeywordPostDatas[conditionKeywordPostDatasIndex].postTime
+              PostListController
+                  .to
+                  .conditionKeywordPostDatas[conditionKeywordPostDatasIndex]
+                  .postTime
                   .toString(),
               style: const TextStyle(fontSize: 10)),
         ),
@@ -218,7 +228,10 @@ class KeywordPostListPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              PostListController.to.conditionKeywordPostDatas[conditionKeywordPostDatasIndex].postContent
+              PostListController
+                  .to
+                  .conditionKeywordPostDatas[conditionKeywordPostDatasIndex]
+                  .postContent
                   .toString(),
               overflow: TextOverflow.ellipsis,
             ),
@@ -228,7 +241,10 @@ class KeywordPostListPage extends StatelessWidget {
 
           // 게시물에 이미지가 있으면 이를 알려주고, 없으면 빈칸으로 보여준다.
           PostListController
-                  .to.conditionKeywordPostDatas[conditionKeywordPostDatasIndex].imageList!.isNotEmpty
+                  .to
+                  .conditionKeywordPostDatas[conditionKeywordPostDatasIndex]
+                  .imageList
+                  .isNotEmpty
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -245,7 +261,11 @@ class KeywordPostListPage extends StatelessWidget {
                     // 이미지 아이콘 개수
                     Text(
                       PostListController
-                          .to.conditionKeywordPostDatas[conditionKeywordPostDatasIndex].imageList!.length
+                          .to
+                          .conditionKeywordPostDatas[
+                              conditionKeywordPostDatasIndex]
+                          .imageList
+                          .length
                           .toString(),
                     ),
                   ],
@@ -267,7 +287,14 @@ class KeywordPostListPage extends StatelessWidget {
                 size: 15,
               ),
               const SizedBox(width: 5),
-              Text('10'),
+              Text(
+                PostListController
+                    .to
+                    .conditionKeywordPostDatas[conditionKeywordPostDatasIndex]
+                    .whoLikeThePost
+                    .length
+                    .toString(),
+              ),
             ],
           ),
 

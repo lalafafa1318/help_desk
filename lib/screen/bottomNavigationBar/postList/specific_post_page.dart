@@ -5,6 +5,7 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
+import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/distinguishRouting.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_photo_view_page.dart';
 
@@ -438,7 +439,18 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         const SizedBox(width: 3),
 
         // 좋아요 수 입니다.
-        Text('1',
+        Text(
+            whereRoute == DistinguishRouting.postListPage_to_specificPostPage
+                ? PostListController
+                    .to.postDatas[postDataIndex!].whoLikeThePost.length
+                    .toString()
+                : PostListController
+                    .to
+                    .conditionKeywordPostDatas[
+                        conditionKeywordPostDatasOrUserDatasIndex!]
+                    .whoLikeThePost
+                    .length
+                    .toString(),
             style: const TextStyle(
                 color: Colors.red, fontSize: 15, fontWeight: FontWeight.bold)),
       ],
@@ -521,23 +533,92 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                 '확인',
                 style: TextStyle(color: Colors.red),
               ),
-              onPressed: () {
+              onPressed: () async {
                 // 서버를 통해 게시물에 대해서 사용자가 좋아요를 누른 적이 있는지 확인한다.
-                PostListController.to.checkLikeUsersFromThePost();
+                bool isResult = await checkLikeUsersFromThePost();
 
-                // 이전 페이지 돌아가기 
-                // 리스트에 없으면, 서버 Post 속성 whoLikeThePost에 사용자를 추가한다. (이전과는 다른 방식을 요구할 것이다)
-                // 화면을 재랜더링하면서 좋아요 숫자가 증가한다.
-                // 하단 snackBar로 "공감을 했습니다." 표시한다.
-
-                // 이전 페이지 돌아가기
-                // 리스트에 있으면 하단 snackBar로 "이미 공감한 글 입니다 :)" 표시한다.
+                // 좋아요 리스트에 사용자 Uid가 있는 경우, 없는 경우에 따라 다른 로직을 구현하는 method
+                await isUserUidInWhoLikeThePost(isResult);
               },
             ),
           ],
         );
       },
     );
+  }
+
+  // 서버를 통해 게시물에 대해서 사용자가 좋아요를 누른 적이 있는지 확인하는 method
+  Future<bool> checkLikeUsersFromThePost() async {
+    if (whereRoute == DistinguishRouting.postListPage_to_specificPostPage) {
+      return await PostListController.to.checkLikeUsersFromThePost(
+        PostListController.to.postDatas[postDataIndex!].postUid,
+        SettingsController.to.settingUser!.userUid,
+      );
+    }
+    //
+    else {
+      return await PostListController.to.checkLikeUsersFromThePost(
+        PostListController
+            .to
+            .conditionKeywordPostDatas[
+                conditionKeywordPostDatasOrUserDatasIndex!]
+            .postUid,
+        SettingsController.to.settingUser!.userUid,
+      );
+    }
+  }
+
+  // 좋아요 리스트에 사용자 Uid가 있는 경우, 없는 경우에 따라 다른 로직을 구현하는 method
+  Future<void> isUserUidInWhoLikeThePost(bool isResult) async {
+    // 좋아요 리스트에 사용자 Uid가 있는 경우
+    if (isResult) {
+      // 이전 페이지 돌아가기
+      Get.back();
+
+      // 리스트에 있으면 하단 snackBar로 "이미 공감한 글 입니다 :)" 표시한다.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('이미 공감했습니다 :)'),
+          backgroundColor: Colors.black87,
+        ),
+      );
+    }
+
+    // 좋아요 리스트에 사용자 Uid가 없는 경우
+    else {
+      // 이전 페이지 돌아가기
+      Get.back();
+
+      // 리스트에 없으면, 서버 Post 속성 whoLikeThePost에 사용자를 추가한다. (이전과는 다른 방식을 요구할 것이다)
+      if (whereRoute == DistinguishRouting.postListPage_to_specificPostPage) {
+       await PostListController.to.addUserWhoLikeThePost(
+          PostListController.to.postDatas[postDataIndex!].postUid,
+          SettingsController.to.settingUser!.userUid,
+        );
+      }
+      //
+      else {
+        await PostListController.to.addUserWhoLikeThePost(
+          PostListController
+              .to
+              .conditionKeywordPostDatas[
+                  conditionKeywordPostDatasOrUserDatasIndex!]
+              .postUid,
+          SettingsController.to.settingUser!.userUid,
+        );
+      }
+
+      // 화면을 재랜더링 한다.
+      setState(() {});
+
+      // 하단 snackBar로 "공감을 했습니다." 표시한다.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('이 글을 공감했습니다 :)'),
+          backgroundColor: Colors.black87,
+        ),
+      );
+    }
   }
 
   // specific Post Pager가 처음 불릴 떄 호출되는 method

@@ -37,7 +37,7 @@ class PostListController extends GetxController {
 
       postDatas.add(postElement);
     }
-    
+
     print('postDatas 개수 : ${postDatas.length}');
   }
 
@@ -111,8 +111,16 @@ class PostListController extends GetxController {
 
   // 사용자가 게시물에 대해서 좋아요 버튼을 클릭할 떄
   // 게시물의 좋아요 속성에 사용자가 있는지 판별하는 method
-  void checkLikeUsersFromThePost() {
-    CommunicateFirebase.checkLikeUsersFromThePost();
+  Future<bool> checkLikeUsersFromThePost(String postUid, String userUid) async {
+    bool isResult =
+        await CommunicateFirebase.checkLikeUsersFromThePost(postUid, userUid);
+
+    return isResult;
+  }
+
+  // 사용자가 게시물에 대해서 공감을 누른 경우 호출되는 method (단, 공감을 하지 않았을 때에만 적용)
+  Future<void> addUserWhoLikeThePost(String postUid, String userUid) async {
+     await CommunicateFirebase.addUserWhoLikeThePost(postUid, userUid);
   }
 
   // PostListController가 메모리에 처음 올라갈 떄 호출되는 method

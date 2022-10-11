@@ -19,7 +19,8 @@ class CommunicateFirebase {
   static final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
 
   // Firebase Database에서 uid가 있는지 확인하는 method
-  static Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(String userUid) async {
+  static Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(
+      String userUid) async {
     QuerySnapshot<Map<String, dynamic>> userData = await _firebaseFirestore
         .collection('users')
         .where('userUid', isEqualTo: userUid)
@@ -39,7 +40,8 @@ class CommunicateFirebase {
   }
 
   // "회원가입" 페이지에 있는 Image를 Firebase Storage에 upload하는 method
-  static UploadTask signInUploadImage({required File imageFile, required String userUid}) {
+  static UploadTask signInUploadImage(
+      {required File imageFile, required String userUid}) {
     // substring을 왜 써야 하는지 알 수 있는 코드 (jpg' or jpg 인가 차이)
     // print('imageFile : ${imageFile.toString()}');
     // print('substring을 사용하지 않는 예 : ${imageFile.toString().split('.').last}');
@@ -62,7 +64,8 @@ class CommunicateFirebase {
 
   // "Posting" 페이지에 게시물을 업로드할 떄 Image를
   //  Firebase Stroage에 upload하는 method
-  static Map<String, dynamic> postUploadImage({required RxList<File> imageList, required String userUid}) {
+  static Map<String, dynamic> postUploadImage(
+      {required RxList<File> imageList, required String userUid}) {
     // UploadTask을 관리하는 배열 입니다.
     List<UploadTask> uploadTasks = [];
 
@@ -94,7 +97,8 @@ class CommunicateFirebase {
   }
 
   // "프로필 수정" 페이지에서 수정한 Image를 Firebase Storage에 update하는 method
-  static Future<UploadTask> editUploadImage({required File imageFile, required String userUid}) async {
+  static Future<UploadTask> editUploadImage(
+      {required File imageFile, required String userUid}) async {
     // ImageFile의 확장자(png, jpg) 가져오기
     String imageFileExt = imageFile.toString().split('.').last.substring(0, 3);
 
@@ -157,11 +161,52 @@ class CommunicateFirebase {
         .set(PostModel.toMap(post));
   }
 
-  // Firebase DataBase Post 정보의 whoLikeThePost 속성에 접근하여 좋아요를 누른 사용자를 확인하는 method
-  static void checkLikeUsersFromThePost(){
-    
+  // Firebase DataBase에서 Post 정보를 get하는 method
+  static Future<Map<String, dynamic>> getPostData(String postUid) async {
+    DocumentSnapshot<Map<String, dynamic>> documentSnapshotPostData =
+        await _firebaseFirestore.collection('posts').doc(postUid).get();
 
+    Map<String, dynamic> postData = documentSnapshotPostData.data()!;
 
+    return postData;
   }
 
+  // Firebase DataBase Post 정보의 whoLikeThePost 속성에 접근하여 좋아요를 누른 사용자를 확인하는 method
+  static Future<bool> checkLikeUsersFromThePost(String postUid, String userUid) async {
+    // Firebase DataBase에서 Post 정보를 get하는 method를 실행한다.
+    Map<String, dynamic> postData = await getPostData(postUid);
+
+    // whoLikeThePost에서 사용자 Uid가 있는지 확인한다.
+    for (String uid in postData['whoLikeThePost']) {
+      // uid 비교 작업
+      if (userUid == uid) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  // Firebase DataBase Post 정보의 whoLikeThePost 속성에 사용자를 추가하는 method
+  static Future<void> addUserWhoLikeThePost(String postUid, String userUid) async {
+    // Firebase DataBase에서 Post 정보를 get하는 method를 실행한다.
+    Map<String, dynamic> postData = await getPostData(postUid);
+
+    // Firebase DataBase에서 Post 정보의 whoLikeThePost 속성의 배열 값을 가져온다.
+    List<String> whoLikeThePostArray =
+        List<String>.from(postData['whoLikeThePost'] as List);
+
+    // 배열에 사용자 Uid를 추가한다.
+    whoLikeThePostArray.add(userUid);
+
+    // Firebase DataBase에서 Post 정보의 whoLikeThePost 속성의 배열 값을 업데이트 한다.
+    await _firebaseFirestore
+        .collection('posts')
+        .doc(postUid)
+        .update({'whoLikeThePost': whoLikeThePostArray});
+
+    // 변수 초기화
+    postData.clear();
+    whoLikeThePostArray.clear();
+  }
 }
