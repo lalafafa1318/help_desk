@@ -16,7 +16,7 @@ class SpecificPostPage extends StatelessWidget {
   DistinguishRouting? whereRoute;
 
   // PostListPage에서 Routing 됐는지
-  // KeywordPostListPage에서 Routing 됐는지 여부를 결정하는 Widget 입니다.
+  // Keyㅈ
   DistinguishRouting decideRouting() {
     return Get.arguments[2] ==
             DistinguishRouting.postListPage_to_specificPostPage
