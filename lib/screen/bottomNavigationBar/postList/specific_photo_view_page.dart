@@ -20,7 +20,7 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
   // KeywordPostListPage인지 확인하는 변수
   DistinguishRouting? whereRoute;
 
-  // PostListController postDatas 또는 conditionKeywordPostDatas의 해당 index
+  // PostListController postDatas 또는 conditionTextPostDatas의 해당 index
   int? datasIndex;
 
   // 이미지 index
@@ -102,8 +102,8 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
                       DistinguishRouting.postListPage_to_specificPostPage
                   ? PostListController
                       .to.postDatas[datasIndex!].imageList!.length
-                  : PostListController.to.conditionKeywordPostDatas[datasIndex!]
-                      .imageList!.length,
+                  : PostListController
+                      .to.conditionTextPostDatas[datasIndex!].imageList!.length,
               pageSnapping: true,
               controller: pageController,
               onPageChanged: (page) {
@@ -125,7 +125,7 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
                         : CachedNetworkImageProvider(
                             PostListController
                                 .to
-                                .conditionKeywordPostDatas[datasIndex!]
+                                .conditionTextPostDatas[datasIndex!]
                                 .imageList![index]
                                 .toString(),
                           ),
@@ -150,7 +150,7 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
                     image!,
                   )
                 : indicators(
-                    PostListController.to.conditionKeywordPostDatas[datasIndex!]
+                    PostListController.to.conditionTextPostDatas[datasIndex!]
                         .imageList!.length,
                     image!),
           ),

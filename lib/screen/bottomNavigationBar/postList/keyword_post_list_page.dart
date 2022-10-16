@@ -10,6 +10,7 @@ import 'package:getwidget/components/list_tile/gf_list_tile.dart';
 import 'package:getwidget/position/gf_position.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/model/post_model.dart';
+import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/distinguishRouting.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/post_list_page.dart';
@@ -158,7 +159,7 @@ class KeywordPostListPage extends StatelessWidget {
     return Expanded(
       flex: 1,
       child: ListView.builder(
-        itemCount: PostListController.to.conditionKeywordPostDatas.length,
+        itemCount: PostListController.to.conditionTextPostDatas.length,
         itemBuilder: (BuildContext context, int index) {
           return GestureDetector(
             onTap: () {
@@ -186,12 +187,12 @@ class KeywordPostListPage extends StatelessWidget {
         'KeywordPostListPage - ${index} 번쨰 checkConditionTextPostData() - 게시물 표현');
 
     // PostListController.to.conditonKeywordPostDatas[index]
-    // PostListController.to.conditionKeywordUserDatas[index]로 일일히 적기 어렵다.
+    // PostListController.to.conditionTextUserDatas[index]로 일일히 적기 어렵다.
     // 따라서 이를 대응하는 변수를 설정한다.
     PostModel conditionKeywordPostData =
-        PostListController.to.conditionKeywordPostDatas[index];
-    Map<String, dynamic> conditionKeywordUserData =
-        PostListController.to.conditionKeywordUserDatas[index];
+        PostListController.to.conditionTextPostDatas[index];
+    UserModel conditionKeywordUserData =
+        PostListController.to.conditionTextUserDatas[index];
 
     return GFCard(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
@@ -206,13 +207,12 @@ class KeywordPostListPage extends StatelessWidget {
         // User 이미지
         avatar: GFAvatar(
           radius: 30,
-          backgroundImage: CachedNetworkImageProvider(
-            conditionKeywordUserData['image'].toString(),
-          ),
+          backgroundImage:
+              CachedNetworkImageProvider(conditionKeywordUserData.image),
         ),
 
         // 사용자 이름
-        titleText: conditionKeywordUserData['userName'].toString(),
+        titleText: conditionKeywordUserData.userName,
 
         // 게시물 제목
         subTitleText: conditionKeywordPostData.postTitle,

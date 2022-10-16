@@ -9,6 +9,7 @@ import 'package:getwidget/getwidget.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/const/const.dart';
 import 'package:help_desk/model/post_model.dart';
+import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
@@ -149,7 +150,8 @@ class PostListPage extends StatelessWidget {
 
   // 서버에서 받은 PostData들을 PostData를 담고 있는 배열에 추가하고
   // PostData에 따른 UserData도 UserData를 담고 있는 배열에 추가하는 역할을 하는 Widget
-  Widget prepareShowAllPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowAllPostData(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return Expanded(
       child: FutureBuilder<List<PostModel>>(
         future: PostListController.to.allocatePostDatasInArray(allData),
@@ -157,7 +159,7 @@ class PostListPage extends StatelessWidget {
           // 데이터를 기다리고 있으면 CircularProgressIndicator를 표시한다.
           if (snapshot.connectionState == ConnectionState.waiting) {
             print(
-                'PostListPage - checkConditionKeywordPostDatas() - 게시물 데이터가 없습니다.');
+                'PostListPage - prepareShowAllPostData() - 게시물 데이터를 기다리고 있습니다.');
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -203,7 +205,7 @@ class PostListPage extends StatelessWidget {
     // PostListController.to.userDatas[index]로 일일히 적기 어렵다.
     // 따라서 이를 대응하는 변수를 설정한다.
     PostModel postData = PostListController.to.postDatas[index];
-    Map<String, dynamic> userData = PostListController.to.userDatas[index];
+    UserModel userData = PostListController.to.userDatas[index];
 
     // 게시글을 표현하는 Card이다.
     return GFCard(
@@ -219,13 +221,11 @@ class PostListPage extends StatelessWidget {
         // User 이미지
         avatar: GFAvatar(
           radius: 30,
-          backgroundImage: CachedNetworkImageProvider(
-            userData['image'].toString(),
-          ),
+          backgroundImage: CachedNetworkImageProvider(userData.image),
         ),
 
         // User 이름
-        titleText: userData['userName'].toString(),
+        titleText: userData.userName,
 
         // 게시물 제목
         subTitleText: postData.postTitle,

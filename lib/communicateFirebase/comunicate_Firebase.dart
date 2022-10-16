@@ -264,7 +264,7 @@ class CommunicateFirebase {
   }
 
   // Firebase DataBase 여러 개 comment을 get 하는 method
-  static Future<void> getPostComments(String postUid) async {
+  static Future<void> getCommentData(String postUid) async {
     // 서버에서 게시물에 해당하는 댓글을 가져온다.
     QuerySnapshot<Map<String, dynamic>> comments = await _firebaseFirestore
         .collection('posts')

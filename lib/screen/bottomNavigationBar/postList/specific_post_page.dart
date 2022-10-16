@@ -33,15 +33,12 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // PostListPage에서 Routing 되었다고 가정하고, PostData에 접근할 수 있도록 하는 변수
   PostModel? routeFromPostListPage_accessPostData;
   // PostListPage에서 Routing되었을 떄 UserData에 접근할 수 있도록 하는 변수
-  Map<String, dynamic>? routeFromPostListPage_accessUserData;
+  UserModel? routeFromPostListPage_accessUserData;
 
   // KeywordPostListPage에서 Routing 되었다고 가정하고, PostData에 접근할 수 있도록 하는 변수
   PostModel? routeFromKeywordPostListPage_accessPostData;
   // keywordPostListPage에서 Routing 되었다고 가정하고, UserData에 접근할 수 있도록 하는 변수
-  Map<String, dynamic>? routeFromKeywordPostListPage_accessUserData;
-
-  // postUid
-  String? postUid;
+  UserModel? routeFromKeywordPostListPage_accessUserData;
 
   // 댓글 데이터
   List<CommentModel>? commentArray;
@@ -49,7 +46,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // PostListPage에서 Routing 됐는지
   // KeyWordPostListPage에서 Routing 됐는지 결정한다.
   DistinguishRouting decideRouting() {
-    return Get.arguments[2] ==
+    return Get.arguments[1] ==
             DistinguishRouting.postListPage_to_specificPostPage
         ? whereRoute = DistinguishRouting.postListPage_to_specificPostPage
         : whereRoute =
@@ -58,28 +55,27 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
   // 화면을 재랜더링할 떄 변수를 다시 할당한다.
   void allocateVariable() {
+    // PostListPage에서 Routing 됐을 떄
     if (whereRoute == DistinguishRouting.postListPage_to_specificPostPage) {
-      int postDataIndex = Get.arguments[0];
+      int index = Get.arguments[0];
 
-      // PostModel을 복제한다.
-      routeFromPostListPage_accessPostData = PostListController.to.postDatas[postDataIndex].copyWith();
-
-    
-      routeFromPostListPage_accessUserData = Get.arguments[1];
-
-      postUid = routeFromPostListPage_accessPostData!.postUid;
+      // PostData를 복제한다.
+      routeFromPostListPage_accessPostData =
+          PostListController.to.postDatas[index].copyWith();
+      // UserData를 복제한다.
+      routeFromPostListPage_accessUserData =
+          PostListController.to.userDatas[index].copyWith();
     }
-    //
+    // KeywordPostListPage에서 Routing 됐을 떄
     else {
-      int conditionKeywordPostDatasOrUserDatasIndex = Get.arguments[0];
+      int index = Get.arguments[0];
 
-      routeFromKeywordPostListPage_accessPostData = PostListController.to
-          .conditionKeywordPostDatas[conditionKeywordPostDatasOrUserDatasIndex];
-
-      routeFromKeywordPostListPage_accessUserData = PostListController.to
-          .conditionKeywordUserDatas[conditionKeywordPostDatasOrUserDatasIndex];
-
-      postUid = routeFromKeywordPostListPage_accessPostData!.postUid;
+      // conditionKeywordPostData를 복제한다.
+      routeFromKeywordPostListPage_accessPostData =
+          PostListController.to.conditionTextPostDatas[index].copyWith();
+      // conditionKeywordUserData를 복제한다.
+      routeFromKeywordPostListPage_accessUserData =
+          PostListController.to.conditionTextUserDatas[index].copyWith();
     }
 
     commentArray = PostListController.to.commentArray;
@@ -266,10 +262,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         backgroundImage:
             whereRoute == DistinguishRouting.postListPage_to_specificPostPage
                 ? CachedNetworkImageProvider(
-                    routeFromPostListPage_accessUserData!['image'].toString())
+                    routeFromPostListPage_accessUserData!.image,
+                  )
                 : CachedNetworkImageProvider(
-                    routeFromKeywordPostListPage_accessUserData!['image']
-                        .toString(),
+                    routeFromKeywordPostListPage_accessUserData!.image,
                   ),
       ),
     );
@@ -302,12 +298,11 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       width: 300,
       child: whereRoute == DistinguishRouting.postListPage_to_specificPostPage
           ? Text(
-              routeFromPostListPage_accessUserData!['userName'].toString(),
+              routeFromPostListPage_accessUserData!.userName,
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             )
           : Text(
-              routeFromKeywordPostListPage_accessUserData!['userName']
-                  .toString(),
+              routeFromKeywordPostListPage_accessUserData!.userName,
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
     );
@@ -405,8 +400,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   scrollDirection: Axis.horizontal,
                   itemCount:
                       routeFromPostListPage_accessPostData!.imageList.length,
-                  itemBuilder: (context, image) {
-                    return showPhotos(image);
+                  itemBuilder: (context, imageIndex) {
+                    return showPhotos(imageIndex);
                   },
                 ))
             : const Visibility(
@@ -422,8 +417,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   scrollDirection: Axis.horizontal,
                   itemCount: routeFromKeywordPostListPage_accessPostData!
                       .imageList.length,
-                  itemBuilder: (context, image) {
-                    return showPhotos(image);
+                  itemBuilder: (context, imageIndex) {
+                    return showPhotos(imageIndex);
                   },
                 ))
             : const Visibility(
@@ -433,7 +428,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // 사진을 보여주는 Widget 입니다. (optional)
-  Widget showPhotos(int image) {
+  Widget showPhotos(int imageIndex) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20), // Image border
       child: Container(
@@ -443,25 +438,24 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             // 사진을 Tap하면?
             GestureDetector(
           onTap: () {
-            int datasIndex = Get.arguments[0];
-            // int datasIndex = (whereRoute ==
-            //         DistinguishRouting.postListPage_to_specificPostPage
-            //     ? postDataIndex!
-            //     : conditionKeywordPostDatasOrUserDatasIndex!);
+            int index = Get.arguments[0];
 
-            // PhotoView 페이지로 이동한다.
-            // index 정보와 어디서 Routing 됐는지 정보를 arguments로 전달한다.
+            // PhotoView 페이지로 Routing한다.
+            // argument 0번쨰 : PostListPage 또는 KeywordPostListPage에서 Routing 되었는지 알려준다.
+            // argument 1번째 : PostData, UserData 혹은  condtionKeywordPostData, conditionKeywordUserData들을 담고 있는 배열의 index
+            // argument 2번쨰 : image의 index
             Get.to(
-              () => SpecificPhotoViewPage(),
-              arguments: [whereRoute, datasIndex, image],
+              () => const SpecificPhotoViewPage(),
+              arguments: [whereRoute, index, imageIndex],
             );
           },
           // 사진을 그린다.
           child: CachedNetworkImage(
             imageUrl: whereRoute ==
                     DistinguishRouting.postListPage_to_specificPostPage
-                ? routeFromPostListPage_accessPostData!.imageList[image]
-                : routeFromKeywordPostListPage_accessPostData!.imageList[image],
+                ? routeFromPostListPage_accessPostData!.imageList[imageIndex]
+                : routeFromKeywordPostListPage_accessPostData!
+                    .imageList[imageIndex],
             imageBuilder: (context, imageProvider) => Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
@@ -560,7 +554,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       margin: const EdgeInsets.only(left: 20),
       child: ElevatedButton.icon(
         onPressed: () async {
-          // 키보드 내리기 (설사 키보드가 안나왔다 해도 내린다.)
+          // // 키보드 내리기 (설사 키보드가 안나왔다 해도 내린다.)
           FocusManager.instance.primaryFocus?.unfocus();
 
           // 키보드를 내리고 AlertDialog가 보여지기까지 과정에서 여유를 주고자 작성했다. -> 그러면 내부 에러 코드가 나오지 않게 된다.
@@ -581,7 +575,11 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // 댓글과 대댓글을 보여주기 위해 ListView로 나타내는 Widget 입니다.
   Widget showCommentListView() {
     return FutureBuilder<List<CommentModel>>(
-      future: PostListController.to.getPostComments(postUid!),
+      future: PostListController.to.getCommentData(
+        whereRoute == DistinguishRouting.postListPage_to_specificPostPage
+            ? routeFromPostListPage_accessPostData!.postUid
+            : routeFromKeywordPostListPage_accessPostData!.postUid,
+      ),
       builder: (context, snapshot) {
         // 데이터를 기다리고 있다.
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -651,11 +649,11 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     String commentUserUid = comment.whoWriteUserUid;
 
     // comment에 있는 사용자 Uid를 가지고 user 정보에 접근해야 한다.
-    return FutureBuilder<Map<String, dynamic>>(
-      future: CommunicateFirebase.getUserData(commentUserUid),
+    return FutureBuilder<UserModel>(
+      future: PostListController.to.getUserData(commentUserUid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          return const CircularProgressIndicator();
         }
 
         return Row(
@@ -672,23 +670,24 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // 댓글 창에 있는 아바타
-  Widget showCommentAvatar(Map<String, dynamic> commentUser) {
+  Widget showCommentAvatar(UserModel commentUser) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: GFAvatar(
         radius: 15,
-        backgroundImage:
-            CachedNetworkImageProvider(commentUser['image'].toString()),
+        backgroundImage: CachedNetworkImageProvider(commentUser.image),
       ),
     );
   }
 
   // 댓글 창에 있는 사용자 이름
-  Widget showCommentName(Map<String, dynamic> commentUser) {
+  Widget showCommentName(UserModel commentUser) {
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
-      child: Text(commentUser['userName'].toString(),
-          style: const TextStyle(fontWeight: FontWeight.bold)),
+      child: Text(
+        commentUser.userName,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
     );
   }
 
@@ -892,8 +891,21 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
         // 댓글에 입력한 텍스트가 빈칸이 아니면 서버에 저장하기
         if (comment.isNotEmpty) {
-          // 서버에 댓글 저장하기
-          await PostListController.to.addComment(comment, postUid!);
+          String postUid =
+              (whereRoute == DistinguishRouting.postListPage_to_specificPostPage
+                  ? routeFromPostListPage_accessPostData!.postUid
+                  : routeFromKeywordPostListPage_accessPostData!.postUid);
+
+          // 복제된 PostModel에 whoWriteCommentThePost에 댓글 쓴 사람 uid 추가하기
+          whereRoute == DistinguishRouting.postListPage_to_specificPostPage
+              ? routeFromPostListPage_accessPostData!.whoWriteCommentThePost
+                  .add(SettingsController.to.settingUser!.userUid)
+              : routeFromKeywordPostListPage_accessPostData!
+                  .whoWriteCommentThePost
+                  .add(SettingsController.to.settingUser!.userUid);
+
+          // 서버에 Comment 추가하기
+          await PostListController.to.addComment(comment, postUid);
 
           // Specific Post Page 화면 재랜더링
           setState(() {});
@@ -1061,6 +1073,13 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       // 이전 페이지 돌아가기
       Get.back();
 
+      // 복제된 PostData에 whoLikeThePost에 사용자를 추가한다.
+      whereRoute == DistinguishRouting.postListPage_to_specificPostPage
+          ? routeFromPostListPage_accessPostData!.whoLikeThePost
+              .add(SettingsController.to.settingUser!.userUid)
+          : routeFromKeywordPostListPage_accessPostData!.whoLikeThePost
+              .add(SettingsController.to.settingUser!.userUid);
+
       // 리스트에 없으면, 서버 Post 속성 whoLikeThePost에 사용자를 추가한다. (이전과는 다른 방식을 요구할 것이다)
       if (whereRoute == DistinguishRouting.postListPage_to_specificPostPage) {
         await PostListController.to.addUserWhoLikeThePost(
@@ -1126,12 +1145,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   Widget build(BuildContext context) {
     print('SpecificPostPage - build() 호출');
 
-    
     // 화면을 그린다.
     return SafeArea(
         child: Scaffold(
       // 댓글을 입력하고 전송할 수 있는 하단 BottomNavigationBar 이다.
-
       bottomNavigationBar: writeComment_sendComment(),
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,

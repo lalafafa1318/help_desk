@@ -5,6 +5,7 @@ import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/const/const.dart';
 import 'package:help_desk/model/comment_model.dart';
 import 'package:help_desk/model/post_model.dart';
+import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/keyword_post_list_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
@@ -21,15 +22,12 @@ class PostListController extends GetxController {
   // 업로드된 Post 데이터를 담는 List
   List<PostModel> postDatas = [];
   // User 데이터를 담는 List
-  List<Map<String, dynamic>> userDatas = [];
+  List<UserModel> userDatas = [];
 
-  // 사용자가 입력한 keyword을 포함하거나 일치하는 Post 데이터를 담는 List
-  List<PostModel> conditionKeywordPostDatas = [];
-  // 사용자가 입력한 keyword을 포함하거나 일치하는 User 데이터를 담는 map
-  List<Map<String, dynamic>> conditionKeywordUserDatas = [];
-
-  // SpecificPostPage에서 보여할 게시물 데이터
-  
+  // 사용자가 입력한 text을 포함하거나 일치하는 Post 데이터를 담는 List
+  List<PostModel> conditionTextPostDatas = [];
+  // 사용자가 입력한 text을 포함하거나 일치하는 User 데이터를 담는 map
+  List<UserModel> conditionTextUserDatas = [];
 
   // 사용자가 입력한 댓글과 대댓글을 control 하는 Field
   TextEditingController? commentController;
@@ -62,7 +60,7 @@ class PostListController extends GetxController {
       Map<String, dynamic> userData =
           await CommunicateFirebase.getUserData(postData.userUid);
       // UserData들을 담고 있는 배열에 UserData를 추가한다.
-      userDatas.add(userData);
+      userDatas.add(UserModel.fromMap(userData));
     }
 
     return postDatas;
@@ -74,8 +72,8 @@ class PostListController extends GetxController {
     String keyword = searchTextController!.text;
 
     // PostData들과 UserData들을 담고 있는 배열을 clear한다.
-    conditionKeywordPostDatas.clear();
-    conditionKeywordUserDatas.clear();
+    conditionTextPostDatas.clear();
+    conditionTextUserDatas.clear();
 
     for (PostModel postData in postDatas) {
       // 검증하기 전 사용자 userName을 가져온다.
@@ -87,11 +85,11 @@ class PostListController extends GetxController {
           postData.postTitle.toString().contains(keyword) ||
           postData.postContent.toString().contains(keyword)) {
         // PostData와 UserData들을 담당하는 배열에 PostData와 UserData를 추가한다.
-        conditionKeywordPostDatas.add(postData);
-        conditionKeywordUserDatas.add(userData);
+        conditionTextPostDatas.add(postData);
+        conditionTextUserDatas.add(UserModel.fromMap(userData));
       }
     }
-    return conditionKeywordPostDatas;
+    return conditionTextPostDatas;
   }
 
   // PostListPage 검색창에 입력한 text를 validation하는 method
@@ -160,11 +158,20 @@ class PostListController extends GetxController {
   }
 
   // 게시물에 대한 댓글 목록을 가져오는 method
-  Future<List<CommentModel>> getPostComments(String postUid) async {
+  Future<List<CommentModel>> getCommentData(String postUid) async {
     // 서버에서 게시물에 대한 댓글 목록을 가져온다.
-    await CommunicateFirebase.getPostComments(postUid);
+    await CommunicateFirebase.getCommentData(postUid);
 
     return PostListController.to.commentArray;
+  }
+
+  // comment에 있는 사용자 Uid를 가지고 user 정보에 접근하는 method
+  Future<UserModel> getUserData(String commentUserUid) async {
+    Map<String, dynamic> userData =
+        await CommunicateFirebase.getUserData(commentUserUid);
+
+    // Map을 Model class로 변환하여 반환한다.
+    return UserModel.fromMap(userData);
   }
 
   // 사용자가 게시물 댓글을 추가할 떄 호출되는 method
@@ -214,9 +221,9 @@ class PostListController extends GetxController {
     // 변수 초기화
     postDatas.clear();
 
-    conditionKeywordPostDatas.clear();
+    conditionTextPostDatas.clear();
 
-    conditionKeywordUserDatas.clear();
+    conditionTextUserDatas.clear();
 
     super.onClose();
   }
