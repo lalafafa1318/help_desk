@@ -14,6 +14,7 @@ import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/distinguishRouting.dart';
+import 'package:help_desk/screen/bottomNavigationBar/postList/post_list_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_photo_view_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
 
@@ -203,7 +204,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   );
 
                   if (isDelete == true) {
-                    // Post List Page로 돌아가기
+                    // PostListPage로 돌아가기
                     Get.back();
                   }
                 },
@@ -223,8 +224,11 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   );
 
                   if (isDelete == true) {
-                    // KeywordPostListPage로 돌아가기
+                    // KeywordPostPage로 돌아가기
                     Get.back();
+
+                    // KeywordPostListPage를 재랜더링 한다.
+                    PostListController.to.update();
                   }
                 },
                 icon: const Icon(Icons.delete_outline_outlined),

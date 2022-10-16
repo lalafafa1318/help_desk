@@ -150,8 +150,7 @@ class PostListPage extends StatelessWidget {
 
   // 서버에서 받은 PostData들을 PostData를 담고 있는 배열에 추가하고
   // PostData에 따른 UserData도 UserData를 담고 있는 배열에 추가하는 역할을 하는 Widget
-  Widget prepareShowAllPostData(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowAllPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return Expanded(
       child: FutureBuilder<List<PostModel>>(
         future: PostListController.to.allocatePostDatasInArray(allData),

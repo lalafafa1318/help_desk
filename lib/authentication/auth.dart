@@ -58,8 +58,8 @@ class Auth extends GetView<AuthController> {
                 // snapshot data가 아직 오지 않았다면 Circular Indicator을 작동시킨다.
                 if (innerSnapshot.connectionState == ConnectionState.waiting) {
                   return authVerification();
-                } 
-                // snapshot data가 왔을 떄  
+                }
+                // snapshot data가 왔을 떄
                 else {
                   // Firebase Auth 상태가 로고인이고
                   // Firebase DataBase에서 User uid가 있는 경우
@@ -67,6 +67,7 @@ class Auth extends GetView<AuthController> {
                     // MainPage로 가기 위해 해야 할 작업 method 호출
                     AuthController.to.taskPriorMainPage(innerSnapshot);
 
+              
                     return MainPage();
                   }
 

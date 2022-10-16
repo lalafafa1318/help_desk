@@ -103,7 +103,7 @@ class KeywordPostListPage extends StatelessWidget {
         }
 
         // keyword에 맞는 게시글이 없었다면?
-        if (snapshot.data!.isEmpty) {
+        if (PostListController.to.conditionTextPostDatas.isEmpty) {
           print(
               'KeywordPostListPage - checkConditionKeywordPostData() - 게시물 데이터가 없습니다.');
           return noConditionKeywordPostData();
