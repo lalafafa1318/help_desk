@@ -33,7 +33,7 @@ class KeywordPostListPage extends StatelessWidget {
           backIcon(),
 
           // 검색창 입니다.
-          searchKeywordWidget(),
+          searchTextWidget(),
         ],
       ),
     );
@@ -45,11 +45,14 @@ class KeywordPostListPage extends StatelessWidget {
       margin: const EdgeInsets.only(left: 5),
       child: IconButton(
         onPressed: () {
+          // 사용자가 검색한 키워드를 빈칸으로 원상복구 한다.
+          PostListController.to.searchTextController!.text = '';
+
+          // 키보드 내리기
+          FocusManager.instance.primaryFocus?.unfocus();
+
           // 이전 페이지로 가기
           Get.back();
-
-          // 사용자가 검색한 키워드를 빈칸으로 원상복구 한다.
-          PostListController.to.keywordController!.text = '';
         },
         icon: const Icon(Icons.arrow_back),
       ),
@@ -57,7 +60,7 @@ class KeywordPostListPage extends StatelessWidget {
   }
 
   // 검색창 입니다.
-  Widget searchKeywordWidget() {
+  Widget searchTextWidget() {
     return Container(
       margin: const EdgeInsets.only(left: 5),
       width: 300,
@@ -68,14 +71,15 @@ class KeywordPostListPage extends StatelessWidget {
         border: Border.all(color: Colors.grey),
       ),
       child: TextField(
-        controller: PostListController.to.keywordController,
+        controller: PostListController.to.searchTextController,
         decoration: InputDecoration(
           border: InputBorder.none,
           prefixIcon: Container(
             margin: const EdgeInsets.only(left: 5),
             child: IconButton(
                 onPressed: () {
-                  PostListController.to.validKeywordFromKeywordPostListPage();
+                  // KeywordPostListPage에서 입력한 text를 검증한다.
+                  PostListController.to.validTextFromKeywordPostListPage();
                 },
                 icon: Icon(Icons.search, color: Colors.grey[800])),
           ),
@@ -86,35 +90,41 @@ class KeywordPostListPage extends StatelessWidget {
     );
   }
 
-  // 사용자가 입력한 Keyword을 포함하거나 일치하는 게시물을 보여주기 위한 선행 작업을 수행하는 Widget
-  Widget checkConditionKeywordPostDatas() {
+  // KeywordPostListPaged에서 검색창에 입력한 text를 가지고, 그것에 맞는 PostData와 UserData를 배열에 추가하는 Widget
+  Widget checkConditionTextPostData() {
     return FutureBuilder<List<PostModel>>(
-      future: PostListController.to.getConditionKeywordPostData(),
+      future: PostListController.to.getConditionTextPostData(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return waitDatas();
+          print(
+              'KeywordPostListPage - checkConditionKeywordPostData() - 게시물 데이터를 기다리고 있습니다.');
+          return waitData();
         }
 
         // keyword에 맞는 게시글이 없었다면?
         if (snapshot.data!.isEmpty) {
-          return noConditionKeywordPostDatas();
+          print(
+              'KeywordPostListPage - checkConditionKeywordPostData() - 게시물 데이터가 없습니다.');
+          return noConditionKeywordPostData();
         }
 
         // keyword에 맞는 게시글이 있었다면?
-        return showConditionPostDatas();
+        print(
+            'KeywordPostListPage - checkConditionKeywordPostData() - 게시물 데이터가 있습니다.');
+        return showConditionPostData();
       },
     );
   }
 
   // 사용자가 입력한 Keyword가 조건에 맞는 게시글이 있는지 없는지 기다리는 Widget
-  Widget waitDatas() {
+  Widget waitData() {
     return Center(
       child: CircularProgressIndicator(),
     );
   }
 
   // 사용자가 입력한 Keyword가 조건에 맞는 게시글이 없을 떄 보여주는 Widget
-  Widget noConditionKeywordPostDatas() {
+  Widget noConditionKeywordPostData() {
     return Expanded(
       flex: 1,
       child: Center(
@@ -141,30 +151,29 @@ class KeywordPostListPage extends StatelessWidget {
     );
   }
 
-  // ListView를 나타내는 Widget
-  Widget showConditionPostDatas() {
+  // 필러링된 PostData와 UserData를 담은 배열을 가지고 ListView로 표현하는 Widget
+  Widget showConditionPostData() {
+    print('KeywordPostListPage - showConditionPostData() 호출');
+
     return Expanded(
       flex: 1,
       child: ListView.builder(
         itemCount: PostListController.to.conditionKeywordPostDatas.length,
-        itemBuilder:
-            (BuildContext context, int conditionKeywordPostDatasIndex) {
+        itemBuilder: (BuildContext context, int index) {
           return GestureDetector(
             onTap: () {
-              // PostListController의 conditionKeyWordPostDatas와 conditionKeywordUserDatas에 대한 index만 필요하다.
-              // 따라서 index를 argument로 전달한다.
-              // 마지막으로 KeywordPostListPage에서 Routing 됐다는 것을 증명하기 위해서 enum를 argument로 전달한다.
+              // SpecificPostPage로 Routing
+              // argument 0번쨰 : condtionKeywordPostData와 conditionKeywordUserData들을 담고 있는 배열의 index
+              // argument 1번쨰 : KeywordPostListPage에서 Routing 되었다는 것을 알려준다.
               Get.to(
-                () => SpecificPostPage(),
+                () => const SpecificPostPage(),
                 arguments: [
-                  conditionKeywordPostDatasIndex,
-                  '',
+                  index,
                   DistinguishRouting.keywordPostListPage_to_specificPostPage,
                 ],
               );
             },
-            child: showConditionKeywordPostDataElement(
-                conditionKeywordPostDatasIndex),
+            child: showConditionTextPostData(index),
           );
         },
       ),
@@ -172,7 +181,18 @@ class KeywordPostListPage extends StatelessWidget {
   }
 
   // 각각의 게시물을 표현하는 widget
-  Widget showConditionKeywordPostDataElement(int conditionKeywordPostDatasIndex) {
+  Widget showConditionTextPostData(int index) {
+    print(
+        'KeywordPostListPage - ${index} 번쨰 checkConditionTextPostData() - 게시물 표현');
+
+    // PostListController.to.conditonKeywordPostDatas[index]
+    // PostListController.to.conditionKeywordUserDatas[index]로 일일히 적기 어렵다.
+    // 따라서 이를 대응하는 변수를 설정한다.
+    PostModel conditionKeywordPostData =
+        PostListController.to.conditionKeywordPostDatas[index];
+    Map<String, dynamic> conditionKeywordUserData =
+        PostListController.to.conditionKeywordUserDatas[index];
+
     return GFCard(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
       elevation: 2.0,
@@ -187,36 +207,23 @@ class KeywordPostListPage extends StatelessWidget {
         avatar: GFAvatar(
           radius: 30,
           backgroundImage: CachedNetworkImageProvider(
-            PostListController
-                .to
-                .conditionKeywordUserDatas[conditionKeywordPostDatasIndex]
-                    ['image']
-                .toString(),
+            conditionKeywordUserData['image'].toString(),
           ),
         ),
 
         // 사용자 이름
-        titleText: PostListController
-            .to
-            .conditionKeywordUserDatas[conditionKeywordPostDatasIndex]
-                ['userName']
-            .toString(),
+        titleText: conditionKeywordUserData['userName'].toString(),
 
         // 게시물 제목
-        subTitleText: PostListController.to
-            .conditionKeywordPostDatas[conditionKeywordPostDatasIndex].postTitle
-            .toString(),
+        subTitleText: conditionKeywordPostData.postTitle,
 
         // 게시물 올린 날짜
         description: Container(
           margin: const EdgeInsets.only(top: 5),
           child: Text(
-              PostListController
-                  .to
-                  .conditionKeywordPostDatas[conditionKeywordPostDatasIndex]
-                  .postTime
-                  .toString(),
-              style: const TextStyle(fontSize: 10)),
+            conditionKeywordPostData.postTime,
+            style: const TextStyle(fontSize: 10),
+          ),
         ),
       ),
 
@@ -228,11 +235,7 @@ class KeywordPostListPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              PostListController
-                  .to
-                  .conditionKeywordPostDatas[conditionKeywordPostDatasIndex]
-                  .postContent
-                  .toString(),
+              conditionKeywordPostData.postContent,
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -240,11 +243,7 @@ class KeywordPostListPage extends StatelessWidget {
           const SizedBox(height: 10),
 
           // 게시물에 이미지가 있으면 이를 알려주고, 없으면 빈칸으로 보여준다.
-          PostListController
-                  .to
-                  .conditionKeywordPostDatas[conditionKeywordPostDatasIndex]
-                  .imageList
-                  .isNotEmpty
+          conditionKeywordPostData.imageList.isNotEmpty
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -260,13 +259,7 @@ class KeywordPostListPage extends StatelessWidget {
 
                     // 이미지 아이콘 개수
                     Text(
-                      PostListController
-                          .to
-                          .conditionKeywordPostDatas[
-                              conditionKeywordPostDatasIndex]
-                          .imageList
-                          .length
-                          .toString(),
+                      conditionKeywordPostData.imageList.length.toString(),
                     ),
                   ],
                 )
@@ -288,12 +281,7 @@ class KeywordPostListPage extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               Text(
-                PostListController
-                    .to
-                    .conditionKeywordPostDatas[conditionKeywordPostDatasIndex]
-                    .whoLikeThePost
-                    .length
-                    .toString(),
+                conditionKeywordPostData.whoLikeThePost.length.toString(),
               ),
             ],
           ),
@@ -309,8 +297,11 @@ class KeywordPostListPage extends StatelessWidget {
                 color: Colors.blue[300],
                 size: 15,
               ),
-              SizedBox(width: 5),
-              Text('123'),
+              const SizedBox(width: 5),
+              Text(
+                conditionKeywordPostData.whoWriteCommentThePost.length
+                    .toString(),
+              ),
             ],
           ),
         ],
@@ -320,8 +311,6 @@ class KeywordPostListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('argument : ${PostListController.to.keywordController!.text}');
-
     return GetBuilder<PostListController>(
       builder: (controller) {
         return SafeArea(
@@ -331,10 +320,10 @@ class KeywordPostListPage extends StatelessWidget {
                 // 검색창, 글쓰기를 지원하는 View
                 topView(),
 
-                // 사용자가 입력한 Keyword를 가지고 서버에 Keyword를 포함하거나 일치하는 게시글이 있는지 확인한다.
+                // 사용자가 입력한 text를 가지고 서버에 Keyword를 포함하거나 일치하는 게시글이 있는지 확인한다.
                 // 이 부분을 StreamBuilder로 받아올 수 있으나,
                 // 실시간으로 업데이트할 필요성이 적다고 생각해 FutureBuilder를 활용한다.
-                checkConditionKeywordPostDatas(),
+                checkConditionTextPostData(),
               ],
             ),
           ),

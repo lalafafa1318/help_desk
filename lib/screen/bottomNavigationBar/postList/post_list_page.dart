@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/const/const.dart';
+import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
@@ -32,7 +33,7 @@ class PostListPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // 검색창 입니다.
-          searchKeywordWidget(),
+          searchTextWidget(),
 
           const SizedBox(width: 5),
 
@@ -44,7 +45,7 @@ class PostListPage extends StatelessWidget {
   }
 
   // 검색창 입니다.
-  Widget searchKeywordWidget() {
+  Widget searchTextWidget() {
     return Container(
       margin: const EdgeInsets.only(left: 20),
       width: 300,
@@ -55,15 +56,15 @@ class PostListPage extends StatelessWidget {
         border: Border.all(color: Colors.grey),
       ),
       child: TextField(
-        controller: PostListController.to.keywordController,
+        controller: PostListController.to.searchTextController,
         decoration: InputDecoration(
           border: InputBorder.none,
           prefixIcon: Container(
             margin: const EdgeInsets.only(left: 5),
             child: IconButton(
               onPressed: () {
-                // 사용자가 입력한 Keyword를 검증합니다.
-                PostListController.to.validKeywordFromPostListPage();
+                // PostListPage에서 입력한 text를 검증한다.
+                PostListController.to.validTextFromPostListPage();
               },
               icon: Icon(Icons.search, color: Colors.grey[800]),
             ),
@@ -86,51 +87,40 @@ class PostListPage extends StatelessWidget {
     );
   }
 
-  // StreamBuilder을 통해 실시간으로 Post Data들을 확인하는 Widget
-  Widget getPostDatasLive() {
+  // FutureBuilder를 통해 전체 게시글 목록을 가져온다.
+  Widget getAllPostDataLive() {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance
-          .collection('posts')
-          .orderBy('postTime', descending: true)
-          .snapshots(),
+      stream: PostListController.to.getAllPostData(),
       builder: (context, snapshot) {
         // 데이터가 아직 오지 않았을 때
         if (snapshot.connectionState == ConnectionState.waiting) {
-          print('게시물 데이터를 기다리고 있습니다.');
-          return waitPostDatas();
+          print('PostListPage - getAllPostDataLive() - 게시물 데이터를 기다리고 있습니다.');
+          return waitAllPostData();
         }
 
         // 데이터가 왔는데 사이즈가 0이면..
         if (snapshot.data!.size == 0) {
-          print('게시물 데이터가 없습니다.');
-          return noPostDatas();
+          print('PostListPage - getAllPostDataLive() - 게시물 데이터가 없습니다.');
+          return noPostData();
         }
         // 사이즈가 1 이상이면...
         else {
-          print('게시물 데이터가 있습니다.');
-
-          // 변경사항을 Post Data에 넣어주는 작업
-          PostListController.to.getPostData(snapshot.data!.docs);
-
-          // 토스트 메시지로 데이터가 업데이트 됐다는 것을 알린다.
-          ToastUtil.showToastMessage('게시물 데이터가\n 업데이트 되었습니다 :)');
-
-          // ListView를 보여준다.
-          return preparePostDatas();
+          print('PostListPage - getAllPostDataLive() - 게시물 데이터가 있습니다.');
+          return prepareShowAllPostData(snapshot.data!.docs);
         }
       },
     );
   }
 
-  // Post Datas를 기다리는 Widget
-  Widget waitPostDatas() {
+  // PostData들을 기다리는 Widget
+  Widget waitAllPostData() {
     return Center(
       child: CircularProgressIndicator(),
     );
   }
 
-  // Post Datas가 없을 떄 게시물 데이터가 없음을 보여주는 Widget
-  Widget noPostDatas() {
+  // PostData들이 없을 떄 게시물 데이터가 없음을 보여주는 Widget
+  Widget noPostData() {
     return Expanded(
       flex: 1,
       child: Center(
@@ -157,59 +147,65 @@ class PostListPage extends StatelessWidget {
     );
   }
 
-  // Post Datas를 ListView로 나타내기 위한 Widget
-  Widget preparePostDatas() {
+  // 서버에서 받은 PostData들을 PostData를 담고 있는 배열에 추가하고
+  // PostData에 따른 UserData도 UserData를 담고 있는 배열에 추가하는 역할을 하는 Widget
+  Widget prepareShowAllPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return Expanded(
-      child: ListView.builder(
-        reverse: false,
-        itemCount: PostListController.to.postDatas.length,
-        itemBuilder: (BuildContext context, int postDatasIndex) {
-          return getUserData(postDatasIndex);
+      child: FutureBuilder<List<PostModel>>(
+        future: PostListController.to.allocatePostDatasInArray(allData),
+        builder: (context, snapshot) {
+          // 데이터를 기다리고 있으면 CircularProgressIndicator를 표시한다.
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            print(
+                'PostListPage - checkConditionKeywordPostDatas() - 게시물 데이터가 없습니다.');
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // 데이터가 왔으면
+
+          // 데이터가 왔으면 게시물이 업데이트 됐다는 것을 Toast Message로 알린다.
+          ToastUtil.showToastMessage('게시물이 업데이트 되었습니다 :)');
+
+          // 데이터가 왔으면 ListView.builder를 통해 게시물을 표시한다.
+          return ListView.builder(
+            itemCount: PostListController.to.postDatas.length,
+            itemBuilder: (BuildContext context, int index) {
+              return GestureDetector(
+                onTap: () {
+                  // PostListPage 검색창에 써놓을 수 있는 text를 빈칸으로 설정한다.
+                  PostListController.to.searchTextController!.text = '';
+
+                  // SpecificPostPage로 Routing
+                  // argument 0번쨰 : PostData와 UserData들을 담고 있는 배열의 index
+                  // argument 1번쨰 : PostListPage에서 Routing 되었다는 것을 알려준다.
+                  Get.to(
+                    () => const SpecificPostPage(),
+                    arguments: [
+                      index,
+                      DistinguishRouting.postListPage_to_specificPostPage,
+                    ],
+                  );
+                },
+                child: showPostData(index),
+              );
+            },
+          );
         },
       ),
     );
   }
 
-  // 게시물 정보에 있는 사용자 Uid를 바탕으로 사용자 정보를 가져오는 Widget
-  Widget getUserData(int postDatasIndex) {
-    // 사용자 Uid를 뽑는다.
-    String userUid =
-        PostListController.to.postDatas[postDatasIndex].userUid.toString();
+  // PostData를 보여주는 Widget
+  Widget showPostData(int index) {
+    print('PostListPage - $index번쨰 showPostData()');
 
-    // 사용자 Uid를 이용하여 User 정보를 가져오고 활용한다. + Post 정보도 활용한다.
-    return FutureBuilder(
-      future: CommunicateFirebase.getUserInfo(userUid),
-      builder: (
-        BuildContext context,
-        AsyncSnapshot<Map<String, dynamic>> snapshot,
-      ) {
-        // User 정보가 도착하지 않았다면?
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return waitPostDatas();
-        }
-        // User 정보가 도착했다면?
-        return GestureDetector(
-          onTap: () {
-            // 업로드된 게시물에 대한 PostDatas에 대한 index와  PostDatas에 대한 User Data가 필요하다.
-            // 따라서 index와 User Data를 argument로 전달한다.
-            // 마지막으로 PostListPage에서 Routing 됐다는 것을 증명하기 위해서 enum를 argument로 전달한다.
-            Get.to(
-              () => SpecificPostPage(),
-              arguments: [
-                postDatasIndex,
-                snapshot.data!,
-                DistinguishRouting.postListPage_to_specificPostPage,
-              ],
-            );
-          },
-          child: showPostDataElement(postDatasIndex, snapshot.data!),
-        );
-      },
-    );
-  }
+    // PostListController.to.postDatas[index]
+    // PostListController.to.userDatas[index]로 일일히 적기 어렵다.
+    // 따라서 이를 대응하는 변수를 설정한다.
+    PostModel postData = PostListController.to.postDatas[index];
+    Map<String, dynamic> userData = PostListController.to.userDatas[index];
 
-  // 각각의 게시물을 표현하는 widget
-  Widget showPostDataElement(int postDatasIndex, Map<String, dynamic> userInfo) {
+    // 게시글을 표현하는 Card이다.
     return GFCard(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
       elevation: 2.0,
@@ -223,24 +219,24 @@ class PostListPage extends StatelessWidget {
         // User 이미지
         avatar: GFAvatar(
           radius: 30,
-          backgroundImage:
-              CachedNetworkImageProvider(userInfo['image'].toString()),
+          backgroundImage: CachedNetworkImageProvider(
+            userData['image'].toString(),
+          ),
         ),
 
         // User 이름
-        titleText: userInfo['userName'].toString(),
+        titleText: userData['userName'].toString(),
 
         // 게시물 제목
-        subTitleText: PostListController.to.postDatas[postDatasIndex].postTitle
-            .toString(),
+        subTitleText: postData.postTitle,
 
         // 게시물 올린 날짜
         description: Container(
           margin: const EdgeInsets.only(top: 5),
           child: Text(
-              PostListController.to.postDatas[postDatasIndex].postTime
-                  .toString(),
-              style: const TextStyle(fontSize: 10)),
+            postData.postTime,
+            style: const TextStyle(fontSize: 10),
+          ),
         ),
       ),
 
@@ -252,8 +248,7 @@ class PostListPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              PostListController.to.postDatas[postDatasIndex].postContent
-                  .toString(),
+              postData.postContent,
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -261,7 +256,7 @@ class PostListPage extends StatelessWidget {
           const SizedBox(height: 10),
 
           // 게시물에 이미지가 있으면 이를 알려주고, 없으면 빈칸으로 보여준다.
-          PostListController.to.postDatas[postDatasIndex].imageList.isNotEmpty
+          postData.imageList.isNotEmpty
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -277,9 +272,7 @@ class PostListPage extends StatelessWidget {
 
                     // 이미지 아이콘 개수
                     Text(
-                      PostListController
-                          .to.postDatas[postDatasIndex].imageList.length
-                          .toString(),
+                      postData.imageList.length.toString(),
                     ),
                   ],
                 )
@@ -300,9 +293,7 @@ class PostListPage extends StatelessWidget {
                 size: 15,
               ),
               const SizedBox(width: 5),
-              Text(PostListController
-                  .to.postDatas[postDatasIndex].whoLikeThePost.length
-                  .toString()),
+              Text(postData.whoLikeThePost.length.toString()),
             ],
           ),
 
@@ -317,8 +308,8 @@ class PostListPage extends StatelessWidget {
                 color: Colors.blue[300],
                 size: 15,
               ),
-              SizedBox(width: 5),
-              Text('123'),
+              const SizedBox(width: 5),
+              Text(postData.whoWriteCommentThePost.length.toString()),
             ],
           ),
         ],
@@ -333,8 +324,8 @@ class PostListPage extends StatelessWidget {
         // 검색창, 글쓰기를 지원하는 View
         topView(),
 
-        // StreamBuilder를 통해 실시간으로 Post Datas을 가져오는 Widget
-        getPostDatasLive(),
+        // StreamBuilder를 통해 실시간으로 PostData들을  가져오는 Widget
+        getAllPostDataLive(),
       ],
     );
   }

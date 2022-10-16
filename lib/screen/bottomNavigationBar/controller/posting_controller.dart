@@ -101,7 +101,7 @@ class PostingController extends GetxController {
 
       // 게시물 올린 현재 시간을 파악한다.
       DateTime currentDateTime = DateTime.now();
-          // DateTime.now().add(const Duration(minutes: 4, seconds: 30));
+      // DateTime.now().add(const Duration(minutes: 4, seconds: 30));
       print('현재 시간 : $currentDateTime');
 
       String formatDate =
@@ -116,12 +116,13 @@ class PostingController extends GetxController {
         userUid: AuthController.to.user.value.userUid,
         postUid: postMap['postUUid'],
         postTime: formatDate,
-        changePostTime: formatDate, 
+        changePostTime: formatDate,
         whoLikeThePost: [],
+        whoWriteCommentThePost: []
       );
 
       // Firebase DataBase에 게시물 upload
-      await CommunicateFirebase.setPostInfo(post, postMap['postUUid']);
+      await CommunicateFirebase.setPostData(post, postMap['postUUid']);
 
       // upload method 내 변수 초기화
       postMap.clear();

@@ -201,8 +201,7 @@ class _SignUpPageState extends State<SignUpPage> {
           status: '회원 정보를\n 등록하고 있습니다.', maskType: EasyLoadingMaskType.black);
     } else {
       // Toast Message 띄우기
-      ToastUtil.showToastMessage(
-          '이미지, 이름 그리고 설명에 대한 validation을 통과하지 못했습니다.');
+      ToastUtil.showToastMessage('이미지, 이름 그리고 설명에 대한 validation을 통과하지 못했습니다.');
     }
   }
 
@@ -226,7 +225,7 @@ class _SignUpPageState extends State<SignUpPage> {
     );
 
     // Firebase DataBase에 User 정보를 upload하는 method
-    await CommunicateFirebase.setUserInfo(user);
+    await CommunicateFirebase.setUserData(user);
 
     // AuthController에 있는 상태 변수에 User 정보를 대입한다.
     AuthController.to.user(user);

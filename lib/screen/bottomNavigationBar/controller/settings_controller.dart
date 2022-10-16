@@ -17,7 +17,6 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
 
   // AuthController - User의 image, description, userName, userUid
   UserModel? settingUser;
-  
 
   // 수정할 이미지에 대한 Field
   ImagePicker? imagePicker;
@@ -136,7 +135,7 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     );
 
     // Firebase DataBase에 User 정보를 update하는 method
-    await CommunicateFirebase.updateUserInfo(updateUser);
+    await CommunicateFirebase.updateUserData(updateUser);
 
     // 3. AuthController user에 값을 바꾼다.
     AuthController.to.user(updateUser);

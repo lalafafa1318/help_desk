@@ -114,6 +114,10 @@ dependencies:
   # 새로운 icon을 쓰기 위함
   phosphor_flutter: ^1.4.0
 
+  sizer: ^2.0.15
+  flutter_screenutil: ^5.5.4
+  flutter_keyboard_size: ^1.0.0+4
+
   
   
 

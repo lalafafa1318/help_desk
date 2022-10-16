@@ -24,7 +24,7 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
   int? datasIndex;
 
   // 이미지 index
-  int? imageIndex;
+  int? image;
 
   // PhotoView pageScroller 입니다.
   PageController? pageController;
@@ -40,9 +40,9 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
     // 이전 페이지에서 전달한 arguments를 변수에 대입한다.
     whereRoute = Get.arguments[0];
     datasIndex = Get.arguments[1];
-    imageIndex = Get.arguments[2];
+    image = Get.arguments[2];
 
-    pageController = PageController(initialPage: imageIndex!);
+    pageController = PageController(initialPage: image!);
   }
 
   // SpecificPhotoViewPage가 사라질 떄 호출되는 method
@@ -58,14 +58,14 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
   }
 
   // Indicator 입니다.
-  List<Widget> indicators(int imagesLength, int imageIndex) {
+  List<Widget> indicators(int imagesLength, int image) {
     return List<Widget>.generate(imagesLength, (index) {
       return Container(
         margin: const EdgeInsets.all(3),
         width: 10,
         height: 10,
         decoration: BoxDecoration(
-          color: imageIndex == index ? Colors.white : Colors.white24,
+          color: image == index ? Colors.white : Colors.white24,
           shape: BoxShape.circle,
         ),
       );
@@ -108,7 +108,7 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
               controller: pageController,
               onPageChanged: (page) {
                 setState(() {
-                  imageIndex = page;
+                  image = page;
                 });
               },
               itemBuilder: (BuildContext context, int index) {
@@ -147,12 +147,12 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
                 ? indicators(
                     PostListController
                         .to.postDatas[datasIndex!].imageList!.length,
-                    imageIndex!,
+                    image!,
                   )
                 : indicators(
                     PostListController.to.conditionKeywordPostDatas[datasIndex!]
                         .imageList!.length,
-                    imageIndex!),
+                    image!),
           ),
         ],
       ),

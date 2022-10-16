@@ -26,7 +26,8 @@ class PostModel {
   // 게시물 좋아요 클릭한 사람들
   List<String> whoLikeThePost;
 
-  // 게시물 댓글 단 사람들
+  // 게시물에 대해 댓글을 단 사람들
+  List<String> whoWriteCommentThePost;
 
   // Default Constructor
   PostModel({
@@ -38,6 +39,7 @@ class PostModel {
     required this.postTime,
     required this.changePostTime,
     required this.whoLikeThePost,
+    required this.whoWriteCommentThePost,
   });
 
   // Model class를 Map으로 바꾸는 method
@@ -55,6 +57,10 @@ class PostModel {
       // 게시물을 올릴 때 whoLikeThePost는 무조건 []이다.
       'whoLikeThePost':
           post.whoLikeThePost.isNotEmpty ? post.whoLikeThePost : [],
+      // 게시물을 올릴 떄 whoWriteCommentThePost는 무조건 []이다.
+      'whoWriteCommentThePost': post.whoWriteCommentThePost.isNotEmpty
+          ? post.whoWriteCommentThePost
+          : [],
     };
   }
 
@@ -74,5 +80,32 @@ class PostModel {
         postUid = json['postUid'].toString(),
         postTime = json['postTime'].toString(),
         changePostTime = json['changePostTime'].toString(),
-        whoLikeThePost = List<String>.from(json['whoLikeThePost'] as List);
+        whoLikeThePost = List<String>.from(json['whoLikeThePost'] as List),
+        whoWriteCommentThePost =
+            List<String>.from(json['whoWriteCommentThePost'] as List);
+
+  // PostModel를 복제하는 Method
+  PostModel copyWith({
+    List<String>? imageList,
+    String? postTitle,
+    String? postContent,
+    String? userUid,
+    String? postUid,
+    String? postTime,
+    String? changePostTime,
+    List<String>? whoLikeThePost,
+    List<String>? whoWriteCommentThePost,
+  }) {
+    return PostModel(
+      imageList: imageList ?? this.imageList,
+      postTitle: postTitle ?? this.postTitle,
+      postContent: postContent ?? this.postContent,
+      userUid: userUid ?? this.userUid,
+      postUid: postUid ?? this.postUid,
+      postTime: postTime ?? this.postTime,
+      changePostTime: changePostTime ?? this.changePostTime,
+      whoLikeThePost: whoLikeThePost ?? this.whoLikeThePost,
+      whoWriteCommentThePost: whoWriteCommentThePost ?? this.whoWriteCommentThePost,
+    );
+  }
 }
