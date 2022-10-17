@@ -18,7 +18,7 @@ import 'package:help_desk/screen/bottomNavigationBar/postList/post_list_page.dar
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_photo_view_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
 
-// 게시한 글과 댓글을 보여주는 Page 입니다.
+// 게시한 글과 comment을 보여주는 Page 입니다.
 class SpecificPostPage extends StatefulWidget {
   const SpecificPostPage({super.key});
 
@@ -41,7 +41,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // keywordPostListPage에서 Routing 되었다고 가정하고, UserData에 접근할 수 있도록 하는 변수
   UserModel? routeFromKeywordPostListPage_accessUserData;
 
-  // 댓글 데이터
+  // comment 데이터
   List<CommentModel>? commentArray;
 
   // PostListPage에서 Routing 됐는지
@@ -106,7 +106,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       margin: const EdgeInsets.only(left: 5, top: 20),
       child: IconButton(
         onPressed: () async {
-          // 사용자가 댓글에 text를 입력했으면, commentController를 빈칸으로 만든다.
+          // 사용자가 comment에 text를 입력했으면, commentController를 빈칸으로 만든다.
           if (PostListController.to.commentController!.text.isNotEmpty) {
             PostListController.to.commentController!.text = '';
           }
@@ -181,11 +181,36 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // 새로 고침 버튼 입니다.
   Widget refreshIcon() {
     return IconButton(
-      onPressed: () {
+      onPressed: () async {
+        // Post에 대한 공감수 또는 댓글수가 변동이 있는지 확인한다.
+        // 이 작업을 왜 하는가?
+        // 위 Field에 PostModel, UserModel은 copyWith 때문에 서로 다른 인스턴스를 만들기 떄문이다.
+        // 즉 같은 인스턴스를 가리키지 않기 떄문이다.
+        // 그래서 새로고침할 떄 혹여나 공감 수나 댓글 수가 변동사항이 있을 수 있기 떄문에 일일히 확인하는 작업이 필요하다.
+        Map<String, List<String>> sympathyNumOrCommentNum =
+            await PostListController.to.checkSympathyNumOrCommentNum(
+          whereRoute == DistinguishRouting.postListPage_to_specificPostPage
+              ? routeFromPostListPage_accessPostData!.postUid
+              : routeFromKeywordPostListPage_accessPostData!.postUid,
+        );
+
+        // 위 Field PostModel에 변동될 수 있는 공감 수와 댓글 수를 업데이트 한다.
+        if (whereRoute == DistinguishRouting.postListPage_to_specificPostPage) {
+          routeFromPostListPage_accessPostData!.whoLikeThePost =
+              sympathyNumOrCommentNum['sympathyData']!;
+          routeFromPostListPage_accessPostData!.whoWriteCommentThePost =
+              sympathyNumOrCommentNum['commentData']!;
+        } else {
+          routeFromKeywordPostListPage_accessPostData!.whoLikeThePost =
+              sympathyNumOrCommentNum['sympathyData']!;
+          routeFromKeywordPostListPage_accessPostData!.whoWriteCommentThePost =
+              sympathyNumOrCommentNum['commentData']!;
+        }
+
         // 게시물을 새로고침 하는 코드 작성
-        setState(() {
-          ToastUtil.showToastMessage('게시물이 새로고침 되었습니다 :)');
-        });
+        setState(() {});
+
+        ToastUtil.showToastMessage('게시물이 새로고침 되었습니다 :)');
       },
       icon: const Icon(Icons.refresh_outlined),
     );
@@ -327,7 +352,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           );
   }
 
-  // 글 제목과 내용, 사진(있으면 보여주고 없으면 보여주지 않기), 좋아요, 댓글 수를 보여주는 Widget 입니다.
+  // 글 제목과 내용, 사진(있으면 보여주고 없으면 보여주지 않기), 좋아요, comment 수를 보여주는 Widget 입니다.
   Widget
       showTextTitle_showTextContent_showPhotos_showTextLike_showTextComment() {
     return Container(
@@ -351,7 +376,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
           const SizedBox(height: 10),
 
-          // 좋아요와 댓글 수 입니다.
+          // 좋아요와 comment 수 입니다.
           showLikeNumber_showCommentNumber(),
         ],
       ),
@@ -478,7 +503,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 좋아요 수와 댓글 수를 보여주는 Widget 입니다.
+  // 좋아요 수와 comment 수를 보여주는 Widget 입니다.
   Widget showLikeNumber_showCommentNumber() {
     return Padding(
       padding: const EdgeInsets.all(5),
@@ -489,7 +514,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
           const SizedBox(width: 10),
 
-          // 댓글 수를 보여준다.
+          // comment 수를 보여준다.
           showCommentNumber(),
         ],
       ),
@@ -523,11 +548,11 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 댓글 수를 보여주는 Widget 입니다.
+  // comment 수를 보여주는 Widget 입니다.
   Widget showCommentNumber() {
     return Row(
       children: [
-        // 댓글 아이콘 입니다.
+        // comment 아이콘 입니다.
         Icon(
           Icons.comment_outlined,
           color: Colors.blue[300],
@@ -536,7 +561,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
         const SizedBox(width: 3),
 
-        // 댓글 수 입니다.
+        // comment 수 입니다.
         Text(
           whereRoute == DistinguishRouting.postListPage_to_specificPostPage
               ? routeFromPostListPage_accessPostData!
@@ -576,7 +601,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 댓글과 대댓글을 보여주기 위해 ListView로 나타내는 Widget 입니다.
+  // comment를 보여주기 위해 ListView로 나타내는 Widget 입니다.
   Widget showCommentListView() {
     return FutureBuilder<List<CommentModel>>(
       future: PostListController.to.getCommentData(
@@ -606,7 +631,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 댓글과 대댓글을 보여주는 Widget 입니다.
+  // comment을 보여주는 Widget 입니다.
   Widget showCommentElement(CommentModel comment) {
     return Container(
       color: Colors.grey[100],
@@ -615,7 +640,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 아바타와 사용자 이름 보여주기  좋아요 클릭 아이콘 보여주기, 대댓글 보내기, 삭제하기
+          // 아바타와 사용자 이름 보여주기  좋아요 클릭 아이콘 보여주기, 삭제하기
           commentTopView(comment),
 
           // 글 내용
@@ -635,20 +660,20 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 아바타와 사용자 이름 보여주기  좋아요 아이콘 보여주기, 대댓글 보내기, 삭제하기
+  // 아바타와 사용자 이름 보여주기  좋아요 아이콘 보여주기, 삭제하기
   Widget commentTopView(CommentModel comment) {
     return Row(
       children: [
-        // 댓글 창에 있는 아바타와 사용자 이름 보여주기
+        // comment 창에 있는 아바타와 사용자 이름 보여주기
         showCommentAvatar_showCommentName(comment),
 
-        // 댓글 창에 있는 좋아요 아이콘 보여주기, 대댓글 보내기, 삭제하기
-        showSettingBox(),
+        // comment 창에 있는 좋아요 아이콘 보여주기, 삭제하기
+        showSettingBox(comment),
       ],
     );
   }
 
-  // 댓글 창에 있는 아바타와 사용자 이름 보여주기
+  // comment  창에 있는 아바타와 사용자 이름 보여주기
   Widget showCommentAvatar_showCommentName(CommentModel comment) {
     String commentUserUid = comment.whoWriteUserUid;
 
@@ -662,10 +687,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
         return Row(
           children: [
-            // 댓글 창에 있는 아바타
+            // comment 창에 있는 아바타
             showCommentAvatar(snapshot.data!),
 
-            // 댓글 창에 있는 사용자 이름
+            // comment 창에 있는 사용자 이름
             showCommentName(snapshot.data!),
           ],
         );
@@ -673,7 +698,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 댓글 창에 있는 아바타
+  // comment  창에 있는 아바타
   Widget showCommentAvatar(UserModel commentUser) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -684,7 +709,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 댓글 창에 있는 사용자 이름
+  // comment 창에 있는 사용자 이름
   Widget showCommentName(UserModel commentUser) {
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
@@ -695,53 +720,53 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 댓글 창에 있는 좋아요 아이콘 보여주기, 대댓글 보내기, 삭제하기
-  Widget showSettingBox() {
+  // comment 창에 있는 좋아요 아이콘 보여주기, 삭제하기
+  Widget showSettingBox(CommentModel comment) {
     return SizedBox(
       width: 250,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          // 댓글 창에 있는 대댓글 보내기 아이콘
-          sendCommentReply(),
+          // comment 창에 있는 대comment 보내기 아이콘
+          // sendCommentReply(comment),
 
           const SizedBox(width: 5),
 
-          // 댓글 창에 있는 좋아요 아이콘
-          likeComment(),
+          // comment 창에 있는 좋아요 아이콘
+          likeComment(comment),
 
           const SizedBox(width: 5),
 
-          // 댓글 창에 있는 삭제하기 아이콘
-          deleteComment(),
+          // comment 창에 있는 삭제하기 아이콘
+          deleteComment(comment),
         ],
       ),
     );
   }
 
-  // 댓글 창에 있는 대댓글 보내기 아이콘
-  Widget sendCommentReply() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(5),
-      child: Container(
-        width: 30,
-        height: 25,
-        color: Colors.grey,
-        child: IconButton(
-          padding: const EdgeInsets.only(top: 1),
-          onPressed: () {},
-          icon: Icon(
-            Icons.message_outlined,
-            color: Colors.grey[200]!.withOpacity(1),
-            size: 15,
-          ),
-        ),
-      ),
-    );
-  }
+  // // comment 창에 있는 대comment 보내기 아이콘
+  // Widget sendCommentReply(CommentModel comment) {
+  //   return ClipRRect(
+  //     borderRadius: BorderRadius.circular(5),
+  //     child: Container(
+  //       width: 30,
+  //       height: 25,
+  //       color: Colors.grey,
+  //       child: IconButton(
+  //         padding: const EdgeInsets.only(top: 1),
+  //         onPressed: () {},
+  //         icon: Icon(
+  //           Icons.message_outlined,
+  //           color: Colors.grey[200]!.withOpacity(1),
+  //           size: 15,
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  // 댓글 창에 있는 좋아요 아이콘
-  Widget likeComment() {
+  // comment 창에 있는 좋아요 아이콘
+  Widget likeComment(CommentModel comment) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(5),
       child: Container(
@@ -750,7 +775,16 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         color: Colors.grey,
         child: IconButton(
           padding: const EdgeInsets.only(top: 1),
-          onPressed: () {},
+          onPressed: () async {
+            // 키보드 내리기 (설사 키보드가 안나왔다 해도 내린다.)
+            FocusManager.instance.primaryFocus?.unfocus();
+
+            // 키보드를 내리고 AlertDialog가 보여지기까지 과정에서 여유를 주고자 작성했다. -> 그러면 내부 에러 코드가 나오지 않게 된다.
+            await Future.delayed(const Duration(microseconds: 300000));
+
+            // 이 comment을 공감하겠습니까? AlertDialog 표시하기
+            await clickCommentLikeIconDialog(comment);
+          },
           icon: Icon(
             Icons.thumb_up_sharp,
             color: Colors.grey[200]!.withOpacity(1),
@@ -761,28 +795,43 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 댓글 창에 있는 삭제하기 아이콘
-  Widget deleteComment() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(5),
-      child: Container(
-        width: 30,
-        height: 25,
-        color: Colors.grey,
-        child: IconButton(
-          padding: const EdgeInsets.only(top: 1),
-          onPressed: () {},
-          icon: Icon(
-            Icons.delete_outline,
-            color: Colors.grey[200]!.withOpacity(1),
-            size: 20,
-          ),
-        ),
-      ),
-    );
+  // comment 창에 있는 삭제하기 아이콘
+  Widget deleteComment(CommentModel comment) {
+    // comment를 쓴 사용자 uid와 계정 사용자 uid를 비교해서, 맞으면 삭제하기 아이콘을 표시한다.
+    return comment.whoWriteUserUid == SettingsController.to.settingUser!.userUid
+        ? ClipRRect(
+            borderRadius: BorderRadius.circular(5),
+            child: Container(
+              width: 30,
+              height: 25,
+              color: Colors.grey,
+              child: IconButton(
+                padding: const EdgeInsets.only(top: 1),
+                onPressed: () async {
+                  // 키보드 내리기 (설사 키보드가 안나왔다 해도 내린다.)
+                  FocusManager.instance.primaryFocus?.unfocus();
+
+                  // 키보드를 내리고 AlertDialog가 보여지기까지 과정에서 여유를 주고자 작성했다. -> 그러면 내부 에러 코드가 나오지 않게 된다.
+                  await Future.delayed(const Duration(microseconds: 300000));
+
+                  // 이 comment을 삭제하시겠습니까? AlertDialog 표시하기
+                  await clickCommentDeleteIconDialog(comment);
+                },
+                icon: Icon(
+                  Icons.delete_outline,
+                  color: Colors.grey[200]!.withOpacity(1),
+                  size: 20,
+                ),
+              ),
+            ),
+          )
+        : const Visibility(
+            visible: false,
+            child: Text('테스트 입니다.'),
+          );
   }
 
-  // 댓글 내용
+  // comment 내용
   Widget commentContent(CommentModel comment) {
     return Container(
       margin: const EdgeInsets.only(left: 20),
@@ -790,25 +839,25 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 댓글 업로드 시간과 댓글에 대한 좋아요 수를 나타낸다.
+  // comment 업로드 시간과 comment에 대한 좋아요 수를 나타낸다.
   Widget commentUploadTime_likeCommentNum(CommentModel comment) {
     return Container(
       margin: const EdgeInsets.only(left: 20),
       child: Row(
         children: [
-          // 댓글 업로드 시간
+          // comment 업로드 시간
           commentUploadTime(comment),
 
           const SizedBox(width: 15),
 
-          // 댓글에 대한 좋아요 수
+          // comment에 대한 좋아요 수
           likeCommentNum(comment),
         ],
       ),
     );
   }
 
-  // 댓글 업로드 시간
+  // comment 업로드 시간
   Widget commentUploadTime(CommentModel comment) {
     return Text(
       comment.uploadTime,
@@ -816,7 +865,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 댓글에 대한 좋아요 수
+  // comment에 대한 좋아요 수
   Widget likeCommentNum(CommentModel comment) {
     int commentLikeNum = comment.whoCommentLike.length;
 
@@ -826,6 +875,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
               // 좋아요 아이콘
               const Icon(Icons.thumb_up_sharp, size: 15, color: Colors.red),
 
+              const SizedBox(width: 5),
+
               // 좋아요 수
               Text(commentLikeNum.toString(),
                   style: const TextStyle(color: Colors.red)),
@@ -834,7 +885,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         : const Visibility(visible: false, child: Text('테스트'));
   }
 
-  // BottomNavigationBar - 댓글을 입력하는 Widget 입니다.
+  // BottomNavigationBar - comment을 입력하는 Widget 입니다.
   Widget writeComment_sendComment() {
     return Padding(
       padding:
@@ -853,10 +904,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // 댓글 입력하기 창
+                // comment 입력하기 창
                 writeComment(),
 
-                // 댓글 보내기 아이콘
+                // comment 보내기 아이콘
                 sendComment(),
               ],
             ),
@@ -866,7 +917,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 댓글 입력하기 창 Widget 입니다
+  // comment 입력하기 창 Widget 입니다
   Widget writeComment() {
     return Container(
       margin: const EdgeInsets.only(left: 10),
@@ -880,27 +931,27 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         }),
         decoration: const InputDecoration(
           border: InputBorder.none,
-          hintText: '댓글을 입력하세요',
+          hintText: 'comment을 입력하세요',
         ),
       ),
     );
   }
 
-  // 댓글 보내기 아이콘 입니다.
+  // comment 보내기 아이콘 입니다.
   Widget sendComment() {
     return IconButton(
       onPressed: () async {
-        // 댓글에 입력한 텍스트 확인하기
+        // comment에 입력한 텍스트 확인하기
         String comment = PostListController.to.commentController!.text;
 
-        // 댓글에 입력한 텍스트가 빈칸이 아니면 서버에 저장하기
+        // comment에 입력한 텍스트가 빈칸이 아니면 서버에 저장하기
         if (comment.isNotEmpty) {
           String postUid =
               (whereRoute == DistinguishRouting.postListPage_to_specificPostPage
                   ? routeFromPostListPage_accessPostData!.postUid
                   : routeFromKeywordPostListPage_accessPostData!.postUid);
 
-          // 복제된 PostModel에 whoWriteCommentThePost에 댓글 쓴 사람 uid 추가하기
+          // 복제된 PostModel에 whoWriteCommentThePost에 comment 쓴 사람 uid 추가하기
           whereRoute == DistinguishRouting.postListPage_to_specificPostPage
               ? routeFromPostListPage_accessPostData!.whoWriteCommentThePost
                   .add(SettingsController.to.settingUser!.userUid)
@@ -914,7 +965,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           // Specific Post Page 화면 재랜더링
           setState(() {});
         }
-        // 댓글에 입력한 텍스트가 빈칸이면 하단 SnackBar로 알림
+        // comment에 입력한 텍스트가 빈칸이면 하단 SnackBar로 알림
         else {
           // 하단 SnackBar 알림
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1077,7 +1128,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       // 이전 페이지 돌아가기
       Get.back();
 
-      // 복제된 PostData에 whoLikeThePost에 사용자를 추가한다.
+      // 복제된 PostData에 whoLikeThePost에 UserUid를 추가한다.
       whereRoute == DistinguishRouting.postListPage_to_specificPostPage
           ? routeFromPostListPage_accessPostData!.whoLikeThePost
               .add(SettingsController.to.settingUser!.userUid)
@@ -1112,7 +1163,178 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     }
   }
 
-  // specific Post Pager가 처음 불릴 떄 호출되는 method
+  // comment에 대한 좋아요 아이콘을 클릭했을 떄 나타나는 AlertDialog 입니다.
+  Future<bool?> clickCommentLikeIconDialog(CommentModel comment) async {
+    return showDialog<bool?>(
+      context: context,
+      //barrierDismissible - Dialog를 제외한 다른 화면 터치 x
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          // RoundedRectangleBorder - Dialog 화면 모서리 둥글게 조절
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text('이 comment을 공감하시겠습니까?'),
+            ],
+          ),
+          actions: [
+            // 취소 버튼
+            TextButton(
+              child: const Text(
+                '취소',
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: () {
+                // 이전 페이지로 돌아가기
+                Get.back();
+              },
+            ),
+            // 확인 버튼
+            TextButton(
+              child: const Text(
+                '확인',
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: () async {
+                // 로딩바 시작(필요하면 추가하기로)
+                EasyLoading.show(
+                  status: 'comment 좋아요를\n 기록합니다 :)',
+                  maskType: EasyLoadingMaskType.black,
+                );
+
+                // 사용자가 해당 comment에 대한 좋아요를 이미 눌렀는지 검사한다.
+                bool isResult = await checkLikeUsersFromTheComment(comment);
+
+                // comment - whoCommentLike property에 사용자 Uid가 있는 경우, 없는 경우에 따라 다른 로직을 구현하는 method
+                await isUserUidInWhoCommentLike(comment, isResult);
+
+                // 로딩바 끝(필요하면 추가하기로)
+                EasyLoading.dismiss();
+
+                // 이전 페이지로 돌아가기
+                Get.back();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 서버를 통해 해당 comment에 대해서 사용자가 좋아요를 누른 적이 있는지 확인하는 method
+  Future<bool> checkLikeUsersFromTheComment(CommentModel comment) async {
+    return await PostListController.to.checkLikeUsersFromTheComment(
+        comment, SettingsController.to.settingUser!.userUid);
+  }
+
+  // comment - whoCommentLike property에 사용자 Uid가 있는 경우, 없는 경우에 따라 다른 로직을 구현하는 method
+  Future<void> isUserUidInWhoCommentLike(CommentModel comment, bool isResult) async {
+    // comment - whoCommentLike property에 사용자 Uid가 있는 경우
+    if (isResult) {
+      // 하단 snackBar로 "이미 공감한 comment 입니다 :)" 표시한다.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('이미 공감한 comment 입니다 :)'),
+          backgroundColor: Colors.black87,
+        ),
+      );
+    }
+
+    // comment - whoCommentLike property에 사용자 Uid가 없는 경우
+    else {
+      // 서버 comment- whoCommentLike에 사용자를 추가한다.
+      await PostListController.to.addUserWhoCommentLike(comment);
+
+      // 화면을 재랜더링 한다.
+      setState(() {});
+
+      // 하단 snackBar로 "공감을 했습니다." 표시한다.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('이 comment을 공감했습니다 :)'),
+          backgroundColor: Colors.black87,
+        ),
+      );
+    }
+  }
+
+  // comment에 대한 휴지통 아이콘을 클릭했을 떄 나타나는 AlertDialog 입니다.
+  Future<bool?> clickCommentDeleteIconDialog(CommentModel comment) async {
+    return showDialog<bool?>(
+      context: context,
+      //barrierDismissible - Dialog를 제외한 다른 화면 터치 x
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          // RoundedRectangleBorder - Dialog 화면 모서리 둥글게 조절
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text('이 comment를 삭제하시겠습니까?'),
+            ],
+          ),
+          actions: [
+            // 취소 버튼
+            TextButton(
+              child: const Text(
+                '취소',
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: () {
+                // 이전 페이지로 돌아가기
+                Get.back();
+              },
+            ),
+            // 확인 버튼
+            TextButton(
+              child: const Text(
+                '확인',
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: () async {
+                // 로딩바 시작(필요하면 추가하기로)
+                EasyLoading.show(
+                  status: 'comment를 삭제 합니다:)',
+                  maskType: EasyLoadingMaskType.black,
+                );
+
+                // 복제된 PostModel의 whoWriteTheComment 속성에서 comment를 작성한 사용자 uid를 삭제한다.
+                whereRoute ==
+                        DistinguishRouting.postListPage_to_specificPostPage
+                    ? routeFromPostListPage_accessPostData!
+                        .whoWriteCommentThePost
+                        .remove(SettingsController.to.settingUser!.userUid)
+                    : routeFromKeywordPostListPage_accessPostData!
+                        .whoWriteCommentThePost
+                        .remove(SettingsController.to.settingUser!.userUid);
+
+                // 서버에 comment를 삭제한다.
+                await PostListController.to.deleteComment(comment);
+
+                // 로딩바 끝(필요하면 추가하기로)
+                EasyLoading.dismiss();
+
+                // 화면 재랜더링
+                setState(() {});
+
+                // 이전 페이지로 돌아가기
+                Get.back();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // specificPostPage가 처음 불릴 떄 호출되는 method
   @override
   void initState() {
     super.initState();
@@ -1128,11 +1350,25 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     allocateVariable();
   }
 
-  // specific Post Page가 사라질 떄 호출되는 method
+  // specificPostPage가 사라질 떄 호출되는 method
   @override
   void dispose() {
-    // 변수 초기화
+    // 로그
     print('SpecificPostPage - dispose() 호출');
+
+    // 배열, 변수 clear
+    if (whereRoute == DistinguishRouting.postListPage_to_specificPostPage) {
+      routeFromPostListPage_accessPostData = null;
+      routeFromPostListPage_accessUserData = null;
+    }
+    //
+    else {
+      routeFromKeywordPostListPage_accessPostData = null;
+      routeFromKeywordPostListPage_accessUserData = null;
+    }
+
+    whereRoute = null;
+    commentArray!.clear();
 
     super.dispose();
   }
@@ -1144,7 +1380,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     print('SpecificPostPage - didChangeDependencies() 호출');
   }
 
-  // 댓글 목록을 ListView로 나타내는 Widget 입니다.
+  // comment 목록을 ListView로 나타내는 Widget 입니다.
   @override
   Widget build(BuildContext context) {
     print('SpecificPostPage - build() 호출');
@@ -1152,7 +1388,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     // 화면을 그린다.
     return SafeArea(
         child: Scaffold(
-      // 댓글을 입력하고 전송할 수 있는 하단 BottomNavigationBar 이다.
+      // comment을 입력하고 전송할 수 있는 하단 BottomNavigationBar 이다.
       bottomNavigationBar: writeComment_sendComment(),
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
@@ -1168,7 +1404,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             // 아바타와 User 이름, 게시물 올린 시간을 표시하는 Widget 입니다.
             showAvatar_showUserName_showPostTime(),
 
-            // 글 제목과 내용, 사진(있으면 보여주고 없으면 보여주지 않기), 좋아요, 댓글 수를 보여주는 Widget 입니다.
+            // 글 제목과 내용, 사진(있으면 보여주고 없으면 보여주지 않기), 좋아요, comment 수를 보여주는 Widget 입니다.
             showTextTitle_showTextContent_showPhotos_showTextLike_showTextComment(),
 
             const SizedBox(height: 5),
@@ -1178,7 +1414,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
             const SizedBox(height: 30),
 
-            // 댓글과 대댓글 (댓글이 없으면 invisible)
+            // comment과 대comment (comment이 없으면 invisible)
             showCommentListView(),
           ],
         ),

@@ -138,6 +138,11 @@ class PostListController extends GetxController {
     }
   }
 
+  // 새로고침할 떄 Post 정보에 대한 공감 수와 댓글 수가 변동사항이 있는지 확인하는 method
+  Future<Map<String, List<String>>> checkSympathyNumOrCommentNum(String postUid) async {
+    return await CommunicateFirebase.checkSympathyNumOrCommentNum(postUid);
+  }
+
   // 게시물을 삭제하는 method
   Future<void> deletePostData(String postUid) async {
     await CommunicateFirebase.deletePostData(postUid);
@@ -198,6 +203,26 @@ class PostListController extends GetxController {
 
     // 키보드 내리기
     FocusManager.instance.primaryFocus?.unfocus();
+  }
+
+  // 사용자가 해당 commen에 대해서 좋아요 버튼을 클릭할 떄
+  // comment의 whoCommentLike 속성에 사용자 uid가 있는지 판별하는 method
+  Future<bool> checkLikeUsersFromTheComment(
+      CommentModel comment, String userUid) async {
+    bool isResult = await CommunicateFirebase.checkLikeUsersFromTheComment(
+        comment, userUid);
+
+    return isResult;
+  }
+
+  // 사용자가 comment에 대해서 좋아요를 누른 경우 호출되는 method (단, 좋아요를 하지 않았을 때에만 적용)
+  Future<void> addUserWhoCommentLike(CommentModel comment) async {
+    await CommunicateFirebase.addUserWhoCommentLike(comment);
+  }
+
+  // 사용자가 comment를 삭제하는 경우 호출되는 method
+  Future<void> deleteComment(CommentModel comment) async {
+    await CommunicateFirebase.deleteComment(comment);
   }
 
   // PostListController가 메모리에 처음 올라갈 떄 호출되는 method

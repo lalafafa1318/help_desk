@@ -72,7 +72,7 @@ class _SignUpPageState extends State<SignUpPage> {
       margin: const EdgeInsets.only(top: 40),
       child: Column(
         children: [
-          // 사진 입니다.
+          // 이미지 입니다.
           SizedBox(
             width: 150,
             height: 150,
@@ -102,7 +102,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
           const SizedBox(height: 20),
 
-          // 사진 변경하는 Button 입니다.
+          // 이미지 변경하는 Button 입니다.
           ElevatedButton(
             onPressed: () async {
               XFile? xFile =
@@ -214,7 +214,8 @@ class _SignUpPageState extends State<SignUpPage> {
     );
 
     // Firebase Storage에 저장된 image를 download하는 method
-    String imageUrl = await CommunicateFirebase.downloadUrl(uploadFileEvent);
+    String imageUrl =
+        await CommunicateFirebase.imageDownloadUrl(uploadFileEvent);
 
     // Firebase Database에 저장될 UserModel 객체
     UserModel user = UserModel(

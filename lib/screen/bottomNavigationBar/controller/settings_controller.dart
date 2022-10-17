@@ -122,7 +122,7 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
       );
 
       // Firebase Storage에 저장된 image를 download하는 method
-      imageUrl = await CommunicateFirebase.downloadUrl(updateFileEvent);
+      imageUrl = await CommunicateFirebase.imageDownloadUrl(updateFileEvent);
     }
 
     // Firebase Database에 업데이트 칠 UserModel 객체

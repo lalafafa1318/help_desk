@@ -21,7 +21,8 @@ class CommunicateFirebase {
   static final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
 
   // Firebase Database에서 uid가 있는지 확인하는 method
-  static Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(String userUid) async {
+  static Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(
+      String userUid) async {
     QuerySnapshot<Map<String, dynamic>> userData = await _firebaseFirestore
         .collection('users')
         .where('userUid', isEqualTo: userUid)
@@ -41,7 +42,8 @@ class CommunicateFirebase {
   }
 
   // "회원가입" 페이지에 있는 Image를 Firebase Storage에 upload하는 method
-  static UploadTask signInUploadImage({required File imageFile, required String userUid}) {
+  static UploadTask signInUploadImage(
+      {required File imageFile, required String userUid}) {
     // ImageFile의 확장자(png, jpg) 가져오기
     String imageFileExt = imageFile.toString().split('.').last.substring(0, 3);
 
@@ -58,7 +60,8 @@ class CommunicateFirebase {
 
   // "Posting" 페이지에 게시물을 업로드할 떄 Image를
   //  Firebase Stroage에 upload하는 method
-  static Map<String, dynamic> postUploadImage({required RxList<File> imageList, required String userUid}) {
+  static Map<String, dynamic> postUploadImage(
+      {required RxList<File> imageList, required String userUid}) {
     // UploadTask을 관리하는 배열 입니다.
     List<UploadTask> uploadTasks = [];
 
@@ -90,7 +93,8 @@ class CommunicateFirebase {
   }
 
   // "프로필 수정" 페이지에서 수정한 Image를 Firebase Storage에 update하는 method
-  static Future<UploadTask> editUploadImage({required File imageFile, required String userUid}) async {
+  static Future<UploadTask> editUploadImage(
+      {required File imageFile, required String userUid}) async {
     // ImageFile의 확장자(png, jpg) 가져오기
     String imageFileExt = imageFile.toString().split('.').last.substring(0, 3);
 
@@ -111,7 +115,7 @@ class CommunicateFirebase {
   }
 
   // Firebase Storage에 upload, update된 image를 download 하는 method
-  static Future<String> downloadUrl(UploadTask uploadFileEvent) async {
+  static Future<String> imageDownloadUrl(UploadTask uploadFileEvent) async {
     String imageUrl = await (await uploadFileEvent.whenComplete(() => null))
         .ref
         .getDownloadURL();
@@ -145,9 +149,24 @@ class CommunicateFirebase {
         .update(UserModel.toMap(updateUser));
   }
 
+  // 새로고침할 떄 Post 정보에 대한 공감 수와 댓글 수가 변동사항이 있는지 확인하는 method
+  static Future<Map<String, List<String>>> checkSympathyNumOrCommentNum(String postUid) async {
+    DocumentSnapshot<Map<String, dynamic>> postData =
+        await _firebaseFirestore.collection('posts').doc(postUid).get();
+
+    return {
+      // 공감 데이터
+      'sympathyData':
+          List<String>.from(postData.data()!['whoLikeThePost'] as List),
+      // 댓글 데이터
+      'commentData':
+          List<String>.from(postData['whoWriteCommentThePost'] as List),
+    };
+  }
+
   // 전체 게시물을 업로드 시간 내림차순 기준으로 가져오는 method
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllPostData() async* {
-    yield*  FirebaseFirestore.instance
+    yield* FirebaseFirestore.instance
         .collection('posts')
         .orderBy('postTime', descending: true)
         .snapshots();
@@ -194,7 +213,8 @@ class CommunicateFirebase {
   }
 
   // Firebase DataBase Post 정보의 whoLikeThePost 속성에 접근하여 좋아요를 누른 사용자를 확인하는 method
-  static Future<bool> checkLikeUsersFromThePost(String postUid, String userUid) async {
+  static Future<bool> checkLikeUsersFromThePost(
+      String postUid, String userUid) async {
     // Firebase DataBase에서 Post 정보를 get하는 method를 실행한다.
     Map<String, dynamic> postData = await getPostData(postUid);
 
@@ -210,7 +230,8 @@ class CommunicateFirebase {
   }
 
   // Firebase DataBase Post 정보의 whoLikeThePost 속성에 사용자를 추가하는 method
-  static Future<void> addUserWhoLikeThePost(String postUid, String userUid) async {
+  static Future<void> addUserWhoLikeThePost(
+      String postUid, String userUid) async {
     // Firebase DataBase에서 Post 정보를 get하는 method를 실행한다.
     Map<String, dynamic> postData = await getPostData(postUid);
 
@@ -273,14 +294,103 @@ class CommunicateFirebase {
         .orderBy('uploadTime', descending: false)
         .get();
 
-    // 댓글을 관리하는 배열을 초기화 한다.
+    // comment 관리하는 배열을 초기화 한다.
     PostListController.to.commentArray.clear();
 
+    // comment 관리하는 배열에 여러 개 comment를 추가한다.
     comments.docs.forEach(
       (element) {
         PostListController.to.commentArray
             .add(CommentModel.fromMap(element.data()));
       },
     );
+  }
+
+  // Firebase DataBase comment 정보의 whoLikeThePost 속성에 접근하여
+  // 사용자가 comment에 대해서 클릭한 적이 있는지 판별하는 method
+  static Future<bool> checkLikeUsersFromTheComment(
+      CommentModel comment, String userUid) async {
+    // post - postUid - comments - commentUid에 접근하여 해당 comment에 접근한다.
+    DocumentSnapshot<Map<String, dynamic>> commentData =
+        await _firebaseFirestore
+            .collection('posts')
+            .doc(comment.belongCommentPostUid)
+            .collection('comments')
+            .doc(comment.commentUid)
+            .get();
+
+    // comment - whoCommentLike Property에 userUid가 있는지 확인한다.
+    for (String uid in commentData.data()!['whoCommentLike']) {
+      if (uid == userUid) {
+        // 해당 comment에 대해서 좋아요를 이미 눌렀다는 뜻이다. 따라서 true를 반환한다.
+        return true;
+      }
+    }
+
+    // 해당 comment에 대해서 좋아요를 누르지 않았다는 뜻이다. 따라서 false를 반환한다.
+    return false;
+  }
+
+  // Firebase DataBase comment 정보의 whoCommentLike 속성에 사용자를 추가하는 method
+  static Future<void> addUserWhoCommentLike(CommentModel comment) async {
+    // post - postUid - comments - commentUid에 접근하여 해당 comment에 접근한다.
+    DocumentSnapshot<Map<String, dynamic>> commentData =
+        await _firebaseFirestore
+            .collection('posts')
+            .doc(comment.belongCommentPostUid)
+            .collection('comments')
+            .doc(comment.commentUid)
+            .get();
+
+    // Firebase DataBase에서 comment 정보의 whoCommentLike 속성의 배열 값을 가져온다.
+    List<String> whoCommentLike =
+        List<String>.from(commentData['whoCommentLike'] as List);
+
+    // 배열에 사용자 Uid를 추가한다.
+    whoCommentLike.add(SettingsController.to.settingUser!.userUid);
+
+    // Firebase DataBase에서 comment 정보의 whoCommentLike 속성의 배열 값을 업데이트 한다.
+    await _firebaseFirestore
+        .collection('posts')
+        .doc(comment.belongCommentPostUid)
+        .collection('comments')
+        .doc(comment.commentUid)
+        .update({'whoCommentLike': whoCommentLike});
+
+    // 변수 초기화
+    whoCommentLike.clear();
+  }
+
+  // Firebase DataBase comment 정보를 삭제한다.
+  static Future<void> deleteComment(CommentModel comment) async {
+    // comment 정보를 삭제한다.
+    await _firebaseFirestore
+        .collection('posts')
+        .doc(comment.belongCommentPostUid)
+        .collection('comments')
+        .doc(comment.commentUid)
+        .delete();
+
+    // comment가 속해 있는 post에 대한 whoWriteCommentThePost Property에 comment를 쓴 사용자 uid를 삭제한다.
+    DocumentSnapshot<Map<String, dynamic>> postData = await _firebaseFirestore
+        .collection('posts')
+        .doc(comment.belongCommentPostUid)
+        .get();
+
+    // Firebase DataBase에서 Post 정보의 whoWriteCommentThePost 속성의 배열 값을 가져온다.
+    List<String> whoWriteCommentThePost =
+        List<String>.from(postData['whoWriteCommentThePost'] as List);
+
+    // 배열에 comment를 쓴 userUid를 삭제한다.
+    whoWriteCommentThePost.remove(SettingsController.to.settingUser!.userUid);
+
+    // Firebase DataBase에서 Post 정보의 whoWriteCommentThePost 속성의 배열 값을 업데이트 한다.
+    await _firebaseFirestore
+        .collection('posts')
+        .doc(comment.belongCommentPostUid)
+        .update({'whoWriteCommentThePost': whoWriteCommentThePost});
+
+    // 변수 clear
+    whoWriteCommentThePost.clear();
   }
 }

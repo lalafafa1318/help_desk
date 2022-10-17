@@ -84,14 +84,15 @@ class PostingController extends GetxController {
         // upload한 이미지를 Firebase Storage에 저장한다.
         postMap = CommunicateFirebase.postUploadImage(
           imageList: imageList,
-          userUid: AuthController.to.user.value.userUid!,
+          userUid: AuthController.to.user.value.userUid,
         );
 
         // Firebase Storage에 저장된 image를 download하는 method
         for (UploadTask uploadTask
             in postMap['uploadTasks'] as List<UploadTask>) {
           // Firebase Storage에 저장된 image를 download하는 method
-          String imageUrl = await CommunicateFirebase.downloadUrl(uploadTask);
+          String imageUrl =
+              await CommunicateFirebase.imageDownloadUrl(uploadTask);
 
           // 배열에 추가합니다.
           imagesUrl.add(imageUrl);
@@ -110,16 +111,15 @@ class PostingController extends GetxController {
 
       // PostModel을 만듭니다.
       PostModel post = PostModel(
-        imageList: imagesUrl,
-        postTitle: titleString.toString(),
-        postContent: contentString.toString(),
-        userUid: AuthController.to.user.value.userUid,
-        postUid: postMap['postUUid'],
-        postTime: formatDate,
-        changePostTime: formatDate,
-        whoLikeThePost: [],
-        whoWriteCommentThePost: []
-      );
+          imageList: imagesUrl,
+          postTitle: titleString.toString(),
+          postContent: contentString.toString(),
+          userUid: AuthController.to.user.value.userUid,
+          postUid: postMap['postUUid'],
+          postTime: formatDate,
+          changePostTime: formatDate,
+          whoLikeThePost: [],
+          whoWriteCommentThePost: []);
 
       // Firebase DataBase에 게시물 upload
       await CommunicateFirebase.setPostData(post, postMap['postUUid']);
