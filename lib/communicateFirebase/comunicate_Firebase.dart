@@ -150,7 +150,8 @@ class CommunicateFirebase {
   }
 
   // 새로고침할 떄 Post 정보에 대한 공감 수와 댓글 수가 변동사항이 있는지 확인하는 method
-  static Future<Map<String, List<String>>> checkSympathyNumOrCommentNum(String postUid) async {
+  static Future<Map<String, List<String>>> checkSympathyNumOrCommentNum(
+      String postUid) async {
     DocumentSnapshot<Map<String, dynamic>> postData =
         await _firebaseFirestore.collection('posts').doc(postUid).get();
 
@@ -253,8 +254,20 @@ class CommunicateFirebase {
     whoLikeThePostArray.clear();
   }
 
+  // Firebase Database Post의 postUid를 찾는 method
+  static Future<bool> checkPostUid(String postUid) async {
+    final postData = await _firebaseFirestore
+        .collection('posts')
+        .where('postUid', isEqualTo: postUid)
+        .get();
+
+    // isEmpty면 게시물은 삭제가 되었다는 뜻이다. -> true를 반환한다.
+    // isNotEmpty면 게시물은 존재한다는 뜻이다. -> false를 반환한다.
+    return postData.docs.isEmpty;
+  }
+
   // Firebase DataBase comment 정보를 set 하는 method
-  static Future<void> setCommentData(CommentModel commentModel) async {
+  static Future<List<String>> setCommentData(CommentModel commentModel) async {
     // Firebase DataBase comment 정보를 set
     await _firebaseFirestore
         .collection('posts')
@@ -281,7 +294,8 @@ class CommunicateFirebase {
 
     // 변수 초기화
     postData.clear();
-    whoWriteCommentThePost.clear();
+
+    return whoWriteCommentThePost;
   }
 
   // Firebase DataBase 여러 개 comment을 get 하는 method
@@ -361,7 +375,7 @@ class CommunicateFirebase {
     whoCommentLike.clear();
   }
 
-  // Firebase DataBase comment 정보를 삭제한다.
+  // Firebase DataBase에서  comment 정보를 삭제한다.
   static Future<void> deleteComment(CommentModel comment) async {
     // comment 정보를 삭제한다.
     await _firebaseFirestore
@@ -392,5 +406,17 @@ class CommunicateFirebase {
 
     // 변수 clear
     whoWriteCommentThePost.clear();
+  }
+
+  // Firebase DataBase에서 사용자가 작성한 글을 가져온다.
+  static Future<void> getWhatIWroteThePost(String userUid) async {
+    final whatIWrotePostData = await _firebaseFirestore
+        .collection('posts')
+        .where('userUid', isEqualTo: userUid)
+        .get();
+
+    whatIWrotePostData.docs.forEach((element) {
+      
+    });
   }
 }

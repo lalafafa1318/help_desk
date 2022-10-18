@@ -195,7 +195,6 @@ class PostListController extends GetxController {
         commentUid: UUidUtil.getUUid(),
         whoWriteUserUid: SettingsController.to.settingUser!.userUid);
 
-    // 서버에 댓글을 추가하기
     await CommunicateFirebase.setCommentData(commentModel);
 
     // 댓글과 대댓글을 관리하는 textController 다시 빈칸으로 초기화
@@ -209,8 +208,7 @@ class PostListController extends GetxController {
   // comment의 whoCommentLike 속성에 사용자 uid가 있는지 판별하는 method
   Future<bool> checkLikeUsersFromTheComment(
       CommentModel comment, String userUid) async {
-    bool isResult = await CommunicateFirebase.checkLikeUsersFromTheComment(
-        comment, userUid);
+    bool isResult = await CommunicateFirebase.checkLikeUsersFromTheComment(comment, userUid);
 
     return isResult;
   }
@@ -223,6 +221,12 @@ class PostListController extends GetxController {
   // 사용자가 comment를 삭제하는 경우 호출되는 method
   Future<void> deleteComment(CommentModel comment) async {
     await CommunicateFirebase.deleteComment(comment);
+  }
+
+  // 게시물이 삭제되었는지 확인하는 method
+  Future<bool> isDeletePost(String postUid) async {
+    // 서버에서 게시물에 대한 postUid를 확인한다.
+    return await CommunicateFirebase.checkPostUid(postUid);
   }
 
   // PostListController가 메모리에 처음 올라갈 떄 호출되는 method

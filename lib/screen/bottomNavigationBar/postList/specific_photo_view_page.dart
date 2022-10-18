@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:get/get.dart';
+import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/distinguishRouting.dart';
 import 'package:photo_view/photo_view.dart';
@@ -16,15 +17,11 @@ class SpecificPhotoViewPage extends StatefulWidget {
 }
 
 class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
-  // 시작점이 PostListPage인지
-  // KeywordPostListPage인지 확인하는 변수
-  DistinguishRouting? whereRoute;
+  // PostData에 참조하는 변수
+  PostModel? postData;
 
-  // PostListController postDatas 또는 conditionTextPostDatas의 해당 index
-  int? datasIndex;
-
-  // 이미지 index
-  int? image;
+  //PostData의 imageList Property가 있다. 몇번째 사진인지 알려주는 imageIndex이다.
+  int? imageIndex;
 
   // PhotoView pageScroller 입니다.
   PageController? pageController;
@@ -37,12 +34,11 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
     // 로그
     print('SpecificPhotoViewPage - initState() 호출');
 
-    // 이전 페이지에서 전달한 arguments를 변수에 대입한다.
-    whereRoute = Get.arguments[0];
-    datasIndex = Get.arguments[1];
-    image = Get.arguments[2];
+    // SpecificPostPage에서 전달한 arguments를 변수에 대입한다.
+    postData = Get.arguments[0];
+    imageIndex = Get.arguments[1];
 
-    pageController = PageController(initialPage: image!);
+    pageController = PageController(initialPage: imageIndex!);
   }
 
   // SpecificPhotoViewPage가 사라질 떄 호출되는 method
@@ -95,40 +91,24 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
           SizedBox(
             width: Get.width,
             height: 600,
-            // Post List Page에서 시작점이 출발됐는지
-            // Keyword Post List Page에서 시작점이 출발됐는지 확인하여 PageView를 그린다.
             child: PageView.builder(
-              itemCount: whereRoute ==
-                      DistinguishRouting.postListPage_to_specificPostPage
-                  ? PostListController
-                      .to.postDatas[datasIndex!].imageList!.length
-                  : PostListController
-                      .to.conditionTextPostDatas[datasIndex!].imageList!.length,
+              itemCount: postData!.imageList.length,
               pageSnapping: true,
               controller: pageController,
               onPageChanged: (page) {
                 setState(() {
-                  image = page;
+                  imageIndex = page;
                 });
               },
-              itemBuilder: (BuildContext context, int index) {
+              itemBuilder: (BuildContext context, int imageIndex) {
                 return Container(
                   margin: const EdgeInsets.only(top: 30, left: 20, right: 20),
 
                   //확대, 축소가 가능하게 하기 위해 PhotoView를 적용했다.
                   child: PhotoView(
-                    imageProvider: whereRoute ==
-                            DistinguishRouting.postListPage_to_specificPostPage
-                        ? CachedNetworkImageProvider(PostListController
-                            .to.postDatas[datasIndex!].imageList![index]
-                            .toString())
-                        : CachedNetworkImageProvider(
-                            PostListController
-                                .to
-                                .conditionTextPostDatas[datasIndex!]
-                                .imageList![index]
-                                .toString(),
-                          ),
+                    imageProvider: CachedNetworkImageProvider(
+                      postData!.imageList[imageIndex],
+                    ),
                     enableRotation: false,
                   ),
                 );
@@ -142,17 +122,10 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
           // Indicator
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: whereRoute ==
-                    DistinguishRouting.postListPage_to_specificPostPage
-                ? indicators(
-                    PostListController
-                        .to.postDatas[datasIndex!].imageList!.length,
-                    image!,
-                  )
-                : indicators(
-                    PostListController.to.conditionTextPostDatas[datasIndex!]
-                        .imageList!.length,
-                    image!),
+            children: indicators(
+              postData!.imageList.length,
+              imageIndex!,
+            ),
           ),
         ],
       ),

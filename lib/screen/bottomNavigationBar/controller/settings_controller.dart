@@ -65,7 +65,7 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     update();
   }
 
-  // 프로필이 수정되면  호출되는 method
+  // 프로필이 수정되면 호출되는 method
   Future<bool> changeUserInfo() async {
     // 필요한 변수 준비
     UploadTask? updateFileEvent;
@@ -158,6 +158,11 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     update();
 
     return true;
+  }
+
+  // 서버에서 사용자가 쓴 게시물만 가져오는 method
+  Future<void> getWhatIWroteThePost(String userUid) async {
+    await CommunicateFirebase.getWhatIWroteThePost(userUid);
   }
 
   // SettingsController가 메모리에 처음 올라갔을 떄 호출되는 method

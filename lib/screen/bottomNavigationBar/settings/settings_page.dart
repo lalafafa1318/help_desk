@@ -12,6 +12,7 @@ import 'package:help_desk/const/const.dart';
 import 'package:help_desk/main.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/settings/edit_profile_page.dart';
+import 'package:help_desk/screen/bottomNavigationBar/settings/what_i_wrote_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -121,7 +122,7 @@ class SettingsPage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 30.0),
       child: Container(
         width: Get.width,
-        height: 320,
+        height: 220,
         color: Colors.white70,
         child: ListView(
           children: [
@@ -131,7 +132,7 @@ class SettingsPage extends StatelessWidget {
             const Divider(height: 3, thickness: 1),
 
             // 북마크 이동 페이지 칸
-            bookMarkView(),
+            // bookMarkView(),
 
             const Divider(height: 3, thickness: 1),
 
@@ -146,17 +147,17 @@ class SettingsPage extends StatelessWidget {
             const Divider(height: 3, thickness: 1),
 
             // 최근 본 글 이동 페이지 칸
-            recentView(),
+            // recentView(),
 
             const Divider(height: 3, thickness: 1),
+
+            // 로그아웃 설정 이동 페이지 칸
+            logoutView(),
 
             // 회원 탈퇴 설정 이동 페이지 칸
             // memberWithdrawView(),
 
             // const Divider(height: 3, thickness: 1),
-
-            // 로그아웃 설정 이동 페이지 칸
-            logoutView(),
           ],
         ),
       ),
@@ -177,8 +178,8 @@ class SettingsPage extends StatelessWidget {
             // 아이콘
             Icon(Icons.change_circle_outlined, size: 20),
 
-            // 아이콘과 제목 간격을 5만큼 넓힌다.
-            SizedBox(width: 5),
+            // 아이콘과 제목 간격을 10만큼 넓힌다.
+            SizedBox(width: 10),
 
             // 제목
             Text(
@@ -192,39 +193,40 @@ class SettingsPage extends StatelessWidget {
   }
 
   //  북마크 칸
-  Widget bookMarkView() {
-    return GestureDetector(
-      onTap: () {
-        // 북마크 이동 페이지 칸을 클릭하면 로직 적용
-        Get.to(() => EditProfilePage());
-      },
-      child: SizedBox(
-        height: 50,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            // 아이콘
-            Icon(Icons.bookmark, size: 20),
+  // Widget bookMarkView() {
+  //   return GestureDetector(
+  //     onTap: () {
+  //       // 북마크 이동 페이지 칸을 클릭하면 로직 적용
+  //       Get.to(() => EditProfilePage());
+  //     },
+  //     child: SizedBox(
+  //       height: 50,
+  //       child: Row(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: const [
+  //           // 아이콘
+  //           Icon(Icons.bookmark, size: 20),
 
-            // 아이콘과 제목 간격을 5만큼 넓힌다.
-            SizedBox(width: 5),
+  //           // 아이콘과 제목 간격을 5만큼 넓힌다.
+  //           SizedBox(width: 5),
 
-            // 제목
-            Text(
-              '북마크',
-              style: TextStyle(fontSize: 20),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  //           // 제목
+  //           Text(
+  //             '북마크',
+  //             style: TextStyle(fontSize: 20),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   //  내가 쓴 글 칸
   Widget writeView() {
     return GestureDetector(
       onTap: () {
-        // 북마크 이동 페이지 칸을 클릭하면 로직 적용
+        // 내가 쓴 글 페이지 칸을 클릭하면 Routing
+        Get.to(() => const WhatIWrotePage());
       },
       child: SizedBox(
         height: 50,
@@ -235,7 +237,7 @@ class SettingsPage extends StatelessWidget {
             Icon(Icons.list, size: 20),
 
             // 아이콘과 제목 간격을 5만큼 넓힌다.
-            SizedBox(width: 5),
+            SizedBox(width: 10),
 
             // 제목
             Text(
@@ -262,8 +264,8 @@ class SettingsPage extends StatelessWidget {
             // 아이콘
             Icon(Icons.comment_bank_outlined, size: 20),
 
-            // 아이콘과 제목 간격을 5만큼 넓힌다.
-            SizedBox(width: 5),
+            // 아이콘과 제목 간격을 10만큼 넓힌다.
+            SizedBox(width: 10),
 
             // 제목
             Text(
@@ -277,58 +279,58 @@ class SettingsPage extends StatelessWidget {
   }
 
   //  최근 본 글 칸
-  Widget recentView() {
-    return GestureDetector(
-      onTap: () {
-        // 내가 댓글 단 글 칸을 클릭하면 로직 적용
-      },
-      child: SizedBox(
-        height: 50,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            // 아이콘
-            Icon(Icons.recent_actors_outlined, size: 20),
+  // Widget recentView() {
+  //   return GestureDetector(
+  //     onTap: () {
+  //       // 내가 댓글 단 글 칸을 클릭하면 로직 적용
+  //     },
+  //     child: SizedBox(
+  //       height: 50,
+  //       child: Row(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: const [
+  //           // 아이콘
+  //           Icon(Icons.recent_actors_outlined, size: 20),
 
-            // 아이콘과 제목 간격을 5만큼 넓힌다.
-            SizedBox(width: 5),
+  //           // 아이콘과 제목 간격을 5만큼 넓힌다.
+  //           SizedBox(width: 5),
 
-            // 제목
-            Text(
-              '최근 본 글',
-              style: TextStyle(fontSize: 20),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  //           // 제목
+  //           Text(
+  //             '최근 본 글',
+  //             style: TextStyle(fontSize: 20),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   //  회원 탈퇴 설정 칸 (구현할 수도 안할 수도...)
-  Widget memberWithdrawView() {
-    return SizedBox(
-      height: 50,
-      child: InkWell(
-        onTap: () {},
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            // 아이콘
-            Icon(Icons.transfer_within_a_station_rounded, size: 20),
+  // Widget memberWithdrawView() {
+  //   return SizedBox(
+  //     height: 50,
+  //     child: InkWell(
+  //       onTap: () {},
+  //       child: Row(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: const [
+  //           // 아이콘
+  //           Icon(Icons.transfer_within_a_station_rounded, size: 20),
 
-            // 아이콘과 제목 간격을 5만큼 넓힌다.
-            SizedBox(width: 5),
+  //           // 아이콘과 제목 간격을 5만큼 넓힌다.
+  //           SizedBox(width: 5),
 
-            // 제목
-            Text(
-              '회원 탈퇴하기',
-              style: TextStyle(fontSize: 20),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  //           // 제목
+  //           Text(
+  //             '회원 탈퇴하기',
+  //             style: TextStyle(fontSize: 20),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   //  로그아웃 칸
   Widget logoutView() {
@@ -344,8 +346,8 @@ class SettingsPage extends StatelessWidget {
             // 아이콘
             Icon(Icons.logout_outlined, size: 20),
 
-            // 아이콘과 제목 간격을 5만큼 넓힌다.
-            SizedBox(width: 5),
+            // 아이콘과 제목 간격을 10만큼 넓힌다.
+            SizedBox(width: 10),
 
             // 제목
             Text(
@@ -364,10 +366,9 @@ class SettingsPage extends StatelessWidget {
       builder: (controller) {
         return Scaffold(
           backgroundColor: const Color(0xFFf2eeed),
-          // backgroundColor: Colors.white,
           body: Column(
             children: [
-              const SizedBox(height: 30),
+              const SizedBox(height: 100),
 
               // 아바타 View + Edit outline Button
               topView(controller),
