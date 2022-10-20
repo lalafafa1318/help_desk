@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
-import 'package:help_desk/const/const.dart';
 import 'package:help_desk/model/comment_model.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
@@ -66,7 +65,8 @@ class PostListController extends GetxController {
     return postDatas;
   }
 
-  // 사용자가 입력한 keyword을 포함하거나 일치하는 게시판 데이터를 List에 넣어주는 method
+  // 사용자가 입력한 text가 PostData의 postTitle, postConent Property에 포함되거나 일치하는 경우를 찾는다.
+  // 사용자가 입력한 text가 UserData의 userName에 포함되거나 일치하는 경우를 찾는 method
   Future<List<PostModel>> getConditionTextPostData() async {
     // searchTextController.text로 길게 쓰기 싫어서 keyword로 대치한다.
     String keyword = searchTextController!.text;
@@ -75,18 +75,14 @@ class PostListController extends GetxController {
     conditionTextPostDatas.clear();
     conditionTextUserDatas.clear();
 
-    for (PostModel postData in postDatas) {
-      // 검증하기 전 사용자 userName을 가져온다.
-      Map<String, dynamic> userData =
-          await CommunicateFirebase.getUserData(postData.userUid.toString());
-
-      // 사용자가 입력한 keyword가 글 제목, 내용 그리고 이름 어디에서 포함되고 일치하는 경우를 검증한다.
-      if (userData['userName'].contains(keyword) ||
-          postData.postTitle.toString().contains(keyword) ||
-          postData.postContent.toString().contains(keyword)) {
-        // PostData와 UserData들을 담당하는 배열에 PostData와 UserData를 추가한다.
-        conditionTextPostDatas.add(postData);
-        conditionTextUserDatas.add(UserModel.fromMap(userData));
+    // 사용자가 입력한 text가 PostData의 postTitle, postConent Property에 포함되거나 일치하는 경우를 찾는다.
+    // 사용자가 입력한 text가 UserData의 userName에 포함되거나 일치하는 경우를 찾는다.
+    for (int i = 0; i < postDatas.length; i++) {
+      if (postDatas[i].postTitle.contains(keyword) ||
+          postDatas[i].postContent.contains(keyword) ||
+          userDatas[i].userName.contains(keyword)) {
+        conditionTextPostDatas.add(postDatas[i]);
+        conditionTextUserDatas.add(userDatas[i]);
       }
     }
     return conditionTextPostDatas;
@@ -116,13 +112,15 @@ class PostListController extends GetxController {
   }
 
   // KeywordPostListPage 검색창에 입력한 text를 validation하는 method
-  void validTextFromKeywordPostListPage() {
+  bool validTextFromKeywordPostListPage() {
     // PostListPage 검색창에 입력한 text가 빈 값인 경우
     if (PostListController.to.searchTextController!.text.isEmpty) {
       // 키보드 내리기
       FocusManager.instance.primaryFocus?.unfocus();
 
       ToastUtil.showToastMessage('키워드가 빈칸 입니다 :)');
+
+      return false;
     }
     // PostListPage 검색창에 입력한 text가 한 글자인 경우
     else if (PostListController.to.searchTextController!.text.length == 1) {
@@ -130,15 +128,17 @@ class PostListController extends GetxController {
       FocusManager.instance.primaryFocus?.unfocus();
 
       ToastUtil.showToastMessage('두 글자 이상 입력해주세요 :)');
+
+      return false;
     }
     // PostListPage 검색창에 입력한 text가 두 글자인 경우
     // 업데이트된 text를 가지고 KeywordPostListPage를 재랜더링 합니다.
     else {
-      update();
+      return true;
     }
   }
 
-  // 새로고침할 떄 Post 정보에 대한 공감 수와 댓글 수가 변동사항이 있는지 확인하는 method
+  // 서버에 Post 정보에 대한  공감 데이터와 댓글 데이터를 가져오는 method
   Future<Map<String, List<String>>> checkSympathyNumOrCommentNum(String postUid) async {
     return await CommunicateFirebase.checkSympathyNumOrCommentNum(postUid);
   }
@@ -146,15 +146,6 @@ class PostListController extends GetxController {
   // 게시물을 삭제하는 method
   Future<void> deletePostData(String postUid) async {
     await CommunicateFirebase.deletePostData(postUid);
-  }
-
-  // 사용자가 게시물에 대해서 좋아요 버튼을 클릭할 떄
-  // 게시물의 좋아요 속성에 사용자가 있는지 판별하는 method
-  Future<bool> checkLikeUsersFromThePost(String postUid, String userUid) async {
-    bool isResult =
-        await CommunicateFirebase.checkLikeUsersFromThePost(postUid, userUid);
-
-    return isResult;
   }
 
   // 사용자가 게시물에 대해서 공감을 누른 경우 호출되는 method (단, 공감을 하지 않았을 때에만 적용)
@@ -179,7 +170,12 @@ class PostListController extends GetxController {
     return UserModel.fromMap(userData);
   }
 
-  // 사용자가 게시물 댓글을 추가할 떄 호출되는 method
+  // 서버에 존재하는 게시물의 whoWriteCommentThePost 속성에 사용자 uid를 추가하는 method
+  Future<void> addWhoWriteCommentThePost(String postUid) async {
+    await CommunicateFirebase.addWhoWriteCommentThePost(postUid);
+  }
+
+  // 서버에 존재하는 게시물에 댓글을 추가하는 method
   Future<void> addComment(String comment, String postUid) async {
     // 현재 시간을 바탕으로 원하는 형식으로 바꾼다.
     DateTime currentDateTime = DateTime.now();
@@ -195,20 +191,15 @@ class PostListController extends GetxController {
         commentUid: UUidUtil.getUUid(),
         whoWriteUserUid: SettingsController.to.settingUser!.userUid);
 
+    // 게시물에 대한 comment를 서버에 저장한다.
     await CommunicateFirebase.setCommentData(commentModel);
-
-    // 댓글과 대댓글을 관리하는 textController 다시 빈칸으로 초기화
-    PostListController.to.commentController!.text = '';
-
-    // 키보드 내리기
-    FocusManager.instance.primaryFocus?.unfocus();
   }
 
   // 사용자가 해당 commen에 대해서 좋아요 버튼을 클릭할 떄
-  // comment의 whoCommentLike 속성에 사용자 uid가 있는지 판별하는 method
-  Future<bool> checkLikeUsersFromTheComment(
-      CommentModel comment, String userUid) async {
-    bool isResult = await CommunicateFirebase.checkLikeUsersFromTheComment(comment, userUid);
+  // 서버에 존재하는 comment의 whoCommentLike 속성에 사용자 uid가 있는지 판별하는 method
+  Future<bool> checkLikeUsersFromTheComment(CommentModel comment, String userUid) async {
+    bool isResult = await CommunicateFirebase.checkLikeUsersFromTheComment(
+        comment, userUid);
 
     return isResult;
   }

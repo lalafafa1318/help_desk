@@ -60,8 +60,11 @@ class PostingController extends GetxController {
     // 여러 개 UploadTask와 게시물 Uuid가 저장된 map
     Map<String, dynamic> postMap = {};
 
+    // 동시에 image에 대한 url를 요청해서, 순서대로 저장하는 List
+    List<Future> imageUrlFuture = [];
+
     // 여러 개 imageUrl을 저장하는 List
-    List<String> imagesUrl = [];
+    List<String> imageUrlList = [];
 
     // Validation 미통과
     if (titleString.isEmpty || contentString.isEmpty) {
@@ -88,14 +91,19 @@ class PostingController extends GetxController {
         );
 
         // Firebase Storage에 저장된 image를 download하는 method
-        for (UploadTask uploadTask
-            in postMap['uploadTasks'] as List<UploadTask>) {
-          // Firebase Storage에 저장된 image를 download하는 method
-          String imageUrl =
-              await CommunicateFirebase.imageDownloadUrl(uploadTask);
+        // 동시에 image에 대한 url를 요청해서 시간 절약을 한다.
+        for (UploadTask uploadTask in postMap['uploadTasks'] as List<UploadTask>) {
+          imageUrlFuture.add(
+            CommunicateFirebase.imageDownloadUrl(uploadTask),
+          );
+        }
 
-          // 배열에 추가합니다.
-          imagesUrl.add(imageUrl);
+        // 동시에 image에 대한 url를 요청한 것을 순서대로 저장한다.
+        final result = await Future.wait(imageUrlFuture);
+
+        // 여러 개 imagesUrl을 저장하는 배열에 추가한다.
+        for (int i = 0; i < result.length; i++) {
+          imageUrlList.add(result[i].toString());
         }
       }
       // 업로드한 이미지가 0개이든, 1개 이상이든 이하 공통 작업
@@ -111,7 +119,7 @@ class PostingController extends GetxController {
 
       // PostModel을 만듭니다.
       PostModel post = PostModel(
-          imageList: imagesUrl,
+          imageList: imageUrlList,
           postTitle: titleString.toString(),
           postContent: contentString.toString(),
           userUid: AuthController.to.user.value.userUid,
@@ -126,7 +134,7 @@ class PostingController extends GetxController {
 
       // upload method 내 변수 초기화
       postMap.clear();
-      imagesUrl.clear();
+      imageUrlList.clear();
 
       // 업로드후 상태 변수 초기화
       initPostingElement();

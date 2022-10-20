@@ -7,13 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
-import 'package:help_desk/const/const.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
+import 'package:help_desk/routeDistinction/routeDistinction.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
-import 'package:help_desk/screen/bottomNavigationBar/postList/distinguishRouting.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/keyword_post_list_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_post_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
@@ -88,7 +87,7 @@ class PostListPage extends StatelessWidget {
     );
   }
 
-  // FutureBuilder를 통해 전체 게시글 목록을 가져온다.
+  // StreamBuilder를 통해 전체 게시글 목록을 가져온다.
   Widget getAllPostDataLive() {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: PostListController.to.getAllPostData(),
@@ -183,7 +182,7 @@ class PostListPage extends StatelessWidget {
                     () => const SpecificPostPage(),
                     arguments: [
                       index,
-                      DistinguishRouting.postListPage_to_specificPostPage,
+                      RouteDistinction.postListPage_to_specificPostPage,
                     ],
                   );
                 },

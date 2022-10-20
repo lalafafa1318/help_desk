@@ -6,7 +6,10 @@ import 'package:get/get.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
+import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
+import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
+import 'package:help_desk/screen/bottomNavigationBar/settings/what_i_wrote_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -15,7 +18,8 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
   // 사용자가 회원가입 절차를 거쳤는지 아닌지를 판별하는 상태 변수
   bool didSignUp = true;
 
-  // AuthController - User의 image, description, userName, userUid
+  // 사용자 계정을 나타내는 인스턴스
+  // AuthController - User의 image, description, userName, userUid를 복제했다.
   UserModel? settingUser;
 
   // 수정할 이미지에 대한 Field
@@ -25,6 +29,16 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
   // 수정할 이름, 설명에 대한 Field
   String editName = '';
   String editDescription = '';
+
+  // 사용자가 작성한 게시글을 담는 배열
+  List<PostModel> whatIWrotePostDatas = [];
+  // 사용자가 작성한 게시글에 관한 사용자 정보를 담는 배열
+  List<UserModel> whatIWroteUserDatas = [];
+
+  // 사용자가 댓글 작성한 게시글을 담는 배열
+  List<PostModel> whatICommentPostDatas = [];
+  // 사용자가 댓글 작성한 게시글에 관한 사용자 정보를 담는 배열
+  List<UserModel> whatICommentUserDatas = [];
 
   // Method
   // Settings를 쉽게 사용할 수 있도록 하는 method
@@ -160,9 +174,53 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     return true;
   }
 
-  // 서버에서 사용자가 쓴 게시물만 가져오는 method
-  Future<void> getWhatIWroteThePost(String userUid) async {
-    await CommunicateFirebase.getWhatIWroteThePost(userUid);
+  // 사용자가 업로드한 게시글을 가져오는 method
+  Future<List<PostModel>> getWhatIWrotePostData() async {
+    // PostData들과 UserData들을 담고 있는 배열을 clear한다.
+    whatIWrotePostDatas.clear();
+    whatIWroteUserDatas.clear();
+
+    for (PostModel postData in PostListController.to.postDatas) {
+      // 해당 게시물의 userUid가 현 계정의 userUid와 같다면?
+      if (postData.userUid == settingUser!.userUid) {
+        // postData의 userUid를 이용해 userData를 가져온다.
+        Map<String, dynamic> userData =
+            await CommunicateFirebase.getUserData(postData.userUid);
+
+        // whatIWrotePostDatas와 whatIWroteUserDatas 배열에 PostData와 UserData를 추가한다.
+        whatIWrotePostDatas.add(postData);
+        whatIWroteUserDatas.add(UserModel.fromMap(userData));
+      }
+    }
+
+    return whatIWrotePostDatas;
+  }
+
+  // 사용자가 댓글 작성한 게시물을 가져오는 method
+  Future<List<PostModel>> getWhatICommentPostData() async {
+    // PostData들과 UserData들을 담고 있는 배열을 clear한다.
+    whatICommentPostDatas.clear();
+    whatICommentUserDatas.clear();
+
+    // postDatas를 업데이트 하는 방법을 강구헤야 한다.
+    // ?????????????????????????????????????????
+    // ??????????????????????????????????????
+
+   
+    for (PostModel postData in PostListController.to.postDatas) {
+      // 해당 게시물의 whoWriteCommentThePost Property에 userUid가 있는지 확인한다.
+      if (postData.whoWriteCommentThePost.contains(settingUser!.userUid)) {
+        // postData의 userUid를 이용해 userData를 가져온다.
+        Map<String, dynamic> userData =
+            await CommunicateFirebase.getUserData(postData.userUid);
+
+        // whatICommentPostDatas와 whatICommentUserDatas 배열에 PostData와 UserData를 추가한다.
+        whatICommentPostDatas.add(postData);
+        whatICommentUserDatas.add(UserModel.fromMap(userData));
+      }
+    }
+
+    return whatICommentPostDatas;
   }
 
   // SettingsController가 메모리에 처음 올라갔을 떄 호출되는 method

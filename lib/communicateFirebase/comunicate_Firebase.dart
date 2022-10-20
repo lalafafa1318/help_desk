@@ -213,23 +213,6 @@ class CommunicateFirebase {
     imageList.clear();
   }
 
-  // Firebase DataBase Post 정보의 whoLikeThePost 속성에 접근하여 좋아요를 누른 사용자를 확인하는 method
-  static Future<bool> checkLikeUsersFromThePost(
-      String postUid, String userUid) async {
-    // Firebase DataBase에서 Post 정보를 get하는 method를 실행한다.
-    Map<String, dynamic> postData = await getPostData(postUid);
-
-    // whoLikeThePost에서 사용자 Uid가 있는지 확인한다.
-    for (String uid in postData['whoLikeThePost']) {
-      // uid 비교 작업
-      if (userUid == uid) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   // Firebase DataBase Post 정보의 whoLikeThePost 속성에 사용자를 추가하는 method
   static Future<void> addUserWhoLikeThePost(
       String postUid, String userUid) async {
@@ -266,8 +249,31 @@ class CommunicateFirebase {
     return postData.docs.isEmpty;
   }
 
+  // 서버에 존재하는 게시물의 whoWriteCommentThePost 속성에 사용자 uid를 추가하는 method
+  static Future<void> addWhoWriteCommentThePost(String postUid) async {
+    // 서버에 존재하는 게시물 정보를 받아온다.
+    DocumentSnapshot<Map<String, dynamic>> postData =
+        await _firebaseFirestore.collection('posts').doc(postUid).get();
+
+    // 게시물 정보의 whoWriteCommentThePost 속성의 배열 값을 가져온다.
+    List<String> whoWriteCommentThePost =
+        List<String>.from(postData.data()!['whoWriteCommentThePost'] as List);
+
+    // 배열에 사용자 Uid를 추가한다.
+    whoWriteCommentThePost.add(SettingsController.to.settingUser!.userUid);
+
+    // 서버에 존재하는 Post 정보의 whoWriteCommentThePost 속성의 배열 값을 업데이트 한다.
+    await _firebaseFirestore
+        .collection('posts')
+        .doc(postUid)
+        .update({'whoWriteCommentThePost': whoWriteCommentThePost});
+
+    // 변수 초기화
+    whoWriteCommentThePost.clear();
+  }
+
   // Firebase DataBase comment 정보를 set 하는 method
-  static Future<List<String>> setCommentData(CommentModel commentModel) async {
+  static Future<void> setCommentData(CommentModel commentModel) async {
     // Firebase DataBase comment 정보를 set
     await _firebaseFirestore
         .collection('posts')
@@ -275,27 +281,6 @@ class CommunicateFirebase {
         .collection('comments')
         .doc(commentModel.commentUid)
         .set(CommentModel.toMap(commentModel));
-
-    // 서버에 Post 정보를 받아온다.
-    Map<String, dynamic> postData =
-        await getPostData(commentModel.belongCommentPostUid);
-
-    // 임시적으로 whoWriteCommentThePost 배열을 생성한다.
-    List<String> whoWriteCommentThePost =
-        List<String>.from(postData['whoWriteCommentThePost'] as List);
-
-    whoWriteCommentThePost.add(commentModel.whoWriteUserUid);
-
-    // Firebase DataBase에서 Post 정보의 whoWriteCommentThePost 속성의 배열 값을 업데이트 한다.
-    await _firebaseFirestore
-        .collection('posts')
-        .doc(commentModel.belongCommentPostUid)
-        .update({'whoWriteCommentThePost': whoWriteCommentThePost});
-
-    // 변수 초기화
-    postData.clear();
-
-    return whoWriteCommentThePost;
   }
 
   // Firebase DataBase 여러 개 comment을 get 하는 method
@@ -322,8 +307,7 @@ class CommunicateFirebase {
 
   // Firebase DataBase comment 정보의 whoLikeThePost 속성에 접근하여
   // 사용자가 comment에 대해서 클릭한 적이 있는지 판별하는 method
-  static Future<bool> checkLikeUsersFromTheComment(
-      CommentModel comment, String userUid) async {
+  static Future<bool> checkLikeUsersFromTheComment(CommentModel comment, String userUid) async {
     // post - postUid - comments - commentUid에 접근하여 해당 comment에 접근한다.
     DocumentSnapshot<Map<String, dynamic>> commentData =
         await _firebaseFirestore
@@ -375,7 +359,7 @@ class CommunicateFirebase {
     whoCommentLike.clear();
   }
 
-  // Firebase DataBase에서  comment 정보를 삭제한다.
+  // Firebase DataBase에서 comment 정보를 삭제한다.
   static Future<void> deleteComment(CommentModel comment) async {
     // comment 정보를 삭제한다.
     await _firebaseFirestore
@@ -406,17 +390,5 @@ class CommunicateFirebase {
 
     // 변수 clear
     whoWriteCommentThePost.clear();
-  }
-
-  // Firebase DataBase에서 사용자가 작성한 글을 가져온다.
-  static Future<void> getWhatIWroteThePost(String userUid) async {
-    final whatIWrotePostData = await _firebaseFirestore
-        .collection('posts')
-        .where('userUid', isEqualTo: userUid)
-        .get();
-
-    whatIWrotePostData.docs.forEach((element) {
-      
-    });
   }
 }

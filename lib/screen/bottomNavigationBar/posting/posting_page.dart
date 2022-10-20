@@ -38,7 +38,9 @@ class PostingPage extends StatelessWidget {
                     // 이미지를 띄울 수 없다는 경고문 띄우기
                     ToastUtil.showToastMessage(
                         '업로드할 수 있는 이미지 개수가 초과되었습니다.');
-                  } else {
+                  } 
+                  //
+                  else {
                     // 이미지 불러오기
                     await PostingController.to.getImage();
                   }

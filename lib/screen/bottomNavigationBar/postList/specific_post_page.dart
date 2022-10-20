@@ -11,9 +11,9 @@ import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/model/comment_model.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
+import 'package:help_desk/routeDistinction/routeDistinction.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
-import 'package:help_desk/screen/bottomNavigationBar/postList/distinguishRouting.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/post_list_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_photo_view_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
@@ -27,9 +27,11 @@ class SpecificPostPage extends StatefulWidget {
 }
 
 class _SpecificPostPageState extends State<SpecificPostPage> {
-  // PostListPage에서 라우팅 되었는지
-  // KeywordPostListPage에서 라우팅 되었는지 여부를 확인하는 변수
-  DistinguishRouting? whereRoute;
+  // PostListPage에서
+  // KeywordPostListPage에서
+  // WhatIWrotePage에서
+  // WhatICommentPage에서 Routing 됐는지 파악하는 변수
+  RouteDistinction? whereRoute;
 
   // PostData와 UserData를 참조하는 변수
   PostModel? postData;
@@ -37,6 +39,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
   // CommentData에 접근할 수 있도록 하는 변수
   List<CommentModel>? commentArray;
+
+  // 처음 SpecificPostPage로 들어올 떄
+  // 서버로부터 댓글 데이터를 얻기 위해 2번 호출되는 것을 방지하고자 설정한 변수
+  bool isCallServerAboutCommentData = false;
 
   // 이전 가기, 알림, 새로 고침, 삭제 버튼을 표시하는 Widget 입니다.
   Widget topView() {
@@ -66,11 +72,11 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             PostListController.to.commentController!.text = '';
           }
 
-          // 키보드 내리기 (설사 키보드가 안나왔다 해도 내린다.)
-          FocusManager.instance.primaryFocus?.unfocus();
+          // // 키보드 내리기 (설사 키보드가 안나왔다 해도 내린다.)
+          // FocusManager.instance.primaryFocus?.unfocus();
 
-          // 키보드를 내리고 이전 페이지로 가는 과정에서 여유를 주고자 작성했다. -> 그러면 내부 에러 코드가 나오지 않게 된다.
-          await Future.delayed(const Duration(microseconds: 450000));
+          // // 키보드를 내리고 이전 페이지로 가는 과정에서 여유를 주고자 작성했다. -> 그러면 내부 에러 코드가 나오지 않게 된다.
+          // await Future.delayed(const Duration(microseconds: 450000));
 
           // 이전 페이지로 가기
           Get.back();
@@ -122,32 +128,29 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   Widget refreshIcon() {
     return IconButton(
       onPressed: () async {
-        // 게시물이 삭제되었는지 확인하는 method
-        bool isDeletePost =
-            await PostListController.to.isDeletePost(postData!.postUid);
+        // 게시글이 삭제됐는지 확인한다.
+        bool isDeletePostResult = await isDeletePost();
 
-        // 게시물이 삭제되었다면?
-        if (isDeletePost) {
-          // 게시물이 삭제되었다는 것을 알리는 AlertDialog를 띄운다.
+        // 게시글이 삭제됐으면?
+        if (isDeletePostResult == true) {
+          // 게시글이 사라졌다는 AlertDailog를 표시한다.
           await deletePostDialog();
 
-          // PostListPage로 돌아가든지, KeywordPostListPage로 돌아간다.
+          // 이전 페이지로 돌아가기
           Get.back();
-
-          // 본래 KeywordPostListPage에서 SpecificPostPage로 Routing 되었다면
-          // KeywordPostListPage를 재랜더링 한다.
-          if (whereRoute ==
-              DistinguishRouting.keywordPostListPage_to_specificPostPage)
-            PostListController.to.update();
         }
-        // 게시물이 삭제되지 않고 그대로 존재한다면?
+        // 게시글이 삭제되지 않으면?
         else {
-          // 서버에서 공감 데이터와 댓글 데이터를 받아와서 PostData에 업데이트 하는 method
+          // 서버에서 공감 데이터와 댓글 데이터를 받아서 PostData에 업데이트 한다.
           await updateSympathyNumAndCommentNum();
 
-          // 게시물을 새로고침 하는 코드 작성
-          setState(() {});
+          // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
+          // 부분적으로 재랜더링 한다.
+          // 1. 업데이트 된 댓글 수와 공감 수를 화면에 보여주기 위해 재랜더링 한다.
+          // 2. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
+          PostListController.to.update();
 
+          // Toast Message로 알린다.
           ToastUtil.showToastMessage('게시물이 새로고침 되었습니다 :)');
         }
       },
@@ -161,22 +164,13 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         ? IconButton(
             onPressed: () async {
               // AlertDialog를 통해 삭제할 것인지 묻는다.
-              bool? isDelete = await clickDeleteIconDialog(
-                postData!.postUid,
-              );
+              bool? isDeletePostResult =
+                  await clickDeleteIconDialog(postData!.postUid);
 
-              if (isDelete == true) {
-                // 본래 PostListPage에서 Routing 됐는지
-                // KeywordPostListPage에서 Routing 됐는지 따져
-                // 뒤로 가기를 다르게 구현한다.
-
+              // 작성자가 게시물을 삭제한다면?
+              if (isDeletePostResult == true) {
+                // 이전 가기로 돌아가기
                 Get.back();
-
-                // 본래 KeywordPostListPage에서 SpecificPostPage로 Routing 되었다면
-                // KeywordPostListPage를 재랜더링 한다.
-                if (whereRoute ==
-                    DistinguishRouting.keywordPostListPage_to_specificPostPage)
-                  PostListController.to.update();
               }
             },
             icon: const Icon(Icons.delete_outline_outlined),
@@ -363,19 +357,25 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
   // 좋아요 수와 comment 수를 보여주는 Widget 입니다.
   Widget showLikeNumAndCommentNum() {
-    return Padding(
-      padding: const EdgeInsets.all(5),
-      child: Row(
-        children: [
-          // 좋아요 수를 보여준다.
-          showLikeNum(),
+    return GetBuilder<PostListController>(
+      builder: (controller) {
+        print('SpecificPostPage - showLikeNumAndCommentNum() 호출');
 
-          const SizedBox(width: 10),
+        return Padding(
+          padding: const EdgeInsets.all(5),
+          child: Row(
+            children: [
+              // 좋아요 수를 보여준다.
+              showLikeNum(),
 
-          // comment 수를 보여준다.
-          showCommentNum(),
-        ],
-      ),
+              const SizedBox(width: 10),
+
+              // comment 수를 보여준다.
+              showCommentNum(),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -437,27 +437,20 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           // // 키보드를 내리고 AlertDialog가 보여지기까지 과정에서 여유를 주고자 작성했다. -> 그러면 내부 에러 코드가 나오지 않게 된다.
           // await Future.delayed(const Duration(microseconds: 300000));
 
-          // 게시물이 삭제되었는지 확인하는 method
-          bool isDeletePost =
-              await PostListController.to.isDeletePost(postData!.postUid);
+          // 게시글이 삭제됐는지 확인한다.
+          bool isDeletePostResult = await isDeletePost();
 
-          // 게시물이 삭제되었다면?
-          if (isDeletePost) {
-            // 게시물이 삭제되었다는 것을 알리는 AlertDialog를 띄운다.
+          // 게시글이 삭제됐으면?
+          if (isDeletePostResult == true) {
+            // 게시글이 사라졌다는 AlertDailog를 표시한다.
             await deletePostDialog();
 
-            // PostListPage로 돌아가든지, KeywordPostListPage로 돌아간다.
+            // 이전 페이지로 돌아가기
             Get.back();
-
-            // 본래 KeywordPostListPage에서 SpecificPostPage로 Routing 되었다면
-            // KeywordPostListPage를 재랜더링 한다.
-            if (whereRoute ==
-                DistinguishRouting.keywordPostListPage_to_specificPostPage)
-              PostListController.to.update();
           }
-          // 게시물이 삭제되지 않았다면?
+          // 게시글이 삭제되지 않으면?
           else {
-            // AlertDialog를 통해 공감할 것인지 묻는다.
+            // 공감 관련 AlertDialog을 띠운다.
             await clickSympathyDialog();
           }
         },
@@ -472,25 +465,33 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
   // comment를 보여주기 위해 ListView로 나타내는 Widget 입니다.
   Widget showCommentListView() {
-    return FutureBuilder<List<CommentModel>>(
-      future: PostListController.to.getCommentData(postData!.postUid),
-      builder: (context, snapshot) {
-        // 데이터를 기다리고 있다.
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return SizedBox(
-            width: Get.width,
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
+    return GetBuilder<PostListController>(
+      builder: (controller) {
+        // 서버로부터 commentData를 호출하기 위한 설정이 되었으면
+        // 즉 true 상태이면 서버로부터 commentData를 받는다.
+        return isCallServerAboutCommentData == true
+            ? FutureBuilder<List<CommentModel>>(
+                future: PostListController.to.getCommentData(postData!.postUid),
+                builder: (context, snapshot) {
+                  // 데이터를 기다리고 있다.
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return SizedBox(
+                      width: Get.width,
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
 
-        // 데이터가 왔다.
-        return snapshot.data!.isNotEmpty
-            ? Column(
-                children: snapshot.data!
-                    .map((comment) => showEachComment(comment))
-                    .toList(),
+                  // 데이터가 왔다.
+                  return snapshot.data!.isNotEmpty
+                      ? Column(
+                          children: snapshot.data!
+                              .map((comment) => showEachComment(comment))
+                              .toList(),
+                        )
+                      : const Visibility(visible: false, child: Text('테스트'));
+                },
               )
             : const Visibility(visible: false, child: Text('테스트'));
       },
@@ -499,6 +500,9 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
   // comment을 보여주는 Widget 입니다.
   Widget showEachComment(CommentModel comment) {
+    // 로그
+    print('SpecificPostPage - showEachComment() - 댓글 데이터를 가져옵니다.');
+
     return Container(
       color: Colors.grey[100],
       margin: const EdgeInsets.symmetric(horizontal: 15),
@@ -610,27 +614,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // // comment 창에 있는 대comment 보내기 아이콘
-  // Widget sendCommentReply(CommentModel comment) {
-  //   return ClipRRect(
-  //     borderRadius: BorderRadius.circular(5),
-  //     child: Container(
-  //       width: 30,
-  //       height: 25,
-  //       color: Colors.grey,
-  //       child: IconButton(
-  //         padding: const EdgeInsets.only(top: 1),
-  //         onPressed: () {},
-  //         icon: Icon(
-  //           Icons.message_outlined,
-  //           color: Colors.grey[200]!.withOpacity(1),
-  //           size: 15,
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
   // comment 창에 있는 좋아요 아이콘
   Widget commentLikeIcon(CommentModel comment) {
     return ClipRRect(
@@ -642,14 +625,22 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         child: IconButton(
           padding: const EdgeInsets.only(top: 1),
           onPressed: () async {
-            // 키보드 내리기 (설사 키보드가 안나왔다 해도 내린다.)
-            FocusManager.instance.primaryFocus?.unfocus();
+            // 게시글이 삭제됐는지 확인한다.
+            bool isDeletePostResult = await isDeletePost();
 
-            // 키보드를 내리고 AlertDialog가 보여지기까지 과정에서 여유를 주고자 작성했다. -> 그러면 내부 에러 코드가 나오지 않게 된다.
-            await Future.delayed(const Duration(microseconds: 300000));
+            // 게시글이 삭제됐으면?
+            if (isDeletePostResult == true) {
+              // 게시글이 사라졌다는 AlertDailog를 표시한다.
+              await deletePostDialog();
 
-            // 이 comment을 공감하겠습니까? AlertDialog 표시하기
-            await clickCommentLikeIconDialog(comment);
+              // 이전 페이지로 돌아가기
+              Get.back();
+            }
+            // 게시글이 삭제되지 않으면
+            else {
+              // 이 comment을 공감하겠습니까? AlertDialog 표시하기
+              await clickCommentLikeIconDialog(comment);
+            }
           },
           icon: Icon(
             Icons.thumb_up_sharp,
@@ -674,14 +665,22 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
               child: IconButton(
                 padding: const EdgeInsets.only(top: 1),
                 onPressed: () async {
-                  // 키보드 내리기 (설사 키보드가 안나왔다 해도 내린다.)
-                  FocusManager.instance.primaryFocus?.unfocus();
+                  // 게시글이 삭제됐는지 확인한다.
+                  bool isDeletePostResult = await isDeletePost();
 
-                  // 키보드를 내리고 AlertDialog가 보여지기까지 과정에서 여유를 주고자 작성했다. -> 그러면 내부 에러 코드가 나오지 않게 된다.
-                  await Future.delayed(const Duration(microseconds: 300000));
+                  // 게시글이 삭제됐으면?
+                  if (isDeletePostResult == true) {
+                    // 게시글이 사라졌다는 AlertDailog를 표시한다.
+                    await deletePostDialog();
 
-                  // 이 comment을 삭제하시겠습니까? AlertDialog 표시하기
-                  await clickCommentDeleteIconDialog(comment);
+                    // 이전 페이지로 돌아가기
+                    Get.back();
+                  }
+                  // 게시글이 삭제되지 않으면
+                  else {
+                    // 이 comment을 삭제하시겠습니까? AlertDialog 표시하기
+                    await clickCommentDeleteIconDialog(comment);
+                  }
                 },
                 icon: Icon(
                   Icons.delete_outline,
@@ -811,41 +810,44 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         // comment에 입력한 텍스트 확인하기
         String comment = PostListController.to.commentController!.text;
 
-        // 게시물이 삭제되었는지 확인하는 method
-        bool isDeletePost =
-            await PostListController.to.isDeletePost(postData!.postUid);
+        // 게시글이 삭제됐는지 확인한다.
+        bool isDeletePostResult = await isDeletePost();
 
-        // 게시물이 삭제되었다면?
-        if (isDeletePost) {
-          // 만약 comment창에 text를 쳤다면 빈칸으로 만든다.
-          PostListController.to.commentController!.text = '';
-
-          // 게시물이 삭제되었다는 것을 알리는 AlertDialog를 띄운다.
+        // 게시글이 삭제됐으면?
+        if (isDeletePostResult == true) {
+          // 게시글이 사라졌다는 AlertDailog를 표시한다.
           await deletePostDialog();
 
-          // PostListPage로 돌아가든지, KeywordPostListPage로 돌아간다.
+          // 이전 페이지로 돌아가기
           Get.back();
-
-          // 본래 KeywordPostListPage에서 SpecificPostPage로 Routing 되었다면
-          // KeywordPostListPage를 재랜더링 한다.
-          if (whereRoute ==
-              DistinguishRouting.keywordPostListPage_to_specificPostPage)
-            PostListController.to.update();
         }
-        // 게시물이 삭제되지 않았다면?
+        // 게시글이 삭제되지 않으면?
         else {
-          // comment에 입력한 텍스트가 빈칸이 아니면 서버에 저장하기
+          // comment에 입력한 text가 빈칸인지 아닌지에 따라 다른 로직 구현
           if (comment.isNotEmpty) {
-            // 서버에 저장된 게시물(Post)의 whoWriteCommentThePost Property 에 UserUid를 추가한다.
+            // 서버에 존재하는 게시물에 댓글을 추가한다.
             await PostListController.to.addComment(comment, postData!.postUid);
 
-            // 서버에서 공감 데이터와 댓글 데이터를 받아와서 PostData에 업데이트 하는 method
+            // 서버에 존재하는 게시물의 whoWriteCommentThePost 속성에 사용자 uid를 추가한다.
+            await PostListController.to
+                .addWhoWriteCommentThePost(postData!.postUid);
+
+            // 서버에서 공감 데이터와 댓글 데이터를 받아서 PostData에 업데이트 한다.
             await updateSympathyNumAndCommentNum();
 
-            // Specific Post Page 화면 재랜더링
-            setState(() {});
+            // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
+            // 부분적으로 재랜더링 한다.
+            // 1. 업데이트 된 댓글 수와 공감 수를 화면에 보여주기 위해 재랜더링 한다.
+            // 2. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
+            PostListController.to.update();
+
+            // 키보드 내리기
+            FocusManager.instance.primaryFocus?.unfocus();
+
+            // comment Text를 관리하는 controller의 값을 빈 값으로 다시 만든다.
+            PostListController.to.commentController!.text = '';
           }
-          // comment에 입력한 텍스트가 빈칸이면 하단 SnackBar로 알림
+          //
           else {
             // 하단 SnackBar 알림
             ScaffoldMessenger.of(context).showSnackBar(
@@ -863,39 +865,81 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // PostListPage에서 Routing 됐는지
-  // KeyWordPostListPage에서 Routing 됐는지 결정한다.
-  DistinguishRouting decideRouting() {
-    return Get.arguments[1] ==
-            DistinguishRouting.postListPage_to_specificPostPage
-        ? whereRoute = DistinguishRouting.postListPage_to_specificPostPage
-        : whereRoute =
-            DistinguishRouting.keywordPostListPage_to_specificPostPage;
+  // KeyWordPostListPage에서 Routing 됐는지
+  // WhatIWrotePage에서 Routing 됐는지
+  // WhatICommentPage에서 Routing 됐는지 결정하는 method
+  void decideRouting() {
+    switch (Get.arguments[1]) {
+      case RouteDistinction.postListPage_to_specificPostPage:
+        whereRoute = RouteDistinction.postListPage_to_specificPostPage;
+        break;
+      case RouteDistinction.keywordPostListPage_to_specificPostPage:
+        whereRoute = RouteDistinction.keywordPostListPage_to_specificPostPage;
+        break;
+      case RouteDistinction.whatIWrotePage_to_specificPostPage:
+        whereRoute = RouteDistinction.whatIWrotePage_to_specificPostPage;
+        break;
+      case RouteDistinction.whatICommentPage_to_specificPostPage:
+        whereRoute = RouteDistinction.whatICommentPage_to_specificPostPage;
+        break;
+    }
   }
 
   // PostData와 UserData에 접근할 수 있도록 변수를 할당한다.
   void allocateVariable() {
-    // PostListPage에서 Routing 됐을 떄
-    if (whereRoute == DistinguishRouting.postListPage_to_specificPostPage) {
-      int index = Get.arguments[0];
+    int index = Get.arguments[0];
 
-      // PostData를 복제한다.
+    if (whereRoute == RouteDistinction.postListPage_to_specificPostPage) {
+      // postData를 복제한다.
       postData = PostListController.to.postDatas[index].copyWith();
-      // UserData를 복제한다.
+
+      // userData를 복제한다.
       userData = PostListController.to.userDatas[index].copyWith();
     }
-    // KeywordPostListPage에서 Routing 됐을 떄
-    else {
-      int index = Get.arguments[0];
-
-      // conditionKeywordPostData를 복제한다.
+    //
+    else if (whereRoute ==
+        RouteDistinction.keywordPostListPage_to_specificPostPage) {
+      // postData를 복제한다.
       postData = PostListController.to.conditionTextPostDatas[index].copyWith();
-      // conditionKeywordUserData를 복제한다.
+
+      // userData를 복제한다.
       userData = PostListController.to.conditionTextUserDatas[index].copyWith();
+    }
+    //
+    else if (whereRoute ==
+        RouteDistinction.whatIWrotePage_to_specificPostPage) {
+      // postData를 복제한다.
+      postData = SettingsController.to.whatIWrotePostDatas[index].copyWith();
+
+      // userData를 복제한다.
+      userData = SettingsController.to.whatIWroteUserDatas[index].copyWith();
+    }
+    //
+    else {
+      // postData를 복제한다.
+      postData = SettingsController.to.whatICommentPostDatas[index].copyWith();
+
+      // userData를 복제한다.
+      userData = SettingsController.to.whatICommentUserDatas[index].copyWith();
     }
 
     commentArray = PostListController.to.commentArray;
   }
-  
+
+  // 게시물이 삭제되었는지 확인하는 method
+  Future<bool> isDeletePost() async {
+    print('SpecificPostPage - isDeletePost() 호출');
+
+    // 게시물이 삭제됐으면 isDeletePostResult는 true
+    // 게시물이 삭제되지 않았으면 isDeletePostResult는 false
+    bool isDeletePostResult =
+        await PostListController.to.isDeletePost(postData!.postUid);
+
+    print('SpecificPostPage - isDeletePost() - ${isDeletePostResult}');
+
+    return isDeletePostResult;
+  }
+
   // 게시물이 삭제되었다는 것을 알리는 AlertDialog 입니다.
   Future<bool?> deletePostDialog() async {
     return showDialog<bool?>(
@@ -921,7 +965,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                 '이전 페이지로 돌아가기',
                 style: TextStyle(color: Colors.red),
               ),
-              onPressed: () async {
+              onPressed: () {
                 Get.back();
               },
             ),
@@ -1027,11 +1071,14 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                 style: TextStyle(color: Colors.red),
               ),
               onPressed: () async {
-                // 서버를 통해 게시물에 대해서 사용자가 좋아요를 누른 적이 있는지 확인한다.
-                bool isResult = await checkLikeUsersFromThePost();
+                // PostData의 whoLikeThePost에 사용자 uid가 있는지 확인한다.
+                bool isUserUidWhoLikeThePostResult = checkLikeUsersFromThePost(
+                  SettingsController.to.settingUser!.userUid,
+                );
 
-                // 좋아요 리스트에 사용자 Uid가 있는 경우, 없는 경우에 따라 다른 로직을 구현하는 method
-                await isUserUidInWhoLikeThePost(isResult);
+                // PostData의 whoLikeThePost에 사용자 Uid가 있는 경우, 없는 경우에 따라
+                // 다른 로직을 구현하는 method
+                await isUserUidInWhoLikeThePost(isUserUidWhoLikeThePostResult);
               },
             ),
           ],
@@ -1040,18 +1087,16 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 서버에 저장된 게시물(Post)에 대해서 사용자가 좋아요를 누른 적이 있는지 확인하는 method
-  Future<bool> checkLikeUsersFromThePost() async {
-    return await PostListController.to.checkLikeUsersFromThePost(
-      postData!.postUid,
-      SettingsController.to.settingUser!.userUid,
-    );
+  // PostData의 whoLikeThePost에 사용자 uid가 있는지 확인한다.
+  bool checkLikeUsersFromThePost(String userUid) {
+    return postData!.whoLikeThePost.contains(userUid);
   }
 
-  // 서버에 저장된 게시물에 대한 공감 리스트에 사용자가 있는지 없는지에 따라 다른 로직을 구현하는 method
-  Future<void> isUserUidInWhoLikeThePost(bool isResult) async {
-    // 서버에 저장된 게시물에 대해서 공감 리스트에 사용자가 있었다.
-    if (isResult) {
+  // PostData의 whoLikeThePost에 사용자 Uid가 있는 경우, 없는 경우에 따라
+  // 다른 로직을 구현하는 method
+  Future<void> isUserUidInWhoLikeThePost(bool isUserUidWhoLikeThePostResult) async {
+    // PostData의 whoLikeThePost에 사용자 Uid가 있다.
+    if (isUserUidWhoLikeThePostResult) {
       Get.back();
 
       // 하단 snackBar로 "이미 공감한 글 입니다 :)" 표시한다.
@@ -1063,7 +1108,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       );
     }
 
-    // 서버에 저장된 게시물에 대해서 공감 리스트에 사용자가 없었다.
+    // PostData의 whoLikeThePost에 사용자 Uid가 없다.
     else {
       Get.back();
 
@@ -1073,11 +1118,14 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         SettingsController.to.settingUser!.userUid,
       );
 
-      // 서버에서 공감 데이터와 댓글 데이터를 받아와서 PostData에 업데이트 하는 method
+      // 서버의 공감 데이터와 댓글 데이터를 받아와서 PostData에 업데이트 하는 method
       await updateSympathyNumAndCommentNum();
 
-      // 화면을 재랜더링 한다.
-      setState(() {});
+      // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
+      // 부분적으로 재랜더링 한다.
+      // 1. 업데이트 된 댓글 수와 공감 수를 화면에 보여주기 위해 재랜더링 한다.
+      // 2. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
+      PostListController.to.update();
 
       // 하단 snackBar로 "공감을 했습니다." 표시한다.
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1132,11 +1180,14 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   maskType: EasyLoadingMaskType.black,
                 );
 
-                // 사용자가 해당 comment에 대한 좋아요를 이미 눌렀는지 검사한다.
-                bool isResult = await checkLikeUsersFromTheComment(comment);
+                // 서버에 저장된 댓글(comment)에 대해서 사용자가 좋아요를 누른 적이 있는지 확인한다.
+                bool isWhoCommentLikeResult =
+                    await checkLikeUsersFromTheComment(comment);
 
-                // comment - whoCommentLike property에 사용자 Uid가 있는 경우, 없는 경우에 따라 다른 로직을 구현하는 method
-                await isUserUidInWhoCommentLike(comment, isResult);
+                // comment - whoCommentLike property에 사용자 Uid가 있는 경우,
+                // 없는 경우에 따라 다른 로직을 구현하는 method
+                await isUserUidInWhoCommentLike(
+                    comment, isWhoCommentLikeResult);
 
                 // 로딩바 끝
                 EasyLoading.dismiss();
@@ -1159,10 +1210,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 서버에 저장된 댓글(comment)에 대한 좋아요 리스트에 사용자가 있는지 없는지에 따라 다른 로직을 구현하는 method
-  Future<void> isUserUidInWhoCommentLike(CommentModel comment, bool isResult) async {
-    // 서버에 저장된 댓글(comment)에 대해서 좋아요 리스트에 사용자가 있었다.
-    if (isResult) {
+  // 서버에 저장된 댓글(comment)에 대한 whoCommentLike 속성에 사용자가 있는지 없는지에 따라 다른 로직을 구현하는 method
+  Future<void> isUserUidInWhoCommentLike(CommentModel comment, bool isWhoCommentLikeResult) async {
+    // 서버에 저장된 댓글(comment)에 대한 whoCommentLike 속성에 사용자 uid가 있다.
+    if (isWhoCommentLikeResult) {
       // 하단 snackBar로 "이미 공감한 comment 입니다 :)" 표시한다.
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1172,13 +1223,19 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       );
     }
 
-    // 서버에 저장된 댓글(comment)에 대해서 좋아요 리스트에 사용자가 없었다.
+    // 서버에 저장된 댓글(comment)에 대한 whoCommentLike 속성에 사용자가 없었다.
     else {
       // 서버에 저장된 댓글(comment)의 whoCommentLike Property 에 UserUid를 추가한다.
       await PostListController.to.addUserWhoCommentLike(comment);
 
-      // 화면을 재랜더링 한다.
-      setState(() {});
+      // 서버의 공감 데이터와 댓글 데이터를 받아와서 PostData에 업데이트 하는 method
+      await updateSympathyNumAndCommentNum();
+
+      // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
+      // 부분적으로 재랜더링 한다.
+      // 1. 업데이트 된 댓글 수와 공감 수를 화면에 보여주기 위해 재랜더링 한다.
+      // 2. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
+      PostListController.to.update();
 
       // 하단 snackBar로 "공감을 했습니다." 표시한다.
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1233,22 +1290,20 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   maskType: EasyLoadingMaskType.black,
                 );
 
-                // 복제된 PostModel의 whoWriteTheComment 속성에서 comment를 작성한 사용자 uid를 삭제한다.
-                whereRoute ==
-                        DistinguishRouting.postListPage_to_specificPostPage
-                    ? postData!.whoWriteCommentThePost
-                        .remove(SettingsController.to.settingUser!.userUid)
-                    : postData!.whoWriteCommentThePost
-                        .remove(SettingsController.to.settingUser!.userUid);
-
                 // 서버에 comment를 삭제한다.
                 await PostListController.to.deleteComment(comment);
 
+                // 서버의 공감 데이터와 댓글 데이터를 받아와서 PostData에 업데이트 하는 method
+                await updateSympathyNumAndCommentNum();
+
+                // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
+                // 부분적으로 재랜더링 한다.
+                // 1. 업데이트 된 댓글 수와 공감 수를 화면에 보여주기 위해 재랜더링 한다.
+                // 2. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
+                PostListController.to.update();
+
                 // 로딩바 끝(필요하면 추가하기로)
                 EasyLoading.dismiss();
-
-                // 화면 재랜더링
-                setState(() {});
 
                 // 이전 페이지로 돌아가기
                 Get.back();
@@ -1267,6 +1322,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     // 위 Field에 PostModel, UserModel은 copyWith 때문에 서로 다른 인스턴스를 만들기 떄문이다.
     // 즉 같은 인스턴스를 가리키지 않기 떄문이다.
     // 혹여나 공감 수나 댓글 수가 변동사항이 있을 수 있기 떄문에 일일히 확인하는 작업이 필요하다.
+
+    print('SpecificPostPage - updateSympathyNumAndCommnetNum() 호출');
+
+    // 서버에 저장된 공감 데이터와 댓글 데이터를 가져온다.
     Map<String, List<String>> sympathyNumOrCommentNum = await PostListController
         .to
         .checkSympathyNumOrCommentNum(postData!.postUid);
@@ -1288,12 +1347,50 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     print('SpecificPostPage - initState() 호출');
 
     // PostListPage에서 Routing 됐는지
-    // KeywordPostListPage에서 Routing 됐는지 결정한다.
+    // KeyWordPostListPage에서 Routing 됐는지
+    // WhatIWrotePage에서 Routing 됐는지
+    // WhatICommentPage에서 Routing 됐는지 결정하는 method
     decideRouting();
 
-    // PostListPage에서 Routing 됐는가, KeywordPostListPage에서 Routing 됐는가에 따라
-    // 변수를 달리 대입한다.
+    // PostData와 UserData에 대한 복제 객체를 만든다.
     allocateVariable();
+  }
+
+  // initState()가 호출되고 다음에 호출되는 method
+  // 키보드를 위로 올리고, 아래로 내릴 떄 먼저 호출되는 method
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    print('SpecificPostPage - didChangeDependencies() 호출');
+
+    // 게시글이 삭제됐는지 확인한다.
+    isDeletePost().then((bool isDeletePostResult) async {
+      print('SpecificPostPage - isDeletePost() 호출 후');
+
+      // 게시글이 사라졌으면?
+      if (isDeletePostResult == true) {
+        // 게시글이 사라졌다는 AlertDailog를 표시한다.
+        await deletePostDialog();
+
+        // 이전 페이지로 돌아가기
+        Get.back();
+      }
+      // 게시글이 사라지지 않으면?
+      else {
+        // 서버에서 공감 데이터와 댓글 데이터를 받아서 PostData에 업데이트 한다.
+        await updateSympathyNumAndCommentNum();
+
+        // 서버로부터 댓글 데이터를 호출하는 것을 허락한다.
+        isCallServerAboutCommentData = true;
+
+        // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
+        // 부분적으로 재랜더링 한다.
+        // 1. 업데이트 된 댓글 수와 공감 수를 화면에 보여주기 위해 재랜더링 한다.
+        // 2. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
+        PostListController.to.update();
+      }
+    });
   }
 
   // specificPostPage가 사라질 떄 호출되는 method
@@ -1313,51 +1410,44 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    print('SpecificPostPage - didChangeDependencies() 호출');
-  }
-
-  // comment 목록을 ListView로 나타내는 Widget 입니다.
-  @override
   Widget build(BuildContext context) {
     print('SpecificPostPage - build() 호출');
 
     // 화면을 그린다.
     return SafeArea(
-        child: Scaffold(
-      // comment을 입력하고 전송할 수 있는 하단 BottomNavigationBar 이다.
-      bottomNavigationBar: writeAndSendComment(),
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        physics: const PageScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 이전 가기, 알림, 새로 고침 삭제 버튼을 표시하는 Widget 입니다.
-            topView(),
+      child: Scaffold(
+        // comment을 입력하고 전송할 수 있는 하단 BottomNavigationBar 이다.
+        bottomNavigationBar: writeAndSendComment(),
+        body: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          physics: const PageScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 이전 가기, 알림, 새로 고침 삭제 버튼을 표시하는 Widget 입니다.
+              topView(),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // 아바타와 User 이름, 게시물 올린 시간을 표시하는 Widget 입니다.
-            showAvatarAndUserNameAndPostTime(),
+              // 아바타와 User 이름, 게시물 올린 시간을 표시하는 Widget 입니다.
+              showAvatarAndUserNameAndPostTime(),
 
-            // 글 제목과 내용, 사진(있으면 보여주고 없으면 보여주지 않기), 좋아요, comment 수를 보여주는 Widget 입니다.
-            showTitleAndContnetAndPhotoAndLikeNumAndCommentNum(),
+              // 글 제목과 내용, 사진(있으면 보여주고 없으면 보여주지 않기), 좋아요, comment 수를 보여주는 Widget 입니다.
+              showTitleAndContnetAndPhotoAndLikeNumAndCommentNum(),
 
-            const SizedBox(height: 5),
+              const SizedBox(height: 5),
 
-            // 공감을 클릭할 수 있는 버튼
-            sympathy(),
+              // 공감을 클릭할 수 있는 버튼
+              sympathy(),
 
-            const SizedBox(height: 30),
+              const SizedBox(height: 30),
 
-            // comment과 대comment (comment이 없으면 invisible)
-            showCommentListView(),
-          ],
+              // comment과 대comment (comment이 없으면 invisible)
+              showCommentListView(),
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
 }

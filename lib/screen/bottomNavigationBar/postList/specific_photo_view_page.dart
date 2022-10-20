@@ -5,7 +5,6 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
-import 'package:help_desk/screen/bottomNavigationBar/postList/distinguishRouting.dart';
 import 'package:photo_view/photo_view.dart';
 
 // PhotoView를 보여주는 Page 입니다 :)

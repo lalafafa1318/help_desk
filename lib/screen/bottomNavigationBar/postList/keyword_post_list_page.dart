@@ -11,16 +11,21 @@ import 'package:getwidget/position/gf_position.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
+import 'package:help_desk/routeDistinction/routeDistinction.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
-import 'package:help_desk/screen/bottomNavigationBar/postList/distinguishRouting.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/post_list_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_post_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
 
 // 검색창에서 키워드를 입력해 게시판 목록을 보여주는 Page 입니다
-class KeywordPostListPage extends StatelessWidget {
+class KeywordPostListPage extends StatefulWidget {
   const KeywordPostListPage({super.key});
 
+  @override
+  State<KeywordPostListPage> createState() => _KeywordPostListPageState();
+}
+
+class _KeywordPostListPageState extends State<KeywordPostListPage> {
   // 사용자가 검색, 정렬할 수 있도록 하는 Widget
   Widget topView() {
     return Container(
@@ -80,7 +85,13 @@ class KeywordPostListPage extends StatelessWidget {
             child: IconButton(
                 onPressed: () {
                   // KeywordPostListPage에서 입력한 text를 검증한다.
-                  PostListController.to.validTextFromKeywordPostListPage();
+                  bool isResult =
+                      PostListController.to.validTextFromKeywordPostListPage();
+
+                  // 검증에 성공한 경우에 화면을 재랜더링 한다.
+                  if (isResult) {
+                    setState(() {});
+                  }
                 },
                 icon: Icon(Icons.search, color: Colors.grey[800])),
           ),
@@ -119,7 +130,7 @@ class KeywordPostListPage extends StatelessWidget {
 
   // 사용자가 입력한 Keyword가 조건에 맞는 게시글이 있는지 없는지 기다리는 Widget
   Widget waitData() {
-    return Center(
+    return const Center(
       child: CircularProgressIndicator(),
     );
   }
@@ -170,11 +181,11 @@ class KeywordPostListPage extends StatelessWidget {
                 () => const SpecificPostPage(),
                 arguments: [
                   index,
-                  DistinguishRouting.keywordPostListPage_to_specificPostPage,
+                  RouteDistinction.keywordPostListPage_to_specificPostPage,
                 ],
               );
             },
-            child: showConditionTextPostData(index),
+            child: showEachConditionPostData(index),
           );
         },
       ),
@@ -182,9 +193,9 @@ class KeywordPostListPage extends StatelessWidget {
   }
 
   // 각각의 게시물을 표현하는 widget
-  Widget showConditionTextPostData(int index) {
+  Widget showEachConditionPostData(int index) {
     print(
-        'KeywordPostListPage - ${index} 번쨰 checkConditionTextPostData() - 게시물 표현');
+        'KeywordPostListPage - ${index} 번쨰 showEachConditionPostData() - 게시물 표현');
 
     // PostListController.to.conditonKeywordPostDatas[index]
     // PostListController.to.conditionTextUserDatas[index]로 일일히 적기 어렵다.
@@ -311,24 +322,22 @@ class KeywordPostListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<PostListController>(
-      builder: (controller) {
-        return SafeArea(
-          child: Scaffold(
-            body: Column(
-              children: [
-                // 검색창, 글쓰기를 지원하는 View
-                topView(),
+    print('KeywordPostListPage - build() 호출');
 
-                // 사용자가 입력한 text를 가지고 서버에 Keyword를 포함하거나 일치하는 게시글이 있는지 확인한다.
-                // 이 부분을 StreamBuilder로 받아올 수 있으나,
-                // 실시간으로 업데이트할 필요성이 적다고 생각해 FutureBuilder를 활용한다.
-                checkConditionTextPostData(),
-              ],
-            ),
-          ),
-        );
-      },
+    return SafeArea(
+      child: Scaffold(
+        body: Column(
+          children: [
+            // 검색창, 글쓰기를 지원하는 View
+            topView(),
+
+            // 사용자가 입력한 text를 가지고 서버에 Keyword를 포함하거나 일치하는 게시글이 있는지 확인한다.
+            // 이 부분을 StreamBuilder로 받아올 수 있으나,
+            // 실시간으로 업데이트할 필요성이 적다고 생각해 FutureBuilder를 활용한다.
+            checkConditionTextPostData(),
+          ],
+        ),
+      ),
     );
   }
 }
