@@ -180,16 +180,17 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     whatIWrotePostDatas.clear();
     whatIWroteUserDatas.clear();
 
-    for (PostModel postData in PostListController.to.postDatas) {
-      // 해당 게시물의 userUid가 현 계정의 userUid와 같다면?
-      if (postData.userUid == settingUser!.userUid) {
-        // postData의 userUid를 이용해 userData를 가져온다.
-        Map<String, dynamic> userData =
-            await CommunicateFirebase.getUserData(postData.userUid);
+    // PostListController.to.postDatas를 짧게 명명하고자 참조변수를 설정한다.
+    List<PostModel> postDatas = PostListController.to.postDatas;
+    List<UserModel> userDatas = PostListController.to.userDatas;
 
+    // 사용자가 업로드한 게시물을 가져온다.
+    for (int i = 0; i < postDatas.length; i++) {
+      // 게시물의 userUid가 현 계정의 userUid와 같은지 확인한다.
+      if (postDatas[i].userUid == settingUser!.userUid) {
         // whatIWrotePostDatas와 whatIWroteUserDatas 배열에 PostData와 UserData를 추가한다.
-        whatIWrotePostDatas.add(postData);
-        whatIWroteUserDatas.add(UserModel.fromMap(userData));
+        whatIWrotePostDatas.add(postDatas[i]);
+        whatIWroteUserDatas.add(userDatas[i]);
       }
     }
 
@@ -202,21 +203,17 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     whatICommentPostDatas.clear();
     whatICommentUserDatas.clear();
 
-    // postDatas를 업데이트 하는 방법을 강구헤야 한다.
-    // ?????????????????????????????????????????
-    // ??????????????????????????????????????
+    // PostListController.to.postDatas를 짧게 명명하고자 참조변수를 설정한다.
+    List<PostModel> postDatas = PostListController.to.postDatas;
+    List<UserModel> userDatas = PostListController.to.userDatas;
 
-   
-    for (PostModel postData in PostListController.to.postDatas) {
+    // 사용자가 댓글 작성한 게시물을 가져온다.
+    for (int i = 0; i < postDatas.length; i++) {
       // 해당 게시물의 whoWriteCommentThePost Property에 userUid가 있는지 확인한다.
-      if (postData.whoWriteCommentThePost.contains(settingUser!.userUid)) {
-        // postData의 userUid를 이용해 userData를 가져온다.
-        Map<String, dynamic> userData =
-            await CommunicateFirebase.getUserData(postData.userUid);
-
+      if (postDatas[i].whoWriteCommentThePost.contains(settingUser!.userUid)) {
         // whatICommentPostDatas와 whatICommentUserDatas 배열에 PostData와 UserData를 추가한다.
-        whatICommentPostDatas.add(postData);
-        whatICommentUserDatas.add(UserModel.fromMap(userData));
+        whatICommentPostDatas.add(postDatas[i]);
+        whatICommentUserDatas.add(userDatas[i]);
       }
     }
 

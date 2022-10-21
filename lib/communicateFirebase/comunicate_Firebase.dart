@@ -149,7 +149,7 @@ class CommunicateFirebase {
         .update(UserModel.toMap(updateUser));
   }
 
-  // 새로고침할 떄 Post 정보에 대한 공감 수와 댓글 수가 변동사항이 있는지 확인하는 method
+  // 서버의 Post 정보에 대한 공감 수와 댓글 수에 대한 최신 상태를 가져오는 method
   static Future<Map<String, List<String>>> checkSympathyNumOrCommentNum(
       String postUid) async {
     DocumentSnapshot<Map<String, dynamic>> postData =
@@ -284,7 +284,7 @@ class CommunicateFirebase {
   }
 
   // Firebase DataBase 여러 개 comment을 get 하는 method
-  static Future<void> getCommentData(String postUid) async {
+  static Future<List<CommentModel>> getCommentData(String postUid) async {
     // 서버에서 게시물에 해당하는 댓글을 가져온다.
     QuerySnapshot<Map<String, dynamic>> comments = await _firebaseFirestore
         .collection('posts')
@@ -293,16 +293,17 @@ class CommunicateFirebase {
         .orderBy('uploadTime', descending: false)
         .get();
 
-    // comment 관리하는 배열을 초기화 한다.
-    PostListController.to.commentArray.clear();
+    // comment를 관리하는 배열을 생성한다.
+    List<CommentModel> commentArray = [];
 
     // comment 관리하는 배열에 여러 개 comment를 추가한다.
     comments.docs.forEach(
-      (element) {
-        PostListController.to.commentArray
-            .add(CommentModel.fromMap(element.data()));
+      (comment) {
+        commentArray.add(CommentModel.fromMap(comment.data()));
       },
     );
+
+    return commentArray;
   }
 
   // Firebase DataBase comment 정보의 whoLikeThePost 속성에 접근하여

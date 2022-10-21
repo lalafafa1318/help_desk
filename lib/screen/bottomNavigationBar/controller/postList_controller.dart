@@ -30,8 +30,6 @@ class PostListController extends GetxController {
 
   // 사용자가 입력한 댓글과 대댓글을 control 하는 Field
   TextEditingController? commentController;
-  // 댓글, 대댓글 데이터
-  List<CommentModel> commentArray = [];
 
   // Method
   // PostListController를 쉽게 사용하도록 도와주는 method
@@ -156,9 +154,7 @@ class PostListController extends GetxController {
   // 게시물에 대한 댓글 목록을 가져오는 method
   Future<List<CommentModel>> getCommentData(String postUid) async {
     // 서버에서 게시물에 대한 댓글 목록을 가져온다.
-    await CommunicateFirebase.getCommentData(postUid);
-
-    return PostListController.to.commentArray;
+    return await CommunicateFirebase.getCommentData(postUid);
   }
 
   // comment에 있는 사용자 Uid를 가지고 user 정보에 접근하는 method

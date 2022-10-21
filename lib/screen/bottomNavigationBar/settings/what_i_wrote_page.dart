@@ -235,48 +235,41 @@ class WhatIWrotePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<SettingsController>(
-      builder: (controller) {
-        print('whatIWrotePage - build() 실행');
-        return SafeArea(
-          child: Scaffold(
-            appBar: AppBar(
-              backgroundColor: Colors.white,
-              automaticallyImplyLeading: false,
-              centerTitle: true,
-              // 이전 가기 버튼
-              leading: IconButton(
-                onPressed: () {
-                  Get.back();
-
-                  SettingsController.to.update();
-                },
-                icon: const Padding(
-                  padding: EdgeInsets.all(8.5),
-                  child: Icon(
-                    Icons.arrow_back,
-                    color: Colors.black,
-                  ),
-                ),
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          automaticallyImplyLeading: false,
+          centerTitle: true,
+          // 이전 가기 버튼
+          leading: IconButton(
+            onPressed: () {
+              Get.back();
+            },
+            icon: const Padding(
+              padding: EdgeInsets.all(8.5),
+              child: Icon(
+                Icons.arrow_back,
+                color: Colors.black,
               ),
-              // 제목
-              title: const Text(
-                '내가 쓴 글',
-                style: TextStyle(color: Colors.black, fontSize: 18),
-              ),
-              elevation: 0.5,
-            ),
-            body: Column(
-              children: [
-                const SizedBox(height: 30),
-
-                // 내가 쓴 게시물에 대한 목록을 가져온다.
-                getWhatIWroteThePost(),
-              ],
             ),
           ),
-        );
-      },
+          // 제목
+          title: const Text(
+            '내가 쓴 글',
+            style: TextStyle(color: Colors.black, fontSize: 18),
+          ),
+          elevation: 0.5,
+        ),
+        body: Column(
+          children: [
+            const SizedBox(height: 30),
+
+            // 내가 쓴 게시물에 대한 목록을 가져온다.
+            getWhatIWroteThePost(),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -12,6 +12,7 @@ import 'package:help_desk/firebase_options.dart';
 import 'package:intl/intl.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
 import 'package:oktoast/oktoast.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
 
 void main() async {
   // kakao.KakaoSdk.init(nativeAppKey: VariableUtil.KAKAO_NATIVE_KEY);
@@ -23,16 +24,20 @@ void main() async {
   );
 
   runApp(
-    OKToast(
-      child: GetMaterialApp(
-        debugShowCheckedModeBanner: false,
-        initialBinding: BindingController(),
-        getPages: [
-          GetPage(name: '/PostListPage', page: () => const PostListPage())
-        ],
-        home: const Splash(),
-        builder: EasyLoading.init(),
-      ),
+    ResponsiveSizer(
+      builder: (context, orientation, screenType) {
+        return OKToast(
+          child: GetMaterialApp(
+            debugShowCheckedModeBanner: false,
+            initialBinding: BindingController(),
+            getPages: [
+              GetPage(name: '/PostListPage', page: () => const PostListPage())
+            ],
+            home: const Splash(),
+            builder: EasyLoading.init(),
+          ),
+        );
+      },
     ),
   );
 }
