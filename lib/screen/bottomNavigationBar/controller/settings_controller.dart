@@ -184,9 +184,8 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     List<PostModel> postDatas = PostListController.to.postDatas;
     List<UserModel> userDatas = PostListController.to.userDatas;
 
-    // 사용자가 업로드한 게시물을 가져온다.
     for (int i = 0; i < postDatas.length; i++) {
-      // 게시물의 userUid가 현 계정의 userUid와 같은지 확인한다.
+      // postData의 userUid 속성이 현 계정의 userUid와 같은지 확인한다.
       if (postDatas[i].userUid == settingUser!.userUid) {
         // whatIWrotePostDatas와 whatIWroteUserDatas 배열에 PostData와 UserData를 추가한다.
         whatIWrotePostDatas.add(postDatas[i]);
@@ -207,7 +206,6 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     List<PostModel> postDatas = PostListController.to.postDatas;
     List<UserModel> userDatas = PostListController.to.userDatas;
 
-    // 사용자가 댓글 작성한 게시물을 가져온다.
     for (int i = 0; i < postDatas.length; i++) {
       // 해당 게시물의 whoWriteCommentThePost Property에 userUid가 있는지 확인한다.
       if (postDatas[i].whoWriteCommentThePost.contains(settingUser!.userUid)) {

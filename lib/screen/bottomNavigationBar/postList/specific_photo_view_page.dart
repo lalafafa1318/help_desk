@@ -7,7 +7,7 @@ import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:photo_view/photo_view.dart';
 
-// PhotoView를 보여주는 Page 입니다 :)
+// PhotoView를 보여주는 Page 입니다.
 class SpecificPhotoViewPage extends StatefulWidget {
   const SpecificPhotoViewPage({super.key});
 
@@ -16,10 +16,10 @@ class SpecificPhotoViewPage extends StatefulWidget {
 }
 
 class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
-  // PostData에 참조하는 변수
+  // PostData를 참조하는 변수
   PostModel? postData;
 
-  //PostData의 imageList Property가 있다. 몇번째 사진인지 알려주는 imageIndex이다.
+  //PostData의 imageList 속성이 있다. 그 중에서 몇번째 사진인지 알려주는 imageIndex이다.
   int? imageIndex;
 
   // PhotoView pageScroller 입니다.

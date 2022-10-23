@@ -42,7 +42,8 @@ class PostListController extends GetxController {
 
   // 서버에서 받은 PostData들을 PostData를 담고 있는 배열에 추가한다.
   // 추가로 PostData에 따른 UserData도 UserData를 담고 있는 배열에 추가하는 method
-  Future<List<PostModel>> allocatePostDatasInArray(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
+  Future<List<PostModel>> allocatePostDatasInArray(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
     // PostData와 userData를 담고 있는 배열을 clear한다.
     postDatas.clear();
     userDatas.clear();
@@ -136,25 +137,32 @@ class PostListController extends GetxController {
     }
   }
 
-  // 서버에 Post 정보에 대한  공감 데이터와 댓글 데이터를 가져오는 method
-  Future<Map<String, List<String>>> checkSympathyNumOrCommentNum(String postUid) async {
-    return await CommunicateFirebase.checkSympathyNumOrCommentNum(postUid);
+  // Server에 게시글 작성한 사람(User)의 image 속성과 userName 속성을 확인하여 가져온s는 method
+  Future<Map<String, String>> checkImageAndUserNameToUser(
+      String userUid) async {
+    return await CommunicateFirebase.checkImageAndUserNameToUser(userUid);
   }
 
-  // 게시물을 삭제하는 method
-  Future<void> deletePostData(String postUid) async {
-    await CommunicateFirebase.deletePostData(postUid);
+  // Server에 저장된 게시물(Post)의 whoLikeThePost 속성과 whoWriteTheCommentThePost 속성을 확인하여 가져오는 method
+  Future<Map<String, List<String>>>
+      checkWhoLikeThePostAndWhoWriteCommentThePost(String postUid) async {
+    return await CommunicateFirebase
+        .checkWhoLikeThePostAndWhoWriteCommentThePost(postUid);
   }
 
-  // 사용자가 게시물에 대해서 공감을 누른 경우 호출되는 method (단, 공감을 하지 않았을 때에만 적용)
-  Future<void> addUserWhoLikeThePost(String postUid, String userUid) async {
-    await CommunicateFirebase.addUserWhoLikeThePost(postUid, userUid);
+  // Server에 게시물을 delete하는 method (postuid 필요)
+  Future<void> deletePost(String postUid) async {
+    await CommunicateFirebase.deletePost(postUid);
   }
 
-  // 게시물에 대한 댓글 목록을 가져오는 method
-  Future<List<CommentModel>> getCommentData(String postUid) async {
-    // 서버에서 게시물에 대한 댓글 목록을 가져온다.
-    return await CommunicateFirebase.getCommentData(postUid);
+  // Server에 저장된 게시물(Post)의 whoLikeThePost 속성에 사용자 uid을 추가하는 method
+  Future<void> addWhoLikeThePost(String postUid, String userUid) async {
+    await CommunicateFirebase.addWhoLikeThePost(postUid, userUid);
+  }
+
+  // Server에서 게시물(post)에 대한 여러 comment를 가져오는 method
+  Future<Map<String, dynamic>> getCommentAndUser(String postUid) async {
+    return await CommunicateFirebase.getCommentAndUser(postUid);
   }
 
   // comment에 있는 사용자 Uid를 가지고 user 정보에 접근하는 method
@@ -166,53 +174,55 @@ class PostListController extends GetxController {
     return UserModel.fromMap(userData);
   }
 
-  // 서버에 존재하는 게시물의 whoWriteCommentThePost 속성에 사용자 uid를 추가하는 method
+  // Server에 게시물(post)의 whoWriteCommentThePost 속성에 사용자 uid를 추가하는 method
   Future<void> addWhoWriteCommentThePost(String postUid) async {
     await CommunicateFirebase.addWhoWriteCommentThePost(postUid);
   }
 
-  // 서버에 존재하는 게시물에 댓글을 추가하는 method
+  // Server에 comment(댓글)을 추가하는 method
   Future<void> addComment(String comment, String postUid) async {
     // 현재 시간을 바탕으로 원하는 형식으로 바꾼다.
-    DateTime currentDateTime = DateTime.now();
+    DateTime currentDateTime = DateTime.now().add(const Duration(seconds: 53));
     String formatDate =
         DateFormat('yy/MM/dd - HH:mm:ss').format(currentDateTime);
 
     // Comment 모델 만들기
     CommentModel commentModel = CommentModel(
-        content: comment,
-        uploadTime: formatDate,
-        whoCommentLike: [],
-        belongCommentPostUid: postUid,
-        commentUid: UUidUtil.getUUid(),
-        whoWriteUserUid: SettingsController.to.settingUser!.userUid);
+      content: comment,
+      uploadTime: formatDate,
+      whoCommentLike: [],
+      belongCommentPostUid: postUid,
+      commentUid: UUidUtil.getUUid(),
+      whoWriteUserUid: SettingsController.to.settingUser!.userUid,
+    );
 
-    // 게시물에 대한 comment를 서버에 저장한다.
+    // Server에 comment(댓글)을 추가한다.
     await CommunicateFirebase.setCommentData(commentModel);
   }
 
   // 사용자가 해당 commen에 대해서 좋아요 버튼을 클릭할 떄
   // 서버에 존재하는 comment의 whoCommentLike 속성에 사용자 uid가 있는지 판별하는 method
-  Future<bool> checkLikeUsersFromTheComment(CommentModel comment, String userUid) async {
+  Future<bool> checkLikeUsersFromTheComment(
+      CommentModel comment, String userUid) async {
     bool isResult = await CommunicateFirebase.checkLikeUsersFromTheComment(
         comment, userUid);
 
     return isResult;
   }
 
-  // 사용자가 comment에 대해서 좋아요를 누른 경우 호출되는 method (단, 좋아요를 하지 않았을 때에만 적용)
-  Future<void> addUserWhoCommentLike(CommentModel comment) async {
-    await CommunicateFirebase.addUserWhoCommentLike(comment);
+  // Server에 저장된 comment(댓글)의 whoCommentLike 속성에 사용자 uid를 추가한다.
+  Future<void> addWhoCommentLike(CommentModel comment) async {
+    await CommunicateFirebase.addWhoCommentLike(comment);
   }
 
-  // 사용자가 comment를 삭제하는 경우 호출되는 method
+  // Server에 comment을 삭제한다.
   Future<void> deleteComment(CommentModel comment) async {
     await CommunicateFirebase.deleteComment(comment);
   }
 
   // 게시물이 삭제되었는지 확인하는 method
   Future<bool> isDeletePost(String postUid) async {
-    // 서버에서 게시물에 대한 postUid를 확인한다.
+    // Server에서 게시물의 postUid가 있는지 없는지 확인한다.
     return await CommunicateFirebase.checkPostUid(postUid);
   }
 

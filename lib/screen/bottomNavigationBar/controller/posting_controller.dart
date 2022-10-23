@@ -109,7 +109,7 @@ class PostingController extends GetxController {
       // 업로드한 이미지가 0개이든, 1개 이상이든 이하 공통 작업
 
       // 게시물 올린 현재 시간을 파악한다.
-      DateTime currentDateTime = DateTime.now();
+      DateTime currentDateTime = DateTime.now().add(const Duration(seconds: 50));
       // DateTime.now().add(const Duration(minutes: 4, seconds: 30));
       print('현재 시간 : $currentDateTime');
 
