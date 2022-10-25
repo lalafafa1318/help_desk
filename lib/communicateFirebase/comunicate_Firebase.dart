@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,6 +9,7 @@ import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/model/comment_model.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
+import 'package:help_desk/screen/bottomNavigationBar/controller/notification_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/utils/uuid_util.dart';
@@ -167,7 +169,7 @@ class CommunicateFirebase {
 
   // 전체 게시물을 업로드 시간 내림차순 기준으로 가져오는 method
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllPostData() async* {
-    yield* FirebaseFirestore.instance
+    yield* _firebaseFirestore
         .collection('posts')
         .orderBy('postTime', descending: true)
         .snapshots();
@@ -421,8 +423,48 @@ class CommunicateFirebase {
         await _firebaseFirestore.collection('users').doc(userUid).get();
 
     return {
-      'image' : user.data()!['image'].toString(),
-      'userName' : user.data()!['userName'].toString(),
+      'image': user.data()!['image'].toString(),
+      'userName': user.data()!['userName'].toString(),
     };
+  }
+
+  // Server에 User의 notiPost 속성에 게시물 uid를 추가한다.
+  static Future<void> addNotiPostFromUser(
+    String postUid,
+    String userUid,
+  ) async {
+    DocumentSnapshot<Map<String, dynamic>> user =
+        await _firebaseFirestore.collection('users').doc(userUid).get();
+
+    List<String> notiPost = List<String>.from(user.data()!['notiPost'] as List);
+
+    notiPost.add(postUid);
+
+    await _firebaseFirestore.collection('users').doc(userUid).update(
+      {'notiPost': notiPost},
+    );
+  }
+
+  // Server에 User의 notiPost 속성에 게시물 uid를 삭제한다.
+  static Future<void> deleteNotiPostFromUser(
+      String postUid, String userUid) async {
+    DocumentSnapshot<Map<String, dynamic>> user =
+        await _firebaseFirestore.collection('users').doc(userUid).get();
+
+    List<String> notiPost = List<String>.from(user.data()!['notiPost'] as List);
+
+    notiPost.remove(postUid);
+
+    await _firebaseFirestore.collection('users').doc(userUid).update(
+      {'notiPost': notiPost},
+    );
+  }
+
+  // Server에 User의 notiPost 속성을 가져와 notiPost Array에 값을 대입한다.
+  static Future<List<String>> getNotiPostFromUser(String userUid) async {
+    DocumentSnapshot<Map<String, dynamic>> user =
+        await _firebaseFirestore.collection('users').doc(userUid).get();
+
+    return List<String>.from(user.data()!['notiPost'] as List);
   }
 }

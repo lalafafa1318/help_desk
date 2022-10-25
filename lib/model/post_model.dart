@@ -20,9 +20,6 @@ class PostModel {
   // 게시물 올린 시간
   String postTime;
 
-  // 게시물 변경 시간
-  String changePostTime;
-
   // 게시물 좋아요 클릭한 사람들
   List<String> whoLikeThePost;
 
@@ -37,7 +34,6 @@ class PostModel {
     required this.userUid,
     required this.postUid,
     required this.postTime,
-    required this.changePostTime,
     required this.whoLikeThePost,
     required this.whoWriteCommentThePost,
   });
@@ -53,7 +49,6 @@ class PostModel {
       'userUid': post.userUid,
       'postUid': post.postUid,
       'postTime': post.postTime,
-      'changePostTime': post.changePostTime,
       // 게시물을 올릴 때 whoLikeThePost는 무조건 []이다.
       'whoLikeThePost':
           post.whoLikeThePost.isNotEmpty ? post.whoLikeThePost : [],
@@ -79,7 +74,6 @@ class PostModel {
         userUid = json['userUid'].toString(),
         postUid = json['postUid'].toString(),
         postTime = json['postTime'].toString(),
-        changePostTime = json['changePostTime'].toString(),
         whoLikeThePost = List<String>.from(json['whoLikeThePost'] as List),
         whoWriteCommentThePost =
             List<String>.from(json['whoWriteCommentThePost'] as List);
@@ -92,7 +86,6 @@ class PostModel {
     String? userUid,
     String? postUid,
     String? postTime,
-    String? changePostTime,
     List<String>? whoLikeThePost,
     List<String>? whoWriteCommentThePost,
   }) {
@@ -103,9 +96,9 @@ class PostModel {
       userUid: userUid ?? this.userUid,
       postUid: postUid ?? this.postUid,
       postTime: postTime ?? this.postTime,
-      changePostTime: changePostTime ?? this.changePostTime,
       whoLikeThePost: whoLikeThePost ?? this.whoLikeThePost,
-      whoWriteCommentThePost: whoWriteCommentThePost ?? this.whoWriteCommentThePost,
+      whoWriteCommentThePost:
+          whoWriteCommentThePost ?? this.whoWriteCommentThePost,
     );
   }
 }

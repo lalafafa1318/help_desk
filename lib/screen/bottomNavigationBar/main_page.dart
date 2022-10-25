@@ -2,7 +2,7 @@ import 'package:bottom_navy_bar/bottom_navy_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
-import 'package:help_desk/screen/bottomNavigationBar/notification_page.dart';
+import 'package:help_desk/screen/bottomNavigationBar/notification/notification_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/post_list_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/posting/posting_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/settings/settings_page.dart';

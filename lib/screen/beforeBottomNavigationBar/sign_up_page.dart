@@ -223,6 +223,8 @@ class _SignUpPageState extends State<SignUpPage> {
       description: descriptionTextController!.text,
       image: imageUrl,
       userUid: widget.userUid,
+      // 회원 가입할 떄 notiPost 속성은 무조건 []이다.
+      notiPost: [],
     );
 
     // Firebase DataBase에 User 정보를 upload하는 method

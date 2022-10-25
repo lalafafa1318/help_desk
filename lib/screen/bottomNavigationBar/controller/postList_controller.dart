@@ -16,7 +16,7 @@ import 'package:intl/intl.dart';
 class PostListController extends GetxController {
   // Field
   // 사용자가 PostListPage나 KeywordPostListPage의 검색창에 입력한 text를 control하는 Field
-  TextEditingController? searchTextController;
+  TextEditingController searchTextController = TextEditingController();
 
   // 업로드된 Post 데이터를 담는 List
   List<PostModel> postDatas = [];
@@ -29,7 +29,7 @@ class PostListController extends GetxController {
   List<UserModel> conditionTextUserDatas = [];
 
   // 사용자가 입력한 댓글과 대댓글을 control 하는 Field
-  TextEditingController? commentController;
+  TextEditingController commentController = TextEditingController();
 
   // Method
   // PostListController를 쉽게 사용하도록 도와주는 method
@@ -182,9 +182,9 @@ class PostListController extends GetxController {
   // Server에 comment(댓글)을 추가하는 method
   Future<void> addComment(String comment, String postUid) async {
     // 현재 시간을 바탕으로 원하는 형식으로 바꾼다.
-    DateTime currentDateTime = DateTime.now().add(const Duration(seconds: 53));
+    DateTime currentDateTime = DateTime.now();
     String formatDate =
-        DateFormat('yy/MM/dd - HH:mm:ss').format(currentDateTime);
+        DateFormat('yy/MM/dd - HH:mm').format(currentDateTime);
 
     // Comment 모델 만들기
     CommentModel commentModel = CommentModel(
@@ -231,10 +231,6 @@ class PostListController extends GetxController {
   void onInit() {
     super.onInit();
 
-    searchTextController = TextEditingController();
-
-    commentController = TextEditingController();
-
     print('PostListController onInit() 호출');
   }
 
@@ -244,11 +240,11 @@ class PostListController extends GetxController {
     // 로그
     print('PostListController onClose() 호출');
 
-    // 변수 초기화
+    // 배열 clear
     postDatas.clear();
+    userDatas.clear();
 
     conditionTextPostDatas.clear();
-
     conditionTextUserDatas.clear();
 
     super.onClose();

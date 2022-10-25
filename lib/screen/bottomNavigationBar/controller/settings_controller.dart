@@ -19,7 +19,7 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
   bool didSignUp = true;
 
   // 사용자 계정을 나타내는 인스턴스
-  // AuthController - User의 image, description, userName, userUid를 복제했다.
+  // AuthController - User의 image, description, userName, userUid, notiPost를 복제했다.
   UserModel? settingUser;
 
   // 수정할 이미지에 대한 Field
@@ -146,6 +146,7 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
           editDescription == '' ? settingUser!.description : editDescription,
       image: imageUrl == null ? settingUser!.image : imageUrl.toString(),
       userUid: settingUser!.userUid,
+      notiPost: settingUser!.notiPost,
     );
 
     // Firebase DataBase에 User 정보를 update하는 method
@@ -223,7 +224,7 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
   void onInit() {
     super.onInit();
 
-    print('settings_controller - onInit() 호출');
+    print('SettingsController - onInit() 호출');
 
     // AuthController - User를 복제한다.
     settingUser = AuthController.to.user.value.copyWith();
@@ -240,6 +241,13 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     settingUser = null;
 
     imagePicker = null;
+    editImage = null;
+
+    whatIWrotePostDatas.clear();
+    whatIWroteUserDatas.clear();
+
+    whatICommentUserDatas.clear();
+    whatICommentUserDatas.clear();
 
     super.onClose();
   }

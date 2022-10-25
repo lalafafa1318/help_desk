@@ -11,6 +11,7 @@ import 'package:help_desk/bindingController/binding_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
+import 'package:help_desk/screen/bottomNavigationBar/controller/notification_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
@@ -24,13 +25,16 @@ import '../kakaoAuthentication/kakao_login.dart';
 class AuthController extends GetxController {
   // Field
   // User 정보를 관리하는 Field
-  Rx<UserModel> user =
-      UserModel(userName: '', description: '', image: '', userUid: '').obs;
+  Rx<UserModel> user = UserModel(
+    userName: '',
+    description: '',
+    image: '',
+    userUid: '',
+    notiPost: [],
+  ).obs;
 
   // Kakao 로고인에 필요한 것입니다.
   MainViewModel viewModel = MainViewModel(KakaoLogin());
-
-
 
   // Method
   // AuthController를 쉽게 사용할 수 있도록 하는 method
@@ -47,7 +51,11 @@ class AuthController extends GetxController {
     //AuthController - user에 class 구조 user를 대입한다.
     user(classUser);
 
-    // BottomNavigationBar controller, Posting Controller, PostList Controller, SettingsController를 등록한다.
+    // BottomNavigationBar
+    // Posting
+    // PostList
+    // Notification
+    // Settings Controller를 등록한다.
     BindingController.addServalController();
 
     // 회원가입을 이미 했다는 의미로 false를 대입한다.
@@ -92,6 +100,8 @@ class AuthController extends GetxController {
         idToken: googleAuth.idToken,
       );
 
+      print('GoogleUserUid : ${googleAuthCredential}');
+
       // Once signed in, return the UserCredential
       await CommunicateFirebase.login(googleAuthCredential);
 
@@ -113,6 +123,9 @@ class AuthController extends GetxController {
       // Create a credential from the access token
       final OAuthCredential facebookAuthCredential =
           FacebookAuthProvider.credential(loginResult.accessToken!.token);
+      
+        print('FacebookUserUid : ${facebookAuthCredential}');
+
 
       // Once signed in, return the UserCredential
       await CommunicateFirebase.login(facebookAuthCredential);
@@ -165,6 +178,9 @@ class AuthController extends GetxController {
           secret: authResult.authTokenSecret!,
         );
 
+          print('twitterUserUid : ${twitterAuthCredential}');
+
+
         await CommunicateFirebase.login(twitterAuthCredential);
 
         print('Twitter 로고인 성공');
@@ -191,7 +207,7 @@ class AuthController extends GetxController {
     // 이전 페이지가 SignUpPage인 경우
     if (SettingsController.to.didSignUp) {
       // 기존 controller들을 메모리에서 내리고 계정을 Logout하는 method
-      initControllerAndLogout();
+      await initControllerAndLogout();
 
       // 이전 페이지로 가기
       Get.back();
@@ -199,7 +215,7 @@ class AuthController extends GetxController {
     // 이전 페이지가 SignUpPage가 아닌 경우
     else {
       // 기존 controller들을 메모리에서 내리고 계정을 Logout하는 method
-      initControllerAndLogout();
+      await initControllerAndLogout();
     }
   }
 
@@ -209,12 +225,14 @@ class AuthController extends GetxController {
     BottomNavigationBarController.to.onClose();
     PostListController.to.onClose();
     PostingController.to.onClose();
+    NotificationController.to.onClose();
     SettingsController.to.onClose();
 
     // controller를 삭제하여 메모리에서 내린다.
     await Get.delete<BottomNavigationBarController>();
     await Get.delete<PostListController>();
     await Get.delete<PostingController>();
+    await Get.delete<NotificationController>();
     await Get.delete<SettingsController>();
 
     // 최종 logout

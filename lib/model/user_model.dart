@@ -10,6 +10,8 @@ class UserModel {
   String image;
   // Uid
   String userUid;
+  // 알림 신청한 게시물
+  List<String> notiPost;
 
   // Default Constructor
   UserModel({
@@ -17,15 +19,23 @@ class UserModel {
     required this.description,
     required this.image,
     required this.userUid,
+    required this.notiPost,
   });
 
   // Instance를 복제하는 method
-  UserModel copyWith({String? userName, String? description, String? image, String? userUid}) {
+  UserModel copyWith({
+    String? userName,
+    String? description,
+    String? image,
+    String? userUid,
+    List<String>? notiPost,
+  }) {
     return UserModel(
       userName: userName ?? this.userName,
       description: description ?? this.description,
       image: image ?? this.image,
       userUid: userUid ?? this.userUid,
+      notiPost: notiPost ?? this.notiPost,
     );
   }
 
@@ -34,7 +44,8 @@ class UserModel {
       : userName = mapData['userName'].toString(),
         description = mapData['description'].toString(),
         image = mapData['image'].toString(),
-        userUid = mapData['userUid'].toString();
+        userUid = mapData['userUid'].toString(),
+        notiPost = List<String>.from(mapData['notiPost'] as List);
 
   // Model class를 Map으로 바꾸는 method
   static Map<String, dynamic> toMap(UserModel user) {
@@ -43,6 +54,7 @@ class UserModel {
       'description': user.description,
       'image': user.image,
       'userUid': user.userUid,
+      'notiPost': user.notiPost.isNotEmpty ? user.notiPost : [],
     };
   }
 }

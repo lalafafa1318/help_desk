@@ -92,7 +92,8 @@ class PostingController extends GetxController {
 
         // Firebase Storage에 저장된 image를 download하는 method
         // 동시에 image에 대한 url를 요청해서 시간 절약을 한다.
-        for (UploadTask uploadTask in postMap['uploadTasks'] as List<UploadTask>) {
+        for (UploadTask uploadTask
+            in postMap['uploadTasks'] as List<UploadTask>) {
           imageUrlFuture.add(
             CommunicateFirebase.imageDownloadUrl(uploadTask),
           );
@@ -109,25 +110,25 @@ class PostingController extends GetxController {
       // 업로드한 이미지가 0개이든, 1개 이상이든 이하 공통 작업
 
       // 게시물 올린 현재 시간을 파악한다.
-      DateTime currentDateTime = DateTime.now().add(const Duration(seconds: 50));
+      DateTime currentDateTime = DateTime.now();
       // DateTime.now().add(const Duration(minutes: 4, seconds: 30));
       print('현재 시간 : $currentDateTime');
 
       String formatDate =
-          DateFormat('yy/MM/dd - HH:mm:ss').format(currentDateTime);
+          DateFormat('yy/MM/dd - HH:mm').format(currentDateTime);
       print('수정된 형식의 현재 시간 : $formatDate');
 
       // PostModel을 만듭니다.
       PostModel post = PostModel(
-          imageList: imageUrlList,
-          postTitle: titleString.toString(),
-          postContent: contentString.toString(),
-          userUid: AuthController.to.user.value.userUid,
-          postUid: postMap['postUUid'],
-          postTime: formatDate,
-          changePostTime: formatDate,
-          whoLikeThePost: [],
-          whoWriteCommentThePost: []);
+        imageList: imageUrlList,
+        postTitle: titleString.toString(),
+        postContent: contentString.toString(),
+        userUid: AuthController.to.user.value.userUid,
+        postUid: postMap['postUUid'],
+        postTime: formatDate,
+        whoLikeThePost: [],
+        whoWriteCommentThePost: [],
+      );
 
       // Firebase DataBase에 게시물 upload
       await CommunicateFirebase.setPostData(post, postMap['postUUid']);

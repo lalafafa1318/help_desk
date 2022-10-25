@@ -12,6 +12,7 @@ import 'package:help_desk/model/comment_model.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/routeDistinction/routeDistinction.dart';
+import 'package:help_desk/screen/bottomNavigationBar/controller/notification_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/post_list_page.dart';
@@ -112,15 +113,91 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
   // 알림 버튼 입니다.
   Widget notifyButton() {
-    return IconButton(
-      onPressed: () {
-        // 알림 여부를 변경하는 코드를 작성한다.
+    return GetBuilder<NotificationController>(
+      builder: (controller) {
+        // 사용자가 게시물(post)에 대해서 알림 신청을 했는지 하지 않았는지 여부를 판별한다.
+        bool isResult =
+            NotificationController.to.notiPost.contains(postData!.postUid);
 
-        // 토스트로 알림 표시를 제공한다.
+        return IconButton(
+          onPressed: () async {
+            // 키보드 내리기
+            FocusManager.instance.primaryFocus!.unfocus();
+
+            // 게시글이 삭제됐는지 확인한다.
+            bool isDeletePostResult = await isDeletePost();
+
+            // 게시글이 삭제됐으면?
+            if (isDeletePostResult == true) {
+              // 게시글이 사라졌다는 AlertDailog를 표시한다.
+              await deletePostDialog();
+
+              // 이전 페이지로 돌아가기
+              Get.back();
+            }
+            // 게시글이 삭제되지 않았으면?
+            else {
+              // 사용자가 게시물(post)에 대해서 알림 신청을 했었다면?
+              if (isResult == true) {
+                // NotificationController의 notifPost Array에 게시물 uid를 삭제한다.
+                NotificationController.to.notiPost.remove(postData!.postUid);
+
+                // Server에 User의 notiPost 속성에 게시물 uid를 삭제한다.
+                await NotificationController.to.deleteNotiPostFromUser(
+                  postData!.postUid,
+                  SettingsController.to.settingUser!.userUid,
+                );
+
+                // Notification.to.update()를 실행행 notifyButton Widget만 재랜더링 한다.
+                NotificationController.to.update();
+
+                // 하단 SnackBar 알림
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    duration: const Duration(milliseconds: 500),
+                    content: Text('댓글 알림을 켰습니다.)'),
+                    backgroundColor: Colors.black87,
+                  ),
+                );
+              }
+              // 사용자가 게시물(post)에 대해서 알림 신청을 하지 않았다면?
+              else {
+                // NotificationControler의 notiPost Array에 게시물 uid를 추가한다.
+                NotificationController.to.notiPost.add(postData!.postUid);
+
+                // Server에 User의 notiPost 속성에 게시물 uid를 추가한다.
+                await NotificationController.to.addNotiPostFromUser(
+                  postData!.postUid,
+                  SettingsController.to.settingUser!.userUid,
+                );
+
+                // Notification.to.update()를 실행해 notifyButton Widget만 재랜더링 한다.
+                NotificationController.to.update();
+
+                // 하단 SnackBar 알림
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    duration: const Duration(milliseconds: 500),
+                    content: Text('댓글 알림을 껐습니다.'),
+                    backgroundColor: Colors.black87,
+                  ),
+                );
+              }
+            }
+          },
+
+          // 사용자가 게시물(post)에 대해서 알림 신청을 했는지 하지 않았는지 판별해 서로 다른 아이콘을 보여준다.
+          icon: isResult
+              ? const Icon(
+                  Icons.notifications_active_outlined,
+                  color: Colors.red,
+                )
+              : const Icon(
+                  Icons.notifications_off_outlined,
+                  color: Colors.grey,
+                ),
+        );
       },
-
-      // 알림 신청을 했으면 알림 아이콘을 표시하고, 그렇지 않으면 알림 거부 아이콘을 표시한다.
-      icon: const Icon(Icons.notifications_off_outlined, color: Colors.grey),
     );
   }
 
@@ -496,7 +573,9 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
                   // 데이터가 왔다.
                   // 하지만 빈 값이다.
-                  if (snapshot.data!.isEmpty) {
+                  if (List<CommentModel>.from(
+                    snapshot.data!['commentArray'] as List,
+                  ).isEmpty) {
                     return const Visibility(visible: false, child: Text('테스트'));
                   }
 
@@ -548,10 +627,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       margin: const EdgeInsets.symmetric(horizontal: 15),
       width: Get.width,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar와 UserName 그리고 Comment에 대한 좋아요 버튼, Comment에 대한 삭제 버튼을 제공하는 Widget 입니다.
-          commentTopView(index),
+          // Avatar와 UserName을 제공하는 Widget 입니다.
+          commentAvatarAndName(index),
 
           // CommentContent을 제공하는 Widget 입니다.
           commentContent(index),
@@ -560,6 +639,11 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
           // CommentPostTime과 좋아요 수를 제공하는 Widget 입니다.
           commentUploadTimeAndLikeNum(index),
+
+          const SizedBox(height: 5),
+
+          // Comment에 대한 좋아요 버튼, 삭제 버튼을 제공하는 Widget 입니다.
+          commentLikeAndDeleteButton(index),
 
           const SizedBox(height: 10),
 
@@ -570,22 +654,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // Avatar와 UserName 그리고 Comment에 대한 좋아요 버튼, Comment에 대한 삭제 버튼을 제공하는 Widget 입니다.
-  Widget commentTopView(int index) {
-    return Row(
-      children: [
-        // Avatar와 UserName을 제공하는 Widget 입니다.
-        commentAvatarAndName(index),
-
-        //Comment에 대한 좋아요 버튼, Comment에 대한 삭제 버튼을 제공하는 Widget 입니다.
-        commentLikeAndDeleteButton(index),
-      ],
-    );
-  }
-
   // Avatar와 UserName을 제공하는 Widget 입니다.
   Widget commentAvatarAndName(int index) {
     // commentUserArray[index].userName과 commentUserArray[index].image를 간단하게 명명한다.
+    String whoWriteUserUid = commentArray[index].whoWriteUserUid;
     String userName = commentUserArray[index].userName;
     String userImage = commentUserArray[index].image;
 
@@ -595,7 +667,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         commentAvatar(userImage),
 
         // UserName을 제공하는 Widget 입니다.
-        commentName(userName),
+        commentName(whoWriteUserUid, userName),
       ],
     );
   }
@@ -612,73 +684,78 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
 // UserName을 제공하는 Widget 입니다.
-  Widget commentName(String userName) {
+  Widget commentName(String whoWriteUserUid, String userName) {
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
-      child: Text(
-        userName,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
+      child: whoWriteUserUid == postData!.userUid
+          ? Text(
+              '${userName}(글쓴이)',
+              style: TextStyle(
+                color: Colors.blue[300],
+                fontWeight: FontWeight.bold,
+              ),
+            )
+          : Text(
+              userName,
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
     );
   }
 
 // Comment에 대한 좋아요 버튼, Comment에 대한 삭제 버튼을 제공하는 Widget 입니다.
   Widget commentLikeAndDeleteButton(int index) {
-    return SizedBox(
-      width: 250,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          const SizedBox(width: 5),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        // Comment에 대한 좋아요 버튼을 제공하는 Widget 입니다.
+        commentLikeButton(index),
 
-          // Comment에 대한 좋아요 버튼을 제공하는 Widget 입니다.
-          commentLikeButton(index),
-
-          const SizedBox(width: 5),
-
-          // Comment에 대한 삭제 버튼을 제공하는 Widget 입니다.
-          commentDeleteButton(index),
-        ],
-      ),
+        // Comment에 대한 삭제 버튼을 제공하는 Widget 입니다.
+        commentDeleteButton(index),
+      ],
     );
   }
 
 // Comment에 대한 좋아요 버튼을 제공하는 Widget 입니다.
   Widget commentLikeButton(int index) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(5),
-      child: Container(
-        width: 30,
-        height: 25,
+    return Container(
+      margin: const EdgeInsets.only(right: 10),
+      width: 30,
+      height: 25,
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(5)),
         color: Colors.grey,
-        child: IconButton(
-          padding: const EdgeInsets.only(top: 1),
-          onPressed: () async {
-            // 키보드 내리기
-            FocusManager.instance.primaryFocus!.unfocus();
+      ),
+      child: IconButton(
+        padding: const EdgeInsets.only(top: 1),
+        onPressed: () async {
+          // 키보드 내리기
+          FocusManager.instance.primaryFocus!.unfocus();
 
-            // 게시글이 삭제됐는지 확인한다.
-            bool isDeletePostResult = await isDeletePost();
+          // 게시글이 삭제됐는지 확인한다.
+          bool isDeletePostResult = await isDeletePost();
 
-            // 게시글이 삭제됐으면?
-            if (isDeletePostResult == true) {
-              // 게시글이 사라졌다는 AlertDailog를 표시한다.
-              await deletePostDialog();
+          // 게시글이 삭제됐으면?
+          if (isDeletePostResult == true) {
+            // 게시글이 사라졌다는 AlertDailog를 표시한다.
+            await deletePostDialog();
 
-              // 이전 페이지로 돌아가기
-              Get.back();
-            }
-            // 게시글이 삭제되지 않으면
-            else {
-              // 이 comment을 공감하겠습니까? AlertDialog 표시하기
-              await clickCommentLikeButtonDialog(index);
-            }
-          },
-          icon: Icon(
-            Icons.thumb_up_sharp,
-            color: Colors.grey[200]!.withOpacity(1),
-            size: 15,
-          ),
+            // 이전 페이지로 돌아가기
+            Get.back();
+          }
+          // 게시글이 삭제되지 않으면
+          else {
+            // 이 comment을 공감하겠습니까? AlertDialog 표시하기
+            await clickCommentLikeButtonDialog(index);
+          }
+        },
+        icon: Icon(
+          Icons.thumb_up_sharp,
+          color: Colors.grey[200]!.withOpacity(1),
+          size: 15,
         ),
       ),
     );
@@ -690,40 +767,41 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     // 일치하면 삭제 버튼을 표시한다.
     return commentArray[index].whoWriteUserUid ==
             SettingsController.to.settingUser!.userUid
-        ? ClipRRect(
-            borderRadius: BorderRadius.circular(5),
-            child: Container(
-              width: 30,
-              height: 25,
+        ? Container(
+            margin: const EdgeInsets.only(right: 10),
+            width: 30,
+            height: 25,
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(5)),
               color: Colors.grey,
-              child: IconButton(
-                padding: const EdgeInsets.only(top: 1),
-                onPressed: () async {
-                  // 키보드 내리기
-                  FocusManager.instance.primaryFocus!.unfocus();
+            ),
+            child: IconButton(
+              padding: const EdgeInsets.only(top: 1),
+              onPressed: () async {
+                // 키보드 내리기
+                FocusManager.instance.primaryFocus!.unfocus();
 
-                  // 게시글이 삭제됐는지 확인한다.
-                  bool isDeletePostResult = await isDeletePost();
+                // 게시글이 삭제됐는지 확인한다.
+                bool isDeletePostResult = await isDeletePost();
 
-                  // 게시글이 삭제됐으면?
-                  if (isDeletePostResult == true) {
-                    // 게시글이 사라졌다는 AlertDailog를 표시한다.
-                    await deletePostDialog();
+                // 게시글이 삭제됐으면?
+                if (isDeletePostResult == true) {
+                  // 게시글이 사라졌다는 AlertDailog를 표시한다.
+                  await deletePostDialog();
 
-                    // 이전 페이지로 돌아가기
-                    Get.back();
-                  }
-                  // 게시글이 삭제되지 않으면
-                  else {
-                    // 이 comment을 삭제하시겠습니까? AlertDialog 표시하기
-                    await clickCommentDeleteButtonDialog(commentArray[index]);
-                  }
-                },
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: Colors.grey[200]!.withOpacity(1),
-                  size: 20,
-                ),
+                  // 이전 페이지로 돌아가기
+                  Get.back();
+                }
+                // 게시글이 삭제되지 않으면
+                else {
+                  // 이 comment을 삭제하시겠습니까? AlertDialog 표시하기
+                  await clickCommentDeleteButtonDialog(commentArray[index]);
+                }
+              },
+              icon: Icon(
+                Icons.delete_outline,
+                color: Colors.grey[200]!.withOpacity(1),
+                size: 20,
               ),
             ),
           )
@@ -806,7 +884,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
               color: Colors.grey[300],
               borderRadius: const BorderRadius.all(Radius.circular(10)),
             ),
-
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -1493,6 +1570,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
     whereRoute = null;
     commentArray.clear();
+    commentUserArray.clear();
 
     super.dispose();
   }

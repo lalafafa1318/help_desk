@@ -26,8 +26,8 @@ class EditProfilePage extends StatelessWidget {
           GetBuilder<SettingsController>(
             builder: (controller) {
               return SizedBox(
-                width: 150.0,
-                height: 150.0,
+                width: 125.0,
+                height: 125.0,
                 child: DottedBorder(
                   strokeWidth: 2,
                   color: Colors.grey,
@@ -245,18 +245,6 @@ class EditProfilePage extends StatelessWidget {
 
               // 수정하기 Button이 있는 Widget
               signUpButton(),
-
-              const SizedBox(height: 80),
-
-              // 일시적으로 구현한 뒤로 가기 버튼
-              ElevatedButton(
-                onPressed: () {
-                  Get.back();
-
-                  SettingsController.to.editImage = null;
-                },
-                child: const Text('뒤로 가기'),
-              ),
             ],
           ),
         ),

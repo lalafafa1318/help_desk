@@ -94,6 +94,9 @@ class BottomNavigationBarController extends GetxController {
     // 로그
     print('BottomNavigationBarController onClose() 호출');
 
+    // 배열 clear
+    bottomNaviBarHistory.clear();
+
     super.onClose();
   }
 }
