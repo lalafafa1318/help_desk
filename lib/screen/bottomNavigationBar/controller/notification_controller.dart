@@ -11,7 +11,8 @@ class NotificationController extends GetxController {
   // 사용자가 알림 신청한 게시물 Uid를 담는 배열
   List<String> notiPost = [];
 
-  var stream;
+  // 실시간으로 Listen 하는 배열
+  List<StreamSubscription<QuerySnapshot>> listenList = [];
 
   // Method
   // Controller를 더 쉽게 사용할 수 있도록 하는 get method
@@ -36,7 +37,43 @@ class NotificationController extends GetxController {
     );
   }
 
- 
+  // Server에서 게시물(post)의 변동사항을 listen한다.
+  void setListen() {
+    for (String postUid in notiPost) {
+      listenList.add(
+        FirebaseFirestore.instance
+            .collection('posts')
+            .doc(postUid)
+            .collection('comments')
+            .snapshots()
+            .listen(
+          (event) {
+            print(
+                '11111111111111111111111111111111111111111111111111111111111111');
+            print('postUid : $postUid');
+          },
+        ),
+      );
+    }
+  }
+
+  // Server에서 게시물(post)의 변동사항을 추가로 listen 한다.
+  void addListen(String postUid) {
+    NotificationController.to.listenList.add(
+      FirebaseFirestore.instance
+          .collection('posts')
+          .doc(postUid)
+          .collection('comments')
+          .snapshots()
+          .listen(
+        (event) {
+          print(
+              '11111111111111111111111111111111111111111111111111111111111111');
+          print('postUid : $postUid');
+        },
+      ),
+    );
+  }
 
   // NotificationController가 처음 메모리에 올라갈 떄 호출되는 method
   @override
@@ -48,6 +85,8 @@ class NotificationController extends GetxController {
       (value) {
         print('notiPostLength : ${notiPost.length}');
 
+        // Server에서 게시물(post)의 변동사항을 listen한다.
+        setListen();
       },
     );
   }
@@ -56,6 +95,11 @@ class NotificationController extends GetxController {
   @override
   void onClose() {
     notiPost.clear();
+
+    // 실시간으로 Listen 하는 것을 중지하는 것을 넘어서 삭제한다.
+    listenList.map(
+      (listenElement) => listenElement.cancel(),
+    );
 
     super.onClose();
   }

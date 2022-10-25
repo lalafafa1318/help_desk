@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -78,8 +79,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
           // 사용자가 하단 comment을 입력할 수 있는 창에 text를 입력했으면
           // PostListController.to.commentController!.text를 빈칸으로 설정한다.
-          if (PostListController.to.commentController!.text.isNotEmpty) {
-            PostListController.to.commentController!.text = '';
+          if (PostListController.to.commentController.text.isNotEmpty) {
+            PostListController.to.commentController.text = '';
           }
 
           // 이전 페이지로 가기
@@ -139,14 +140,26 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             else {
               // 사용자가 게시물(post)에 대해서 알림 신청을 했었다면?
               if (isResult == true) {
+                // 해당 게시물 Uid가 notiPost Array의 몇번째 index에 있는지 확인한다.
+                int index = NotificationController.to.notiPost
+                    .indexOf(postData!.postUid);
+
                 // NotificationController의 notifPost Array에 게시물 uid를 삭제한다.
-                NotificationController.to.notiPost.remove(postData!.postUid);
+                NotificationController.to.notiPost.removeAt(index);
 
                 // Server에 User의 notiPost 속성에 게시물 uid를 삭제한다.
                 await NotificationController.to.deleteNotiPostFromUser(
                   postData!.postUid,
                   SettingsController.to.settingUser!.userUid,
                 );
+
+                // 실시간으로 Listen 하는 것을 중지하는 것을 넘어서 삭제한다.
+                NotificationController.to.listenList[index].cancel();
+
+
+                // NotificationController의 listenList Array에 element을 remove한다.
+                NotificationController.to.listenList.removeAt(index);
+
 
                 // Notification.to.update()를 실행행 notifyButton Widget만 재랜더링 한다.
                 NotificationController.to.update();
@@ -160,6 +173,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   ),
                 );
               }
+
               // 사용자가 게시물(post)에 대해서 알림 신청을 하지 않았다면?
               else {
                 // NotificationControler의 notiPost Array에 게시물 uid를 추가한다.
@@ -170,6 +184,9 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   postData!.postUid,
                   SettingsController.to.settingUser!.userUid,
                 );
+
+                // Server에서 게시물(post)의 변동사항을 추가로 listen 한다.
+                NotificationController.to.addListen(postData!.postUid);
 
                 // Notification.to.update()를 실행해 notifyButton Widget만 재랜더링 한다.
                 NotificationController.to.update();
@@ -222,9 +239,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         // 게시글이 삭제되지 않았으면?
         else {
           // Server에서 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서 userData에 업데이트 한다.
-          await updateImageAndUserNameToUserData();
-
-          // Server에서 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서 userDatad에 업데이트 한다.
           await updateImageAndUserNameToUserData();
 
           // Server에서 Post에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)
