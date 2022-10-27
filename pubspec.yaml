@@ -119,7 +119,12 @@ dependencies:
   responsive_sizer: ^3.1.1
   sizer: ^2.0.15
   flutter_screenutil: ^5.5.4
-  flutter_keyboard_size: ^1.0.0+4
+  flutter_keyboard_size: ^1.0.1
+
+  # 로컬 알림
+  flutter_local_notifications: ^12.0.2
+  flutter_native_timezone: ^2.0.0
+  flutter_app_badger: ^1.5.0
 
   
   

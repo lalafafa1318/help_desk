@@ -232,7 +232,9 @@ class PostListPage extends StatelessWidget {
         description: Container(
           margin: const EdgeInsets.only(top: 5),
           child: Text(
-            postData.postTime,
+            // postTime은 원래 초(Second)까지 존재하나
+            // 화면에서는 분(Minute)까지 표시한다.
+            postData.postTime.substring(0, 16),
             style: const TextStyle(fontSize: 10),
           ),
         ),

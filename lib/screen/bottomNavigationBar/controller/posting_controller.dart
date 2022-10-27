@@ -115,7 +115,7 @@ class PostingController extends GetxController {
       print('현재 시간 : $currentDateTime');
 
       String formatDate =
-          DateFormat('yy/MM/dd - HH:mm').format(currentDateTime);
+          DateFormat('yy/MM/dd - HH:mm:ss').format(currentDateTime);
       print('수정된 형식의 현재 시간 : $formatDate');
 
       // PostModel을 만듭니다.

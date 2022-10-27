@@ -184,7 +184,7 @@ class PostListController extends GetxController {
     // 현재 시간을 바탕으로 원하는 형식으로 바꾼다.
     DateTime currentDateTime = DateTime.now();
     String formatDate =
-        DateFormat('yy/MM/dd - HH:mm').format(currentDateTime);
+        DateFormat('yy/MM/dd - HH:mm:ss').format(currentDateTime);
 
     // Comment 모델 만들기
     CommentModel commentModel = CommentModel(

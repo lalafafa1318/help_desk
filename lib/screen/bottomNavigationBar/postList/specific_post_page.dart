@@ -46,7 +46,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   List<UserModel> commentUserArray = [];
 
   // 처음 didChangeDependencies()에 접근했는지 아닌지 판별하는 변수
-  bool isFirstAcessDidChangeDependencies = true;
+  // bool isFirstAcessDidChangeDependencies = true;
 
   // Server에 Comment 데이터를 호출하는 것을 허락할지, 불허할지 판별하는 변수
   bool isCallServerAboutCommentData = false;
@@ -144,22 +144,23 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                 int index = NotificationController.to.notiPost
                     .indexOf(postData!.postUid);
 
+                // 실시간으로 Listen 하는 것을 중지하는 것을 넘어서 삭제한다.
+                NotificationController.to.listenList[index].cancel();
+
                 // NotificationController의 notifPost Array에 게시물 uid를 삭제한다.
                 NotificationController.to.notiPost.removeAt(index);
+
+                // NotificationController의 commentCount Array에 element를 remove한다.
+                NotificationController.to.commentCount.removeAt(index);
+
+                // NotificationController의 listenList Array에 element을 remove한다.
+                NotificationController.to.listenList.removeAt(index);
 
                 // Server에 User의 notiPost 속성에 게시물 uid를 삭제한다.
                 await NotificationController.to.deleteNotiPostFromUser(
                   postData!.postUid,
                   SettingsController.to.settingUser!.userUid,
                 );
-
-                // 실시간으로 Listen 하는 것을 중지하는 것을 넘어서 삭제한다.
-                NotificationController.to.listenList[index].cancel();
-
-
-                // NotificationController의 listenList Array에 element을 remove한다.
-                NotificationController.to.listenList.removeAt(index);
-
 
                 // Notification.to.update()를 실행행 notifyButton Widget만 재랜더링 한다.
                 NotificationController.to.update();
@@ -179,14 +180,25 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                 // NotificationControler의 notiPost Array에 게시물 uid를 추가한다.
                 NotificationController.to.notiPost.add(postData!.postUid);
 
+                // 해당 게시물 Uid가 notiPost Array의 몇번째 index에 있는지 확인한다.
+                int index = NotificationController.to.notiPost
+                    .indexOf(postData!.postUid);
+
+                // 사용자가 알림 신청한 게시물(Post)에 대한 댓글 개수를 NotificationController의 commentCount Array에 추가한다.
+                NotificationController.to.commentCount.add(
+                  await CommunicateFirebase.getCountFromComments(
+                    postData!.postUid,
+                  ),
+                );
+
+                // Server에서 게시물(post)의 변동사항을 추가로 listen 한다.
+                NotificationController.to.addListen(index);
+
                 // Server에 User의 notiPost 속성에 게시물 uid를 추가한다.
                 await NotificationController.to.addNotiPostFromUser(
                   postData!.postUid,
                   SettingsController.to.settingUser!.userUid,
                 );
-
-                // Server에서 게시물(post)의 변동사항을 추가로 listen 한다.
-                NotificationController.to.addListen(postData!.postUid);
 
                 // Notification.to.update()를 실행해 notifyButton Widget만 재랜더링 한다.
                 NotificationController.to.update();
@@ -246,7 +258,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
 
           // Server에 Comment 데이터를 호출하는 것을 허락한다.
-          isCallServerAboutCommentData = true;
+          // isCallServerAboutCommentData = true;
 
           // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
           // 부분적으로 재랜더링 한다.
@@ -356,7 +368,9 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // PostTime을 제공하는 Widget 입니다.
   Widget showPostTime() {
     return Text(
-      postData!.postTime,
+      // postTime은 원래 초(Second)까지 존재하나
+      // 화면에서는 분(Minute)까지 표시한다.
+      postData!.postTime.substring(0, 16),
       style: const TextStyle(fontSize: 13),
     );
   }
@@ -858,7 +872,9 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // CommentPostTime을 제공하는 Widget 입니다.
   Widget commentUploadTime(String uploadTime) {
     return Text(
-      uploadTime,
+      // uploadTime은 원래 초(Second)까지 존재하나
+      // 화면에서는 분(Minute)까지 표시한다.
+      uploadTime.substring(0, 16),
       style: TextStyle(color: Colors.grey[600], fontSize: 12),
     );
   }
@@ -885,38 +901,40 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
 // BottomNavigationBar - comment을 입력하는 Widget 입니다.
   Widget writeAndSendComment() {
-    return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: ClipRRect(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            width: Get.width,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: const BorderRadius.all(Radius.circular(10)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // comment 입력하기 창
-                writeComment(),
+    return Consumer<ScreenHeight>(builder: (context, res, child) {
+      return Padding(
+        padding: EdgeInsets.only(bottom: res.keyboardHeight),
+        child: ClipRRect(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              width: Get.width,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: const BorderRadius.all(Radius.circular(10)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // comment 입력하기 창
+                  writeComment(),
 
-                // comment 보내기 아이콘
-                sendComment(),
-              ],
+                  // comment 보내기 아이콘
+                  sendComment(),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
 // comment 입력하기 창 Widget 입니다
   Widget writeComment() {
-    return SizedBox(
+    return Container(
+      margin: const EdgeInsets.only(left: 20),
       width: 300,
       height: 50,
       child: TextField(
@@ -938,7 +956,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     return IconButton(
       onPressed: () async {
         // comment에 입력한 텍스트 확인하기
-        String comment = PostListController.to.commentController!.text;
+        String comment = PostListController.to.commentController.text;
 
         // 키보드 내리기
         FocusManager.instance.primaryFocus!.unfocus();
@@ -973,7 +991,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
 
             // Server에 Comment 데이터를 호출하는 것을 허락한다.
-            isCallServerAboutCommentData = true;
+            // isCallServerAboutCommentData = true;
 
             // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
             // 부분적으로 재랜더링 한다.
@@ -982,7 +1000,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             PostListController.to.update();
 
             // comment Text를 관리하는 controller의 값을 빈 값으로 다시 만든다.
-            PostListController.to.commentController!.text = '';
+            PostListController.to.commentController.text = '';
           }
           //
           else {
@@ -1257,7 +1275,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
 
       // Server에 Comment 데이터를 호출하는 것을 허락한다.
-      isCallServerAboutCommentData = true;
+      // isCallServerAboutCommentData = true;
 
       // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
       // 부분적으로 재랜더링 한다.
@@ -1343,8 +1361,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // comment의 whoCommentLike 속성에 사용자 Uid가 있는지 없는지에 따라 다른 로직을 구현하는 method
-  Future<void> isUserUidInWhoCommentLikeFromCommentData(
-      bool isResult, CommentModel comment) async {
+  Future<void> isUserUidInWhoCommentLikeFromCommentData(bool isResult, CommentModel comment) async {
     // comment의 whoCommentLike 속성에 사용자 Uid가 있었다.
     if (isResult) {
       // 하단 snackBar로 "이미 공감한 comment 입니다 :)" 표시한다.
@@ -1369,7 +1386,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
 
       // Server에 Comment 데이터를 호출하는 것을 허락한다.
-      isCallServerAboutCommentData = true;
+      // isCallServerAboutCommentData = true;
 
       // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
       // 부분적으로 재랜더링 한다.
@@ -1441,7 +1458,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                 await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
 
                 // Server에 Comment 데이터를 호출하는 것을 허락한다.
-                isCallServerAboutCommentData = true;
+                // isCallServerAboutCommentData = true;
 
                 // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
                 // 부분적으로 재랜더링 한다.
@@ -1521,56 +1538,40 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     copyPostAndUserData();
 
     // 게시글이 삭제됐는지 확인한다.
-    isDeletePost().then((bool isDeletePostResult) async {
-      print('SpecificPostPage - isDeletePost() 호출 후');
+    isDeletePost().then(
+      (bool isDeletePostResult) async {
+        print('SpecificPostPage - isDeletePost() 호출 후');
 
-      // 게시글이 삭제됐으면?
-      if (isDeletePostResult == true) {
-        // 게시글이 삭제됐다는 AlertDailog를 표시한다.
-        await deletePostDialog();
+        // 게시글이 삭제됐으면?
+        if (isDeletePostResult == true) {
+          // 게시글이 삭제됐다는 AlertDailog를 표시한다.
+          await deletePostDialog();
 
-        // 이전 페이지로 돌아가기
-        Get.back();
-      }
-      // 게시글이 삭제되지 않으면?
-      else {
-        // Server에서 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서 userData에 업데이트 한다.
-        await updateImageAndUserNameToUserData();
+          // 이전 페이지로 돌아가기
+          Get.back();
+        }
+        // 게시글이 삭제되지 않으면?
+        else {
+          // Server에서 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서 userData에 업데이트 한다.
+          await updateImageAndUserNameToUserData();
 
-        // Server에서 Post에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)
-        // 에 대한 데이터를 받아와서 PostData에 업데이트 한다.
-        await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
+          // Server에서 Post에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)
+          // 에 대한 데이터를 받아와서 PostData에 업데이트 한다.
+          await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
 
-        // Server에 Comment 데이터를 호출하는 것을 허락한다.
-        isCallServerAboutCommentData = true;
+          // Server에 Comment 데이터를 호출하는 것을 허락한다.
+          isCallServerAboutCommentData = true;
 
-        // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
-        // 부분적으로 재랜더링 한다.
-        // 1. 업데이트 된 공감 수와 댓글 수를 화면에 보여주기 위해 재랜더링 한다.
-        // 2. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
-        PostListController.to.update();
-      }
-    });
+          // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
+          // 부분적으로 재랜더링 한다.
+          // 1. 업데이트 된 공감 수와 댓글 수를 화면에 보여주기 위해 재랜더링 한다.
+          // 2. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
+          PostListController.to.update();
+        }
+      },
+    );
   }
 
-// initState()가 호출되고 다음에 호출되는 method
-// keyboard를 위로 올리고, 아래로 내릴 떄 호출되는 method
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    print('SpecificPostPage - didChangeDependencies() 호출');
-
-    // SpecificPostpage에서 didChangeDependencies()가 처음 호출되지 않았다.
-    if (isFirstAcessDidChangeDependencies == false) {
-      //Server에 Comment 데이터를 호출하는 것을 거부한다.
-      isCallServerAboutCommentData = false;
-    }
-    // SpecificPostPaged에서 didChangeDependencies()가 처음 호출됐다.
-    else {
-      isFirstAcessDidChangeDependencies = false;
-    }
-  }
 
 // specificPostPage가 사라질 떄 호출되는 method
   @override
@@ -1594,36 +1595,40 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     print('SpecificPostPage - build() 호출');
 
     return SafeArea(
-      child: Scaffold(
-        // comment을 입력하고 전송할 수 있는 하단 BottomNavigationBar 이다.
-        bottomNavigationBar: writeAndSendComment(),
-        body: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          physics: const PageScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 이전 가기, 알림, 새로 고침, 삭제 버튼을 제공하는 Widget이다.
-              topView(),
+      child: KeyboardSizeProvider(
+        smallSize: 500.0,
+        child: Scaffold(
+          resizeToAvoidBottomInset: false,
+          // comment을 입력하고 전송할 수 있는 하단 BottomNavigationBar 이다.
+          bottomNavigationBar: writeAndSendComment(),
+          body: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            physics: const ScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 이전 가기, 알림, 새로 고침, 삭제 버튼을 제공하는 Widget이다.
+                topView(),
 
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              // Avatar와 UserName, PostTime을 표시하는 Widget이다.
-              showAvatarAndUserNameAndPostTime(),
+                // Avatar와 UserName, PostTime을 표시하는 Widget이다.
+                showAvatarAndUserNameAndPostTime(),
 
-              // PostTitle, PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostLikeNum, PostCommentNum를 보여주는 Widget 입니다.
-              showTitleAndContnetAndPhotoAndLikeNumAndCommentNum(),
+                // PostTitle, PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostLikeNum, PostCommentNum를 보여주는 Widget 입니다.
+                showTitleAndContnetAndPhotoAndLikeNumAndCommentNum(),
 
-              const SizedBox(height: 5),
+                const SizedBox(height: 5),
 
-              // 공감을 클릭할 수 있는 버튼
-              sympathy(),
+                // 공감을 클릭할 수 있는 버튼
+                sympathy(),
 
-              const SizedBox(height: 30),
+                const SizedBox(height: 30),
 
-              // comment를 보여주는 ListView (단, comment가 없으면 invisible)
-              showCommentListView(),
-            ],
+                // comment를 보여주는 ListView (단, comment가 없으면 invisible)
+                showCommentListView(),
+              ],
+            ),
           ),
         ),
       ),
