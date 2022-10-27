@@ -10,6 +10,7 @@ class NotificationPage extends StatelessWidget {
   // topView 입니다.
   Widget topView() {
     return SizedBox(
+      width: Get.width,
       child: Row(
         children: [
           const SizedBox(width: 5),
@@ -41,11 +42,24 @@ class NotificationPage extends StatelessWidget {
     );
   }
 
+  // 새로 고침하는 View 입니다.
+  Widget refreshView() {
+    return Container(
+      margin: const EdgeInsets.only(left: 5, right: 5, bottom: 5),
+      alignment: Alignment.centerRight,
+      child: IconButton(
+        onPressed: () {
+          // Server에서 데이터를 가져온다.
+        },
+        icon: const Icon(Icons.refresh_outlined),
+      ),
+    );
+  }
+
   // 알림 목록 view 입니다.
   Widget notificationView() {
-    return SizedBox(
-      width: Get.width,
-      height: 650,
+    return Expanded(
+      flex: 1,
       child: ListView.builder(
         itemCount: 100,
         itemBuilder: (BuildContext context, int index) => messageView(index),
@@ -90,19 +104,18 @@ class NotificationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
-      // StreamBuilder을 통해 Firebase 알림 목록 변경 사항을 확인하는 method을 배치하여 Widget을 여러 번 업데이트할 예정이다.
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 5),
 
           // topView 입니다.
           topView(),
 
-          //구분자 입니다.
-          const Divider(height: 0.5, color: Colors.black),
+          const SizedBox(height: 5),
 
-          const SizedBox(height: 20),
+          // 새로 고침을 나타내는 View 입니다.
+          refreshView(),
 
           // 알림 목록 View 입니다.
           notificationView(),

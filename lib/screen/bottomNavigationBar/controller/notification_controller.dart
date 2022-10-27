@@ -75,11 +75,7 @@ class NotificationController extends GetxController {
   }
 
   // Flutter Loal Notification을 show하는 method
-  Future<void> showBigTextNotification(
-      {var id = 0,
-      required String title,
-      required String body,
-      var payload}) async {
+  Future<void> showBigTextNotification({var id = 0, required String title, required String body,  var payload}) async {
     AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'you_can_name_it_whatever1',
@@ -160,6 +156,16 @@ class NotificationController extends GetxController {
                     title: '${userName} - ${postTitle}',
                     body: '새로운 댓글이 달렸어요 : ${content}',
                   );
+
+                  // Server에 Notification을 추가한다.
+                  // 속성 : 게시물 Uid, 댓글 Uid, 알림 시간 
+
+
+
+
+
+
+
                 }
               }
               // Server에 있는 댓글(comment) 개수를 배열에 업데이트한다.

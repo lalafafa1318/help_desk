@@ -45,9 +45,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // CommentData의 whoWriteUserUid를 참고하여 UserData을 가져와 관리하는 배열
   List<UserModel> commentUserArray = [];
 
-  // 처음 didChangeDependencies()에 접근했는지 아닌지 판별하는 변수
-  // bool isFirstAcessDidChangeDependencies = true;
-
   // Server에 Comment 데이터를 호출하는 것을 허락할지, 불허할지 판별하는 변수
   bool isCallServerAboutCommentData = false;
 

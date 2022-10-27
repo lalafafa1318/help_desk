@@ -16,6 +16,7 @@ class BindingController implements Bindings {
   // BottomNavigationBar controller 등록하는 method
   // PostList controller를 등록하는 method
   // Posting controller를 등록하는 method
+  // Notification Controllerf를 등록하는 method
   // Settings controller를 등록하는 method
   static addServalController() {
     Get.put(BottomNavigationBarController());
