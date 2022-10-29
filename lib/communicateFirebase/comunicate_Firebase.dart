@@ -7,6 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/model/comment_model.dart';
+import 'package:help_desk/model/notification_model.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/notification_controller.dart';
@@ -23,7 +24,8 @@ class CommunicateFirebase {
   static final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
 
   // Firebase Database에서 uid가 있는지 확인하는 method
-  static Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(String userUid) async {
+  static Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(
+      String userUid) async {
     QuerySnapshot<Map<String, dynamic>> userData = await _firebaseFirestore
         .collection('users')
         .where('userUid', isEqualTo: userUid)
@@ -43,7 +45,8 @@ class CommunicateFirebase {
   }
 
   // "회원가입" 페이지에 있는 Image를 Firebase Storage에 upload하는 method
-  static UploadTask signInUploadImage({required File imageFile, required String userUid}) {
+  static UploadTask signInUploadImage(
+      {required File imageFile, required String userUid}) {
     // ImageFile의 확장자(png, jpg) 가져오기
     String imageFileExt = imageFile.toString().split('.').last.substring(0, 3);
 
@@ -60,7 +63,8 @@ class CommunicateFirebase {
 
   // "Posting" 페이지에 게시물을 업로드할 떄 Image를
   //  Firebase Stroage에 upload하는 method
-  static Map<String, dynamic> postUploadImage({required RxList<File> imageList, required String userUid}) {
+  static Map<String, dynamic> postUploadImage(
+      {required RxList<File> imageList, required String userUid}) {
     // UploadTask을 관리하는 배열 입니다.
     List<UploadTask> uploadTasks = [];
 
@@ -92,7 +96,8 @@ class CommunicateFirebase {
   }
 
   // "프로필 수정" 페이지에서 수정한 Image를 Firebase Storage에 update하는 method
-  static Future<UploadTask> editUploadImage({required File imageFile, required String userUid}) async {
+  static Future<UploadTask> editUploadImage(
+      {required File imageFile, required String userUid}) async {
     // ImageFile의 확장자(png, jpg) 가져오기
     String imageFileExt = imageFile.toString().split('.').last.substring(0, 3);
 
@@ -326,7 +331,8 @@ class CommunicateFirebase {
 
   // Firebase DataBase comment 정보의 whoLikeThePost 속성에 접근하여
   // 사용자가 comment에 대해서 클릭한 적이 있는지 판별하는 method
-  static Future<bool> checkLikeUsersFromTheComment(CommentModel comment, String userUid) async {
+  static Future<bool> checkLikeUsersFromTheComment(
+      CommentModel comment, String userUid) async {
     // post - postUid - comments - commentUid에 접근하여 해당 comment에 접근한다.
     DocumentSnapshot<Map<String, dynamic>> commentData =
         await _firebaseFirestore
@@ -412,7 +418,8 @@ class CommunicateFirebase {
   }
 
   // Server에 게시글 작성한 사람(User)의 image 속성과 userName 속성을 확인하여 가져오는 method
-  static Future<Map<String, String>> checkImageAndUserNameToUser( String userUid) async {
+  static Future<Map<String, String>> checkImageAndUserNameToUser(
+      String userUid) async {
     DocumentSnapshot<Map<String, dynamic>> user =
         await _firebaseFirestore.collection('users').doc(userUid).get();
 
@@ -423,7 +430,8 @@ class CommunicateFirebase {
   }
 
   // Server에 User의 notiPost 속성에 게시물 uid를 추가한다.
-  static Future<void> addNotiPostFromUser(String postUid, String userUid) async {
+  static Future<void> addNotiPostFromUser(
+      String postUid, String userUid) async {
     DocumentSnapshot<Map<String, dynamic>> user =
         await _firebaseFirestore.collection('users').doc(userUid).get();
 
@@ -437,7 +445,8 @@ class CommunicateFirebase {
   }
 
   // Server에 User의 notiPost 속성에 게시물 uid를 삭제한다.
-  static Future<void> deleteNotiPostFromUser(String postUid, String userUid) async {
+  static Future<void> deleteNotiPostFromUser(
+      String postUid, String userUid) async {
     DocumentSnapshot<Map<String, dynamic>> user =
         await _firebaseFirestore.collection('users').doc(userUid).get();
 
@@ -469,5 +478,37 @@ class CommunicateFirebase {
 
     // 댓글의 개수를 반환한다.
     return comments.size;
+  }
+
+  // Server에 Notificaion을 모두 가져오는 method
+  static Future<List<NotificationModel>> getNotificationFromUser(String userUid) async {
+    List<NotificationModel> notificationModelList = [];
+
+    QuerySnapshot<Map<String, dynamic>> notifications = await _firebaseFirestore
+        .collection('users')
+        .doc(userUid)
+        .collection('notifications')
+        .orderBy('notiTime', descending: true)
+        .get();
+
+    notifications.docs.forEach(
+      (notificationModel) {
+        notificationModelList.add(
+          NotificationModel.fromMap(notificationModel.data()),
+        );
+      },
+    );
+
+    return notificationModelList;
+  }
+
+  // Server에 Notification을 삭제하는 method
+  static Future<void> deleteNotification(String notiUid, String userUid) async {
+   await _firebaseFirestore
+        .collection('users')
+        .doc(userUid)
+        .collection('notifications')
+        .doc(notiUid)
+        .delete();
   }
 }

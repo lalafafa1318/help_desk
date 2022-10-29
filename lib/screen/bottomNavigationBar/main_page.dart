@@ -56,10 +56,10 @@ class MainPage extends GetView<BottomNavigationBarController> {
                     title: const Text('Posting'),
                     activeColor: Colors.purpleAccent),
 
-                // Notification ItemBar
+                // Notifications ItemBar
                 BottomNavyBarItem(
                     icon: const Icon(Icons.message),
-                    title: const Text('Notification'),
+                    title: const Text('Notifications'),
                     activeColor: Colors.pink),
 
                 // Settings ItemBar

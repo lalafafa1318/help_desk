@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/model/comment_model.dart';
+import 'package:help_desk/model/notification_model.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/routeDistinction/routeDistinction.dart';
@@ -166,7 +167,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     duration: const Duration(milliseconds: 500),
-                    content: Text('댓글 알림을 켰습니다.)'),
+                    content: Text('댓글 알림 off)'),
                     backgroundColor: Colors.black87,
                   ),
                 );
@@ -204,7 +205,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     duration: const Duration(milliseconds: 500),
-                    content: Text('댓글 알림을 껐습니다.'),
+                    content: Text('댓글 알림을 on'),
                     backgroundColor: Colors.black87,
                   ),
                 );
@@ -1034,15 +1035,21 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       case RouteDistinction.whatICommentPage_to_specificPostPage:
         whereRoute = RouteDistinction.whatICommentPage_to_specificPostPage;
         break;
+      case RouteDistinction.notificationPage_to_specifcPostPage:
+        whereRoute = RouteDistinction.notificationPage_to_specifcPostPage;
+        break;
     }
   }
 
 // 이전 페이지에서 넘겨 받은 index를 통해 postData와 userData를 확인하고 copy(clone)하는 method
   void copyPostAndUserData() {
+    // NotificationPage를 제외한 나머지 Page에서 Routing 했다면 그에 관한 처리
     int index = Get.arguments[0];
 
     // PostListPage에서 Routing 했었다면?
-    if (whereRoute == RouteDistinction.postListPage_to_specificPostPage) {
+    // NotificationPage에서 Routing 했었다면?
+    if (whereRoute == RouteDistinction.postListPage_to_specificPostPage ||
+        whereRoute == RouteDistinction.notificationPage_to_specifcPostPage) {
       // postData를 복제한다.
       postData = PostListController.to.postDatas[index].copyWith();
 
@@ -1068,7 +1075,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       userData = SettingsController.to.whatIWroteUserDatas[index].copyWith();
     }
     // whatICommentPage에서 Routing 했었다면?
-    else {
+    else if (whereRoute ==
+        RouteDistinction.whatICommentPage_to_specificPostPage) {
       // postData를 복제한다.
       postData = SettingsController.to.whatICommentPostDatas[index].copyWith();
 
@@ -1568,7 +1576,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       },
     );
   }
-
 
 // specificPostPage가 사라질 떄 호출되는 method
   @override

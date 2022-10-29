@@ -146,7 +146,7 @@ class WhatIWrotePage extends StatelessWidget {
         description: Container(
           margin: const EdgeInsets.only(top: 5),
           child: Text(
-            whatIWrotePostData.postTime,
+            whatIWrotePostData.postTime.substring(0,16),
             style: const TextStyle(fontSize: 10),
           ),
         ),

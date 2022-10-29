@@ -147,7 +147,7 @@ class WhatICommentPage extends StatelessWidget {
         description: Container(
           margin: const EdgeInsets.only(top: 5),
           child: Text(
-            whatICommentPostData.postTime,
+            whatICommentPostData.postTime.substring(0, 16),
             style: const TextStyle(fontSize: 10),
           ),
         ),

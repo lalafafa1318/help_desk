@@ -10,4 +10,7 @@ enum RouteDistinction {
 
   // WhoICommentPage ->  SpecificPostPage로 Routing
   whatICommentPage_to_specificPostPage,
+
+  // NotificationPage -> SpecificPostPage로 Routing
+  notificationPage_to_specifcPostPage,
 }

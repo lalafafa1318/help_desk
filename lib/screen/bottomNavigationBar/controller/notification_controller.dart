@@ -8,8 +8,11 @@ import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
+import 'package:help_desk/model/notification_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
+import 'package:help_desk/utils/uuid_util.dart';
 import 'package:http/http.dart';
+import 'package:intl/intl.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -21,8 +24,11 @@ class NotificationController extends GetxController {
   // 사용자가 알림 신청한 게시물(Post)에 대한 댓글 개수를 담는 배열
   List<int> commentCount = [];
 
-  // 실시간으로 Listen 하는 배열
+  // 사용자가 알림 신청한 게시물을 실시간으로 Listen 하는 배열
   List<StreamSubscription<QuerySnapshot>> listenList = [];
+
+  // Server에 저장된 Notification을 저장하는 배열
+  List<NotificationModel> notificationModelList = [];
 
   // Flutter Local Notification에 필요한 변수
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -62,6 +68,21 @@ class NotificationController extends GetxController {
     }
   }
 
+  // Server에 Notificaion을 모두 가져오는 method
+  Future<List<NotificationModel>> getNotifcationFromUser(String userUid) async {
+    notificationModelList.clear();
+
+    notificationModelList
+        .addAll(await CommunicateFirebase.getNotificationFromUser(userUid));
+
+    return notificationModelList;
+  }
+
+  // Sercer에 Notification을 삭제하는 method
+  Future<void> deleteNotification(String notiUid, String userUid) async {
+    await CommunicateFirebase.deleteNotification(notiUid, userUid);
+  }
+
   // Flutter Local Notification을 setting 하는 method
   Future<void> initialize() async {
     var androidIntialize = AndroidInitializationSettings('mipmap/ic_launcher');
@@ -75,7 +96,11 @@ class NotificationController extends GetxController {
   }
 
   // Flutter Loal Notification을 show하는 method
-  Future<void> showBigTextNotification({var id = 0, required String title, required String body,  var payload}) async {
+  Future<void> showBigTextNotification(
+      {var id = 0,
+      required String title,
+      required String body,
+      var payload}) async {
     AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'you_can_name_it_whatever1',
@@ -103,11 +128,14 @@ class NotificationController extends GetxController {
   void setListen() {
     for (int i = 0; i < notiPost.length; i++) {
       // FirebaseFirestore.instance.collection('posts).doc(notiPost[i])를 간단하게 명명한다.
-      var path =
+      // FirebaseFirestore.instance.collection('users')를 간단하게 명명한다.
+      var postPath =
           FirebaseFirestore.instance.collection('posts').doc(notiPost[i]);
 
+      var userPath = FirebaseFirestore.instance.collection('users');
+
       listenList.add(
-        path.collection('comments').snapshots().listen(
+        postPath.collection('comments').snapshots().listen(
           (event) async {
             // 앱이 처음 시작하면 개발자 의도에 맞지 않게 listen() 이하 내용이 호출된다.
             // 이하 내용이 호출되지만, if문을 실행하지 않게 하여 무효화 시킨다.
@@ -120,7 +148,7 @@ class NotificationController extends GetxController {
               // -> 사용자가 알림 신청한 게시물(Post)에 댓글이 추가됐다는 것을 의미한다.
               if (commentCount[i] < event.size) {
                 // Server에 있는 댓글(comment)에 uploadTime 속성이 가장 최근인 데이터를 가져온다.
-                QuerySnapshot<Map<String, dynamic>> lastComment = await path
+                QuerySnapshot<Map<String, dynamic>> lastComment = await postPath
                     .collection('comments')
                     .orderBy('uploadTime', descending: false)
                     .get();
@@ -132,20 +160,17 @@ class NotificationController extends GetxController {
                     SettingsController.to.settingUser!.userUid) {
                   // Server에 게시물(Post)를 가져온다.
                   DocumentSnapshot<Map<String, dynamic>> post =
-                      await path.get();
+                      await postPath.get();
 
-                  // 글 작성한 사람(UserName) 데이터를 가져온다.
+                  // 게시물 작성한 사람(UserName) 데이터를 가져온다.
                   String userUid = post['userUid'].toString();
 
                   DocumentSnapshot<Map<String, dynamic>> user =
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(userUid)
-                          .get();
+                      await userPath.doc(userUid).get();
 
                   String userName = user['userName'].toString();
 
-                  // 글 제목 데이터를 가져온다.
+                  // 게시물 제목 데이터를 가져온다.
                   String postTitle = post['postTitle'].toString();
 
                   // 댓글 내용 데이터를 가져온다.
@@ -157,15 +182,22 @@ class NotificationController extends GetxController {
                     body: '새로운 댓글이 달렸어요 : ${content}',
                   );
 
-                  // Server에 Notification을 추가한다.
-                  // 속성 : 게시물 Uid, 댓글 Uid, 알림 시간 
+                  // NotificationModel을 만든다.
+                  NotificationModel noti = NotificationModel(
+                    title: '${userName} - ${postTitle}',
+                    body: '새로운 댓글이 달렸어요 : ${content}',
+                    notiUid: UUidUtil.getUUid(),
+                    belongNotiPostUid: notiPost[i],
+                    notiTime: DateFormat('yy/MM/dd - HH:mm:ss')
+                        .format(DateTime.now()),
+                  );
 
-
-
-
-
-
-
+                  // Server에 Notification을 저장한다.
+                  await userPath
+                      .doc(SettingsController.to.settingUser!.userUid)
+                      .collection('notifications')
+                      .doc(noti.notiUid)
+                      .set(NotificationModel.toMap(noti));
                 }
               }
               // Server에 있는 댓글(comment) 개수를 배열에 업데이트한다.
@@ -180,11 +212,14 @@ class NotificationController extends GetxController {
   // Server에서 게시물(post)의 변동 사항을 추가로 listen 한다.
   void addListen(int index) {
     // FirebaseFirestore.instance.collection('posts).doc(postUid)를 간단하게 명명한다.
-    var path =
+    // FirebaseFirestore.instance.collection('users')를 간단하게 명명한다.
+    var postPath =
         FirebaseFirestore.instance.collection('posts').doc(notiPost[index]);
 
+    var userPath = FirebaseFirestore.instance.collection('users');
+
     listenList.add(
-      path.collection('comments').snapshots().listen(
+      postPath.collection('comments').snapshots().listen(
         (event) async {
           // Server에 있는 댓글(comment) 개수와
           // commentCount의 댓글(comment)개수를 비교한다.
@@ -194,7 +229,7 @@ class NotificationController extends GetxController {
           // -> 사용자가 알림 신청한 게시물(Post)에 댓글이 추가됐다는 것을 의미한다.
           if (commentCount[index] < event.size) {
             // Server에 있는 댓글(comment)에 uploadTime 속성이 가장 최근인 데이터를 가져온다.
-            QuerySnapshot<Map<String, dynamic>> lastComment = await path
+            QuerySnapshot<Map<String, dynamic>> lastComment = await postPath
                 .collection('comments')
                 .orderBy('uploadTime', descending: false)
                 .get();
@@ -205,9 +240,10 @@ class NotificationController extends GetxController {
             if (data['whoWriteUserUid'].toString() !=
                 SettingsController.to.settingUser!.userUid) {
               // Server에 게시물(Post)를 가져온다.
-              DocumentSnapshot<Map<String, dynamic>> post = await path.get();
+              DocumentSnapshot<Map<String, dynamic>> post =
+                  await postPath.get();
 
-              // 글 작성한 사람(userName) 데이터를 가져온다.
+              // 게시물 작성한 사람(userName) 데이터를 가져온다.
               String userUid = post['userUid'].toString();
 
               DocumentSnapshot<Map<String, dynamic>> user =
@@ -218,7 +254,7 @@ class NotificationController extends GetxController {
 
               String userName = user['userName'].toString();
 
-              // 글 제목(postTitle) 데이터를 가져온다.
+              // 게시물 제목(postTitle) 데이터를 가져온다.
               String postTitle = post['postTitle'].toString();
 
               // 댓글 내용 데이터를 가져온다.
@@ -229,6 +265,23 @@ class NotificationController extends GetxController {
                 title: '${userName} - ${postTitle}',
                 body: '새로운 댓글이 달렸어요 : ${content}',
               );
+
+              // NotificationModel을 만든다.
+              NotificationModel noti = NotificationModel(
+                title: '${userName} - ${postTitle}',
+                body: '새로운 댓글이 달렸어요 : ${content}',
+                notiUid: UUidUtil.getUUid(),
+                belongNotiPostUid: notiPost[index],
+                notiTime:
+                    DateFormat('yy/MM/dd - HH:mm:ss').format(DateTime.now()),
+              );
+
+              // Server에 Notification을 저장한다.
+              await userPath
+                  .doc(SettingsController.to.settingUser!.userUid)
+                  .collection('notifications')
+                  .doc(noti.notiUid)
+                  .set(NotificationModel.toMap(noti));
             }
           }
           // Server에 있는 댓글(comment) 개수를 배열에 업데이트한다.
@@ -238,7 +291,7 @@ class NotificationController extends GetxController {
     );
   }
 
-  // 게시물에 대해서 
+  // 게시물에 대해서
   // NotificationController가 처음 메모리에 올라갈 떄 호출되는 method
   @override
   void onInit() {
