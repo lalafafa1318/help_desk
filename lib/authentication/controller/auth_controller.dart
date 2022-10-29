@@ -15,6 +15,7 @@ import 'package:help_desk/screen/bottomNavigationBar/controller/notification_con
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
+import 'package:help_desk/utils/connect_util.dart';
 import 'package:help_desk/utils/toast_util.dart';
 import 'package:help_desk/utils/variable_util.dart';
 import 'package:help_desk/utils/variable_util.dart';
@@ -41,7 +42,8 @@ class AuthController extends GetxController {
   static AuthController get to => Get.find();
 
   // MainPage로 가기 전에 해야 하는 작업을 수행하는 method
-  void taskPriorMainPage(AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> innerSnapshot) {
+  void taskPriorMainPage(
+      AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> innerSnapshot) {
     // innerSnapshot에서 서버에 저장된 Map 형식 User를 가져온다.
     Map<String, dynamic> mapUser = innerSnapshot.data!.docs.first.data();
 
@@ -66,7 +68,8 @@ class AuthController extends GetxController {
   }
 
   // Firebase DataBase에서 User의 uid가 있는지 확인하는 method
-  Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(String uid) async {
+  Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(
+      String uid) async {
     QuerySnapshot<Map<String, dynamic>> userData =
         await CommunicateFirebase.getFireBaseUserUid(uid);
     return userData;
@@ -123,9 +126,8 @@ class AuthController extends GetxController {
       // Create a credential from the access token
       final OAuthCredential facebookAuthCredential =
           FacebookAuthProvider.credential(loginResult.accessToken!.token);
-      
-        print('FacebookUserUid : ${facebookAuthCredential}');
 
+      print('FacebookUserUid : ${facebookAuthCredential}');
 
       // Once signed in, return the UserCredential
       await CommunicateFirebase.login(facebookAuthCredential);
@@ -178,8 +180,7 @@ class AuthController extends GetxController {
           secret: authResult.authTokenSecret!,
         );
 
-          print('twitterUserUid : ${twitterAuthCredential}');
-
+        print('twitterUserUid : ${twitterAuthCredential}');
 
         await CommunicateFirebase.login(twitterAuthCredential);
 
@@ -247,6 +248,9 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
+    // 연결 상태가 변경되었는지 확인하는 method
+    ConnectUtil.listen();
 
     print('AuthController - onInit() 호출되었습니다.');
   }

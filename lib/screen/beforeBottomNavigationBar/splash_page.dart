@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/authentication/auth.dart';
+import 'package:help_desk/utils/connect_util.dart';
 import 'package:help_desk/utils/toast_util.dart';
 
 // Splash 화면 입니다.
@@ -19,13 +21,25 @@ class _SplashState extends State<Splash> {
   void initState() {
     print('splash - initState() 호출');
 
+    // Timer
     Timer(
       const Duration(milliseconds: 5000),
-      () {
-        // Splash 화면을 지우고, Auth 화면으로 이동
-        Get.offAll(
-          () => const Auth(),
-        );
+      () async {
+        // 최초 연결 상태를 확인한다.
+        ConnectivityResult result = await ConnectUtil.check();
+
+        // Wi-Fi, Mobile 상태가 아니면
+        if (result == ConnectivityResult.none) {
+          // 더이상 앱 진행이 불가능하다는 message를 보낸다.
+          ConnectUtil.dialog();
+        }
+        // Wi-Fi 또는 Mobile 상태이면?
+        else {
+          // Splash 화면을 지우고, Auth 화면으로 이동
+          Get.offAll(
+            () => const Auth(),
+          );
+        }
       },
     );
   }
@@ -33,9 +47,9 @@ class _SplashState extends State<Splash> {
   // Auth 화면으로 Routing될 떄 호출되는 method
   @override
   void dispose() {
-    // 로그 
+    // 로그
     print('splash 화면이 dispose 되었습니다.');
-    
+
     super.dispose();
   }
 
@@ -67,7 +81,7 @@ class _SplashState extends State<Splash> {
 
     return SafeArea(
       child: WillPopScope(
-        // 뒤로 가기 허용
+        // 뒤로 가기 허용 x
         onWillPop: () async {
           ToastUtil.showToastMessage('이전가기가 불가능합니다.');
           return false;
