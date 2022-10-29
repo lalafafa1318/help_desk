@@ -94,9 +94,8 @@ class NotificationPage extends StatelessWidget {
                 return ListView.builder(
                   itemCount:
                       NotificationController.to.notificationModelList.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return messageView(index);
-                  },
+                  itemBuilder: (BuildContext context, int index) =>
+                      messageView(index),
                 );
               },
             );
@@ -158,8 +157,9 @@ class NotificationPage extends StatelessWidget {
               // Notification 삭제 버튼
               SlidableAction(
                 onPressed: (BuildContext context) async {
+                  // NotificationModelList에 있는 element를 삭제한다.
                   NotificationController.to.notificationModelList
-                      .removeAt(index);
+                      .remove(notificationModel);
 
                   // Notifcation과 관련된 게시물이 Server에 삭제되었는지 확인한다.
                   bool isDeletePostResult = await PostListController.to
@@ -198,6 +198,7 @@ class NotificationPage extends StatelessWidget {
                     SettingsController.to.settingUser!.userUid,
                   );
 
+                  // GetBuilder 있는데만 화면 재랜더링 한다.
                   NotificationController.to.update();
                 },
                 backgroundColor: const Color(0xFFFE4A49),
