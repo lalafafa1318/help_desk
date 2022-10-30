@@ -20,7 +20,6 @@ import 'package:help_desk/screen/bottomNavigationBar/controller/settings_control
 import 'package:help_desk/screen/bottomNavigationBar/postList/post_list_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_photo_view_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
-import 'package:responsive_sizer/responsive_sizer.dart';
 
 // 게시한 글과 comment을 보여주는 Page 입니다.
 class SpecificPostPage extends StatefulWidget {
@@ -933,7 +932,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   Widget writeComment() {
     return Container(
       margin: const EdgeInsets.only(left: 20),
-      width: 300,
+      width: 200.w,
       height: 50,
       child: TextField(
         controller: PostListController.to.commentController,
@@ -1043,7 +1042,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
 // 이전 페이지에서 넘겨 받은 index를 통해 postData와 userData를 확인하고 copy(clone)하는 method
   void copyPostAndUserData() {
-    // NotificationPage를 제외한 나머지 Page에서 Routing 했다면 그에 관한 처리
     int index = Get.arguments[0];
 
     // PostListPage에서 Routing 했었다면?
@@ -1107,29 +1105,32 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       barrierColor: Colors.black38,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          // RoundedRectangleBorder - Dialog 화면 모서리 둥글게 조절
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text('해당 게시물은 삭제되었습니다 :)'),
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: AlertDialog(
+            // RoundedRectangleBorder - Dialog 화면 모서리 둥글게 조절
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text('해당 게시물은 삭제되었습니다 :)'),
+              ],
+            ),
+            actions: [
+              // 돌아가기 버튼
+              TextButton(
+                child: const Text(
+                  '이전 페이지로 돌아가기',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onPressed: () {
+                  Get.back();
+                },
+              ),
             ],
           ),
-          actions: [
-            // 돌아가기 버튼
-            TextButton(
-              child: const Text(
-                '이전 페이지로 돌아가기',
-                style: TextStyle(color: Colors.red),
-              ),
-              onPressed: () {
-                Get.back();
-              },
-            ),
-          ],
         );
       },
     );
@@ -1142,53 +1143,56 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       //barrierDismissible - Dialog를 제외한 다른 화면 터치 x
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          // RoundedRectangleBorder - Dialog 화면 모서리 둥글게 조절
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text('삭제하시겠습니까?'),
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: AlertDialog(
+            // RoundedRectangleBorder - Dialog 화면 모서리 둥글게 조절
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text('삭제하시겠습니까?'),
+              ],
+            ),
+            actions: [
+              // 취소 버튼
+              TextButton(
+                child: const Text(
+                  '취소',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onPressed: () {
+                  // false를 가지고 이전 페이지로 돌아가기
+                  Get.back<bool>(result: false);
+                },
+              ),
+              // 확인 버튼
+              TextButton(
+                child: const Text(
+                  '확인',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onPressed: () async {
+                  // 로딩 바 시작
+                  EasyLoading.show(
+                    status: '게시물을\n삭제하는 중 입니다 :)',
+                    maskType: EasyLoadingMaskType.black,
+                  );
+
+                  // Server에 게시물을 delete 한다. (postuid 필요)
+                  await PostListController.to.deletePost(postUid);
+
+                  // 로딩 바 끝
+                  EasyLoading.dismiss();
+
+                  // true를 가지고 이전 페이지로 돌아가기
+                  Get.back<bool>(result: true);
+                },
+              ),
             ],
           ),
-          actions: [
-            // 취소 버튼
-            TextButton(
-              child: const Text(
-                '취소',
-                style: TextStyle(color: Colors.red),
-              ),
-              onPressed: () {
-                // false를 가지고 이전 페이지로 돌아가기
-                Get.back<bool>(result: false);
-              },
-            ),
-            // 확인 버튼
-            TextButton(
-              child: const Text(
-                '확인',
-                style: TextStyle(color: Colors.red),
-              ),
-              onPressed: () async {
-                // 로딩 바 시작
-                EasyLoading.show(
-                  status: '게시물을\n삭제하는 중 입니다 :)',
-                  maskType: EasyLoadingMaskType.black,
-                );
-
-                // Server에 게시물을 delete 한다. (postuid 필요)
-                await PostListController.to.deletePost(postUid);
-
-                // 로딩 바 끝
-                EasyLoading.dismiss();
-
-                // true를 가지고 이전 페이지로 돌아가기
-                Get.back<bool>(result: true);
-              },
-            ),
-          ],
         );
       },
     );
@@ -1201,46 +1205,49 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       //barrierDismissible - Dialog를 제외한 다른 화면 터치 x
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          // RoundedRectangleBorder - Dialog 화면 모서리 둥글게 조절
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text('이 글을 공감하시겠습니까?'),
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: AlertDialog(
+            // RoundedRectangleBorder - Dialog 화면 모서리 둥글게 조절
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text('이 글을 공감하시겠습니까?'),
+              ],
+            ),
+            actions: [
+              // 취소 버튼
+              TextButton(
+                child: const Text(
+                  '취소',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onPressed: () {
+                  // 이전 페이지로 돌아가기
+                  Get.back();
+                },
+              ),
+              // 확인 버튼
+              TextButton(
+                child: const Text(
+                  '확인',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onPressed: () async {
+                  // PostData의 whoLikeThePost 속성에 사용자 uid가 있는지 확인한다.
+                  bool result = postData!.whoLikeThePost
+                      .contains(SettingsController.to.settingUser!.userUid);
+
+                  // PostData의 whoLikeThePost에 사용자 Uid가 있는 경우, 없는 경우에 따라
+                  // 다른 로직을 구현하는 method
+                  await isUserUidInWhoLikeThePostFromPostData(result);
+                },
+              ),
             ],
           ),
-          actions: [
-            // 취소 버튼
-            TextButton(
-              child: const Text(
-                '취소',
-                style: TextStyle(color: Colors.red),
-              ),
-              onPressed: () {
-                // 이전 페이지로 돌아가기
-                Get.back();
-              },
-            ),
-            // 확인 버튼
-            TextButton(
-              child: const Text(
-                '확인',
-                style: TextStyle(color: Colors.red),
-              ),
-              onPressed: () async {
-                // PostData의 whoLikeThePost 속성에 사용자 uid가 있는지 확인한다.
-                bool result = postData!.whoLikeThePost
-                    .contains(SettingsController.to.settingUser!.userUid);
-
-                // PostData의 whoLikeThePost에 사용자 Uid가 있는 경우, 없는 경우에 따라
-                // 다른 로직을 구현하는 method
-                await isUserUidInWhoLikeThePostFromPostData(result);
-              },
-            ),
-          ],
         );
       },
     );
@@ -1366,7 +1373,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // comment의 whoCommentLike 속성에 사용자 Uid가 있는지 없는지에 따라 다른 로직을 구현하는 method
-  Future<void> isUserUidInWhoCommentLikeFromCommentData(bool isResult, CommentModel comment) async {
+  Future<void> isUserUidInWhoCommentLikeFromCommentData(
+      bool isResult, CommentModel comment) async {
     // comment의 whoCommentLike 속성에 사용자 Uid가 있었다.
     if (isResult) {
       // 하단 snackBar로 "이미 공감한 comment 입니다 :)" 표시한다.
@@ -1389,9 +1397,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       // Server에 저장된 게시물(Post)의 whoLikeThePost 속성과 whoWriteTheCommentThePost 속성을 확인하여
       // PostData에 업데이트 하는 method
       await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
-
-      // Server에 Comment 데이터를 호출하는 것을 허락한다.
-      // isCallServerAboutCommentData = true;
 
       // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
       // 부분적으로 재랜더링 한다.
@@ -1416,68 +1421,71 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       //barrierDismissible - Dialog를 제외한 다른 화면 터치 x
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          // RoundedRectangleBorder - Dialog 화면 모서리 둥글게 조절
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text('이 comment를 삭제하시겠습니까?'),
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: AlertDialog(
+            // RoundedRectangleBorder - Dialog 화면 모서리 둥글게 조절
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text('이 comment를 삭제하시겠습니까?'),
+              ],
+            ),
+            actions: [
+              // 취소 버튼
+              TextButton(
+                child: const Text(
+                  '취소',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onPressed: () {
+                  // 이전 페이지로 돌아가기
+                  Get.back();
+                },
+              ),
+              // 확인 버튼
+              TextButton(
+                child: const Text(
+                  '확인',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onPressed: () async {
+                  // 로딩바 시작(필요하면 추가하기로)
+                  EasyLoading.show(
+                    status: 'comment를 삭제 합니다:)',
+                    maskType: EasyLoadingMaskType.black,
+                  );
+
+                  // Server에 comment를 삭제한다.
+                  await PostListController.to.deleteComment(comment);
+
+                  // Server에서 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서 userData에 업데이트 한다.
+                  await updateImageAndUserNameToUserData();
+
+                  // Server에 저장된 게시물(Post)의 whoLikeThePost 속성과 whoWriteTheCommentThePost 속성을 확인하여
+                  // PostData에 업데이트 하는 method
+                  await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
+
+                  // Server에 Comment 데이터를 호출하는 것을 허락한다.
+                  // isCallServerAboutCommentData = true;
+
+                  // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
+                  // 부분적으로 재랜더링 한다.
+                  // 1. 업데이트 된 댓글 수와 공감 수를 화면에 보여주기 위해 재랜더링 한다.
+                  // 2. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
+                  PostListController.to.update();
+
+                  // 로딩바 끝(필요하면 추가하기로)
+                  EasyLoading.dismiss();
+
+                  Get.back();
+                },
+              ),
             ],
           ),
-          actions: [
-            // 취소 버튼
-            TextButton(
-              child: const Text(
-                '취소',
-                style: TextStyle(color: Colors.red),
-              ),
-              onPressed: () {
-                // 이전 페이지로 돌아가기
-                Get.back();
-              },
-            ),
-            // 확인 버튼
-            TextButton(
-              child: const Text(
-                '확인',
-                style: TextStyle(color: Colors.red),
-              ),
-              onPressed: () async {
-                // 로딩바 시작(필요하면 추가하기로)
-                EasyLoading.show(
-                  status: 'comment를 삭제 합니다:)',
-                  maskType: EasyLoadingMaskType.black,
-                );
-
-                // Server에 comment를 삭제한다.
-                await PostListController.to.deleteComment(comment);
-
-                // Server에서 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서 userData에 업데이트 한다.
-                await updateImageAndUserNameToUserData();
-
-                // Server에 저장된 게시물(Post)의 whoLikeThePost 속성과 whoWriteTheCommentThePost 속성을 확인하여
-                // PostData에 업데이트 하는 method
-                await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
-
-                // Server에 Comment 데이터를 호출하는 것을 허락한다.
-                // isCallServerAboutCommentData = true;
-
-                // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
-                // 부분적으로 재랜더링 한다.
-                // 1. 업데이트 된 댓글 수와 공감 수를 화면에 보여주기 위해 재랜더링 한다.
-                // 2. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
-                PostListController.to.update();
-
-                // 로딩바 끝(필요하면 추가하기로)
-                EasyLoading.dismiss();
-
-                Get.back();
-              },
-            ),
-          ],
         );
       },
     );
@@ -1614,7 +1622,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                 // 이전 가기, 알림, 새로 고침, 삭제 버튼을 제공하는 Widget이다.
                 topView(),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
 
                 // Avatar와 UserName, PostTime을 표시하는 Widget이다.
                 showAvatarAndUserNameAndPostTime(),

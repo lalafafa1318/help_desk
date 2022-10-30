@@ -4,6 +4,7 @@ import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
@@ -48,7 +49,7 @@ class PostListPage extends StatelessWidget {
   Widget searchTextWidget() {
     return Container(
       margin: const EdgeInsets.only(left: 20),
-      width: 300,
+      width: 250.w,
       height: 50,
       decoration: BoxDecoration(
         color: Colors.white,
@@ -70,7 +71,7 @@ class PostListPage extends StatelessWidget {
             ),
           ),
           hintText: '글 제목, 설명 그리고 작성자',
-          hintStyle: const TextStyle(color: Colors.grey),
+          hintStyle: const TextStyle(color: Colors.grey, fontSize: 12.5),
         ),
       ),
     );
@@ -149,7 +150,8 @@ class PostListPage extends StatelessWidget {
 
   // 서버에서 받은 PostData들을 PostData를 담고 있는 배열에 추가하고
   // PostData에 따른 UserData도 UserData를 담고 있는 배열에 추가하는 역할을 하는 Widget
-  Widget prepareShowAllPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowAllPostData(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return Expanded(
       child: FutureBuilder<List<PostModel>>(
         future: PostListController.to.allocatePostDatasInArray(allData),

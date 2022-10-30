@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/components/border/gf_border.dart';
 import 'package:getwidget/types/gf_border_type.dart';
@@ -28,17 +29,17 @@ class PostingPage extends StatelessWidget {
           // 사진 올리기
           Container(
             margin: const EdgeInsets.only(left: 20),
-            width: Get.width * 0.2,
-            height: Get.width * 0.25,
+            // width: Get.width * 0.2,
+            // height: Get.width * 0.25,
+            width: 100.w,
             child: DottedBorder(
               strokeWidth: 2,
               child: GestureDetector(
                 onTap: () async {
                   if (PostingController.to.imageList.length == 10) {
                     // 이미지를 띄울 수 없다는 경고문 띄우기
-                    ToastUtil.showToastMessage(
-                        '업로드할 수 있는 이미지 개수가 초과되었습니다.');
-                  } 
+                    ToastUtil.showToastMessage('업로드할 수 있는 이미지 개수가 초과되었습니다.');
+                  }
                   //
                   else {
                     // 이미지 불러오기
@@ -48,7 +49,7 @@ class PostingPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 25),
 
                     const Icon(Icons.camera_alt_outlined),
 
@@ -96,8 +97,9 @@ class PostingPage extends StatelessWidget {
   // 업로드한 사진들 보여주기 (내부 코드)
   Widget showImage(File file, int index) {
     return Container(
-      width: Get.width * 0.2,
-      height: Get.width * 0.2,
+      // width: Get.width * 0.2,
+      // height: Get.width * 0.25,
+      width: 100.w,
       margin: const EdgeInsets.only(left: 20),
       child: GestureDetector(
         onTap: () {

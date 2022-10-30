@@ -25,28 +25,28 @@
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>twittercallback2</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>twittercallback2</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.googleusercontent.apps.889387616330-6r2p8q17rq7p8ieap6066fa8cd96l5qh</string>
+				<string>fb3261744130770555</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>FacebookAppID</key>
+	<string>3261744130770555</string>
+	<key>FacebookClientToken</key>
+	<string>2a41824633ad48003dfaf08d0d5d8eca</string>
+	<key>FacebookDisplayName</key>
+	<string>attemptLogin</string>
 	<key>LSApplicationCategoryType</key>
 	<string></string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>fbapi</string>
+		<string>fb-messenger-share-api</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
@@ -74,26 +74,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>CFBundleURLTypes</key>
-	<array>
-	  <dict>
-	  <key>CFBundleURLSchemes</key>
-	  <array>
-	    <string>com.googleusercontent.apps.889387616330-6r2p8q17rq7p8ieap6066fa8cd96l5qh</string>
-	    <string>fb3261744130770555</string>
-	  </array>
-	  </dict>
-	</array>
-	<key>FacebookAppID</key>
-	<string>3261744130770555</string>
-	<key>FacebookClientToken</key>
-	<string>2a41824633ad48003dfaf08d0d5d8eca</string>
-	<key>FacebookDisplayName</key>
-	<string>attemptLogin</string>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-	  <string>fbapi</string>
-	  <string>fb-messenger-share-api</string>
-    </array>
 </dict>
 </plist>

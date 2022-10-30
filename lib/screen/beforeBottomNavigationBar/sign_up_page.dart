@@ -146,9 +146,10 @@ class _SignUpPageState extends State<SignUpPage> {
                 return null;
               },
               decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: '이름',
-                  hintText: 'Name 입니다.'),
+                border: OutlineInputBorder(),
+                labelText: '이름',
+                hintText: 'Name 입니다.',
+              ),
             ),
           ),
 
@@ -169,9 +170,10 @@ class _SignUpPageState extends State<SignUpPage> {
                 return null;
               },
               decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: '설명',
-                  hintText: 'Description 입니다.'),
+                border: OutlineInputBorder(),
+                labelText: '설명',
+                hintText: 'Description 입니다.',
+              ),
             ),
           ),
         ],

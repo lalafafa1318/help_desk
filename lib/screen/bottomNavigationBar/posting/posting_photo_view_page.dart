@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
 import 'package:photo_view/photo_view.dart';
@@ -46,17 +47,20 @@ class _PostingPhotoViewPageState extends State<PostingPhotoViewPage> {
 
   // Indicator 입니다.
   List<Widget> indicators(int imagesLength, int currentPage) {
-    return List<Widget>.generate(imagesLength, (index) {
-      return Container(
-        margin: const EdgeInsets.all(3),
-        width: 10,
-        height: 10,
-        decoration: BoxDecoration(
-          color: currentPage == index ? Colors.white : Colors.white24,
-          shape: BoxShape.circle,
-        ),
-      );
-    });
+    return List<Widget>.generate(
+      imagesLength,
+      (index) {
+        return Container(
+          margin: const EdgeInsets.all(3),
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: currentPage == index ? Colors.white : Colors.white24,
+            shape: BoxShape.circle,
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -77,10 +81,10 @@ class _PostingPhotoViewPageState extends State<PostingPhotoViewPage> {
       // PageView와 Indicator 구현
       body: Column(
         children: [
-          // PhotoView 
+          // PhotoView
           SizedBox(
             width: Get.width,
-            height: 600,
+            height: 450.h,
             child: PageView.builder(
               itemCount: PostingController.to.imageList.length,
               pageSnapping: true,
@@ -106,9 +110,9 @@ class _PostingPhotoViewPageState extends State<PostingPhotoViewPage> {
           ),
 
           // SizedBox 입니다.
-          const SizedBox(height: 30),
+          SizedBox(height: 75.h),
 
-          // Indicator 
+          // Indicator
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children:

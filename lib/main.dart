@@ -24,18 +24,26 @@ void main() async {
   );
 
   runApp(
-    ResponsiveSizer(
-      builder: (context, orientation, screenType) {
-        return OKToast(
-          child: GetMaterialApp(
-            debugShowCheckedModeBanner: false,
-            initialBinding: BindingController(),
-            getPages: [
-              GetPage(name: '/PostListPage', page: () => const PostListPage())
-            ],
-            home: const Splash(),
-            builder: EasyLoading.init(),
-          ),
+    ScreenUtilInit(
+      designSize: const Size(360, 690),
+      minTextAdapt: false,
+      splitScreenMode: false,
+      builder: (context, child) {
+        return ResponsiveSizer(
+          builder: (context, orientation, screenType) {
+            return OKToast(
+              child: GetMaterialApp(
+                debugShowCheckedModeBanner: false,
+                initialBinding: BindingController(),
+                getPages: [
+                  GetPage(
+                      name: '/PostListPage', page: () => const PostListPage())
+                ],
+                home: const Splash(),
+                builder: EasyLoading.init(),
+              ),
+            );
+          },
         );
       },
     ),

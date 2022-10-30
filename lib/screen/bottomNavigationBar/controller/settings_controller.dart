@@ -87,7 +87,9 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
 
     // 로딩 준비
     EasyLoading.show(
-        status: '프로필 정보를\n 수정하고 있습니다.', maskType: EasyLoadingMaskType.black);
+      status: '프로필 정보를\n 수정하고 있습니다.',
+      maskType: EasyLoadingMaskType.black,
+    );
 
     // 1. 검증 작업(validation)
 

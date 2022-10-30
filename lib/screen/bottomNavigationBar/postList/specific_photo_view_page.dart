@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
@@ -89,7 +90,7 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
           // PhotoView
           SizedBox(
             width: Get.width,
-            height: 600,
+            height: 450.h,
             child: PageView.builder(
               itemCount: postData!.imageList.length,
               pageSnapping: true,
@@ -116,7 +117,7 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
           ),
 
           // SizedBox 입니다.
-          const SizedBox(height: 30),
+          SizedBox(height: 75.h),
 
           // Indicator
           Row(

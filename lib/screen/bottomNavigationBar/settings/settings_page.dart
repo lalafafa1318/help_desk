@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/components/button/gf_button.dart';
 import 'package:getwidget/types/gf_button_type.dart';
@@ -21,7 +22,7 @@ class SettingsPage extends StatelessWidget {
   Widget topView(SettingsController controller) {
     return SizedBox(
       width: Get.width,
-      height: 270,
+      height: 270.h,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -48,8 +49,8 @@ class SettingsPage extends StatelessWidget {
       children: [
         // Image 입니다.
         SizedBox(
-          width: 100,
-          height: 100,
+          width: 100.w,
+          height: 100.h,
           child: DottedBorder(
             strokeWidth: 2,
             color: Colors.grey,
@@ -75,7 +76,7 @@ class SettingsPage extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 20),
+        SizedBox(height: 20.h),
 
         // 이름
         Text(
@@ -84,12 +85,12 @@ class SettingsPage extends StatelessWidget {
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
 
-        const SizedBox(height: 10),
+        SizedBox(height: 10.h),
 
         // 설명 - Expandable Text
         SizedBox(
-          width: 150,
-          height: 100,
+          width: 150.w,
+          height: 75.h,
           child: ExpandableText(
             '${controller.settingUser!.description}',
             expandText: 'show more',
@@ -122,7 +123,7 @@ class SettingsPage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 30.0),
       child: Container(
         width: Get.width,
-        height: 210,
+        height: 210.h,
         color: Colors.white70,
         child: ListView(
           children: [
@@ -271,7 +272,7 @@ class SettingsPage extends StatelessWidget {
           backgroundColor: const Color(0xFFf2eeed),
           body: Column(
             children: [
-              const SizedBox(height: 100),
+              SizedBox(height: 40.h),
 
               // 아바타 View + Edit outline Button
               topView(controller),

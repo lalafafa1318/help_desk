@@ -188,8 +188,9 @@ class NotificationController extends GetxController {
                     body: '새로운 댓글이 달렸어요 : ${content}',
                     notiUid: UUidUtil.getUUid(),
                     belongNotiPostUid: notiPost[i],
-                    notiTime: DateFormat('yy/MM/dd - HH:mm:ss')
-                        .format(DateTime.now()),
+                    notiTime: DateFormat('yy/MM/dd - HH:mm:ss').format(
+                      DateTime.now(),
+                    ),
                   );
 
                   // Server에 Notification을 저장한다.
