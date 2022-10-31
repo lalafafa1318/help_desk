@@ -96,11 +96,7 @@ class NotificationController extends GetxController {
   }
 
   // Flutter Loal Notification을 show하는 method
-  Future<void> showBigTextNotification(
-      {var id = 0,
-      required String title,
-      required String body,
-      var payload}) async {
+  Future<void> showBigTextNotification({var id = 0, required String title, required String body, var payload}) async {
     AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'you_can_name_it_whatever1',
@@ -201,7 +197,7 @@ class NotificationController extends GetxController {
                       .set(NotificationModel.toMap(noti));
                 }
               }
-              // Server에 있는 댓글(comment) 개수를 배열에 업데이트한다.
+              // Server에 있는 댓글(comment) 개수를 commentCount 배열에 업데이트한다.
               commentCount[i] = event.size;
             }
           },
@@ -285,7 +281,7 @@ class NotificationController extends GetxController {
                   .set(NotificationModel.toMap(noti));
             }
           }
-          // Server에 있는 댓글(comment) 개수를 배열에 업데이트한다.
+          // Server에 있는 댓글(comment) 개수를 commentCount 배열에 업데이트한다.
           commentCount[index] = event.size;
         },
       ),

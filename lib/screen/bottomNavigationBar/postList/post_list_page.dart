@@ -50,7 +50,7 @@ class PostListPage extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(left: 20),
       width: 250.w,
-      height: 50,
+      height: 50.h,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -67,7 +67,11 @@ class PostListPage extends StatelessWidget {
                 // PostListPage에서 입력한 text를 검증한다.
                 PostListController.to.validTextFromPostListPage();
               },
-              icon: Icon(Icons.search, color: Colors.grey[800]),
+              icon: Icon(
+                Icons.search,
+                color: Colors.grey[800],
+                size: 20,
+              ),
             ),
           ),
           hintText: '글 제목, 설명 그리고 작성자',
@@ -150,8 +154,7 @@ class PostListPage extends StatelessWidget {
 
   // 서버에서 받은 PostData들을 PostData를 담고 있는 배열에 추가하고
   // PostData에 따른 UserData도 UserData를 담고 있는 배열에 추가하는 역할을 하는 Widget
-  Widget prepareShowAllPostData(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowAllPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return Expanded(
       child: FutureBuilder<List<PostModel>>(
         future: PostListController.to.allocatePostDatasInArray(allData),

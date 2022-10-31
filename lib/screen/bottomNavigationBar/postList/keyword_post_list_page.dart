@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/components/avatar/gf_avatar.dart';
 import 'package:getwidget/components/card/gf_card.dart';
@@ -69,8 +70,8 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
   Widget searchTextWidget() {
     return Container(
       margin: const EdgeInsets.only(left: 5),
-      width: 300,
-      height: 50,
+      width: 250.w,
+      height: 50.h,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
