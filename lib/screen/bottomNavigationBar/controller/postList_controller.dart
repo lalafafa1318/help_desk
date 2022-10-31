@@ -31,6 +31,9 @@ class PostListController extends GetxController {
   // 사용자가 입력한 댓글과 대댓글을 control 하는 Field
   TextEditingController commentController = TextEditingController();
 
+
+  
+
   // Method
   // PostListController를 쉽게 사용하도록 도와주는 method
   static PostListController get to => Get.find();
@@ -42,8 +45,7 @@ class PostListController extends GetxController {
 
   // 서버에서 받은 PostData들을 PostData를 담고 있는 배열에 추가한다.
   // 추가로 PostData에 따른 UserData도 UserData를 담고 있는 배열에 추가하는 method
-  Future<List<PostModel>> allocatePostDatasInArray(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
+  Future<List<PostModel>> allocatePostDatasInArray(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
     // PostData와 userData를 담고 있는 배열을 clear한다.
     postDatas.clear();
     userDatas.clear();
@@ -138,8 +140,7 @@ class PostListController extends GetxController {
   }
 
   // Server에 게시글 작성한 사람(User)의 image 속성과 userName 속성을 확인하여 가져온s는 method
-  Future<Map<String, String>> checkImageAndUserNameToUser(
-      String userUid) async {
+  Future<Map<String, String>> checkImageAndUserNameToUser(String userUid) async {
     return await CommunicateFirebase.checkImageAndUserNameToUser(userUid);
   }
 
@@ -202,8 +203,7 @@ class PostListController extends GetxController {
 
   // 사용자가 해당 commen에 대해서 좋아요 버튼을 클릭할 떄
   // 서버에 존재하는 comment의 whoCommentLike 속성에 사용자 uid가 있는지 판별하는 method
-  Future<bool> checkLikeUsersFromTheComment(
-      CommentModel comment, String userUid) async {
+  Future<bool> checkLikeUsersFromTheComment(CommentModel comment, String userUid) async {
     bool isResult = await CommunicateFirebase.checkLikeUsersFromTheComment(
         comment, userUid);
 

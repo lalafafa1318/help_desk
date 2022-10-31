@@ -30,7 +30,7 @@ class CommentModel {
     required this.whoWriteUserUid,
   });
 
-  // Model class를 Map으로 바꾸는 method
+  // Model class를 Map으로 바꾼다.
   static Map<String, dynamic> toMap(CommentModel comment) {
     return {
       'content': comment.content,
@@ -44,7 +44,7 @@ class CommentModel {
     };
   }
 
-  // map을 Model class로 변환하는 method
+  // map을 Model class로 변환한다.
   factory CommentModel.fromMap(Map<String, dynamic> comment) => CommentModel(
         content: comment['content'].toString(),
         uploadTime: comment['uploadTime'].toString(),
