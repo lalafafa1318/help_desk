@@ -177,7 +177,6 @@ class NotificationPage extends StatelessWidget {
 
                     // case2 : A는 B가 올린 게시물의 알림을 받았다. -> B는 게시물을 삭제했다. -> A는 앱을 재부팅하거나 PostListPage를 거쳤다.
                     // -> 첫번쨰 알림을 지울 떄는 문제가 없지만 두번쨰 알림부터 지우려면 문제가 발생한다. 따라서 위 코드를 배치했다.
-
                     if (index != -1) {
                       // 실시간으로 Listen 하는 것을 중지하는 것을 넘어서 삭제한다.
                       NotificationController.to.listenList[index].cancel();

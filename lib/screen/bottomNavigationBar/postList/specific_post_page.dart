@@ -254,9 +254,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           // 에 대한 데이터를 받아와서 PostData에 업데이트 한다.
           await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
 
-          // Server에 Comment 데이터를 호출하는 것을 허락한다.
-          // isCallServerAboutCommentData = true;
-
           // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
           // 부분적으로 재랜더링 한다.
           // 1. 업데이트 된 댓글 수와 공감 수를 화면에 보여주기 위해 재랜더링 한다.
@@ -1373,8 +1370,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // comment의 whoCommentLike 속성에 사용자 Uid가 있는지 없는지에 따라 다른 로직을 구현하는 method
-  Future<void> isUserUidInWhoCommentLikeFromCommentData(
-      bool isResult, CommentModel comment) async {
+  Future<void> isUserUidInWhoCommentLikeFromCommentData(bool isResult, CommentModel comment) async {
     // comment의 whoCommentLike 속성에 사용자 Uid가 있었다.
     if (isResult) {
       // 하단 snackBar로 "이미 공감한 comment 입니다 :)" 표시한다.
@@ -1468,9 +1464,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   // Server에 저장된 게시물(Post)의 whoLikeThePost 속성과 whoWriteTheCommentThePost 속성을 확인하여
                   // PostData에 업데이트 하는 method
                   await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
-
-                  // Server에 Comment 데이터를 호출하는 것을 허락한다.
-                  // isCallServerAboutCommentData = true;
 
                   // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
                   // 부분적으로 재랜더링 한다.
