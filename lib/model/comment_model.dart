@@ -1,4 +1,7 @@
-// 서버에 Comment 관련 정보를 저장하기 위해 틀을 마련하는 class 입니다.
+// Database에 Comment 관련 정보를 저장하기 위해 틀을 마련하는 class 입니다.
+import 'package:help_desk/const/causeObsClassification.dart';
+import 'package:help_desk/const/proClassification.dart';
+
 class CommentModel {
   // 댓글 내용
   String content;
@@ -18,7 +21,17 @@ class CommentModel {
   // 댓글을 작성한 사용자 Uid
   String whoWriteUserUid;
 
-  // 그외 어떤 속성들이 있는지 모르겠다. 생각이 나면 추가하기로 하자...
+  // 처리상태
+  ProClassification proStatus;
+
+  // 장애원인 (장애 처리현황 게시물인 경우에만 값이 들어간다.)
+  CauseObsClassification? causeOfDisability;
+
+  // 실제 처리일자 (장애 처리현황 게시물인 경우에만 값이 들어간다.)
+  String? actualProcessDate;
+
+  // 실제 처리시간 (장애 처리현황 게시물인 경우에만 값이 들어간다.)
+  String? actualProcessTime;
 
   // Default Constructor
   CommentModel({
@@ -28,19 +41,32 @@ class CommentModel {
     required this.belongCommentPostUid,
     required this.commentUid,
     required this.whoWriteUserUid,
+    required this.proStatus,
+    required this.causeOfDisability,
+    required this.actualProcessDate,
+    required this.actualProcessTime,
   });
 
   // Model class를 Map으로 바꾼다.
-  static Map<String, dynamic> toMap(CommentModel comment) {
+  static Map<String, dynamic> toMap(CommentModel commentModel) {
     return {
-      'content': comment.content,
-      'uploadTime': comment.uploadTime,
+      'content': commentModel.content,
+      'uploadTime': commentModel.uploadTime,
       // whoCommentLike는 처음에 무조건 배열이 비어있다. 따라서 무조건 []으로 들어간다.
-      'whoCommentLike':
-          comment.whoCommentLike.isEmpty ? [] : comment.whoCommentLike,
-      'belongCommentPostUid': comment.belongCommentPostUid,
-      'commentUid': comment.commentUid,
-      'whoWriteUserUid': comment.whoWriteUserUid,
+      'whoCommentLike': commentModel.whoCommentLike.isEmpty
+          ? []
+          : commentModel.whoCommentLike,
+      'belongCommentPostUid': commentModel.belongCommentPostUid,
+      'commentUid': commentModel.commentUid,
+      'whoWriteUserUid': commentModel.whoWriteUserUid,
+      // 처리상태
+      'proStatus': commentModel.proStatus.toString(),
+      // 장애원인 (장애 처리현황 게시물에 한함)
+      'causeOfDisability': commentModel.causeOfDisability.toString(),
+      // 실제 처리일자 (장애 처리현황 게시물에 한함)
+      'actualProcessDate': commentModel.actualProcessDate,
+      // 실제 처리시간 (장애 처리현황 게시물에 한함)
+      'actualProcessTime': commentModel.actualProcessTime,
     };
   }
 
@@ -52,5 +78,18 @@ class CommentModel {
         belongCommentPostUid: comment['belongCommentPostUid'].toString(),
         commentUid: comment['commentUid'].toString(),
         whoWriteUserUid: comment['whoWriteUserUid'].toString(),
+        // 처리상태
+        proStatus: ProClassification.values.firstWhere(
+          (element) => element.toString() == comment['proStatus'].toString(),
+        ),
+        // 장애원인 (장애 처리현황 게시물에 한함)
+        causeOfDisability: CauseObsClassification.values.firstWhere(
+          (element) =>
+              element.toString() == comment['causeOfDisability'].toString(),
+        ),
+        // 실제 처리일자 (장애 처리현황 게시물에 한함)
+        actualProcessDate: comment['actualProcessDate'].toString(),
+        // 실제 처리시간 (장애 처리현황 게시물에 한함)
+        actualProcessTime: comment['actualProcessTime'].toString(),
       );
 }

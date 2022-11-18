@@ -51,7 +51,7 @@ class _PostingPhotoViewPageState extends State<PostingPhotoViewPage> {
       imagesLength,
       (index) {
         return Container(
-          margin: const EdgeInsets.all(3),
+          margin: EdgeInsets.all(3.w),
           width: 10,
           height: 10,
           decoration: BoxDecoration(
@@ -83,7 +83,7 @@ class _PostingPhotoViewPageState extends State<PostingPhotoViewPage> {
         children: [
           // PhotoView
           SizedBox(
-            width: Get.width,
+            width: ScreenUtil().screenWidth,
             height: 450.h,
             child: PageView.builder(
               itemCount: PostingController.to.imageList.length,
@@ -96,7 +96,7 @@ class _PostingPhotoViewPageState extends State<PostingPhotoViewPage> {
               },
               itemBuilder: (BuildContext context, int index) {
                 return Container(
-                  margin: const EdgeInsets.only(top: 30, left: 20, right: 20),
+                  margin: EdgeInsets.only(top: 30.h, left: 20.w, right: 20.w),
 
                   // 확대, 축소가 가능하게 하기 위해 PhotoView를 적용했다.
                   child: PhotoView(

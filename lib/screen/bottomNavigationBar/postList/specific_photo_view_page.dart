@@ -57,9 +57,9 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
   List<Widget> indicators(int imagesLength, int image) {
     return List<Widget>.generate(imagesLength, (index) {
       return Container(
-        margin: const EdgeInsets.all(3),
-        width: 10,
-        height: 10,
+        margin:  EdgeInsets.all(3.w),
+        width: 10.w,
+        height: 10.h,
         decoration: BoxDecoration(
           color: image == index ? Colors.white : Colors.white24,
           shape: BoxShape.circle,
@@ -89,7 +89,7 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
         children: [
           // PhotoView
           SizedBox(
-            width: Get.width,
+            width: ScreenUtil().screenWidth,
             height: 450.h,
             child: PageView.builder(
               itemCount: postData!.imageList.length,
@@ -102,7 +102,7 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
               },
               itemBuilder: (BuildContext context, int imageIndex) {
                 return Container(
-                  margin: const EdgeInsets.only(top: 30, left: 20, right: 20),
+                  margin:  EdgeInsets.only(top: 30.h, left: 20.w, right: 20.w),
 
                   //확대, 축소가 가능하게 하기 위해 PhotoView를 적용했다.
                   child: PhotoView(

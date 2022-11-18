@@ -14,8 +14,6 @@ class BottomNavigationBarController extends GetxController {
   // BottomNaviagtionBar History 적용
   List<int> bottomNaviBarHistory = [0];
 
-  
-
   // Method
   // BottomNavigationBar controller를 쉽게 사용할 수 있는 get method
   static BottomNavigationBarController get to => Get.find();

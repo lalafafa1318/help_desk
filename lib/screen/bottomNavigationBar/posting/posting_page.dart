@@ -7,6 +7,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/components/border/gf_border.dart';
 import 'package:getwidget/types/gf_border_type.dart';
+import 'package:help_desk/const/obsOrInqClassification.dart';
+import 'package:help_desk/const/sysClassification.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/main_page.dart';
@@ -18,19 +20,112 @@ import 'package:help_desk/utils/toast_util.dart';
 class PostingPage extends StatelessWidget {
   const PostingPage({Key? key}) : super(key: key);
 
+  // 장애 처리현황인지 문의 처리현황인지 결정하는 Dropdown을 담는 Widget
+  Widget obsOrInqClassification() {
+    return Container(
+      margin: EdgeInsets.only(left: 20.w),
+      child: Row(
+        children: [
+          // 장애 처리현황/문의 처리현황 Text 띄우기
+          Text('장애/문의', style: TextStyle(fontSize: 13.sp)),
+
+          SizedBox(width: 90.w),
+
+          // 장애처리 현황인지 문의처리 현황인지 결정하는 Dropdown
+          GetBuilder<PostingController>(
+            id: 'postingPageObsOrInqDropdown',
+            builder: (controller) {
+              print('PostingPage 장애/문의 처리현황 Dropdown 호출');
+              return DropdownButton(
+                value: PostingController.to.oSelectedValue.name,
+                style: TextStyle(color: Colors.black, fontSize: 13.sp),
+                items: ObsOrInqClassification.values.map((element) {
+                  // enum 값을 화면에 표시할 값으로 변환한다.
+                  String realText = element.asText;
+
+                  return DropdownMenuItem(
+                    value: element.name,
+                    child: Text(realText),
+                  );
+                }).toList(),
+                onChanged: (element) {
+                  // PostingController의 oSelectedValue 값을 바꾼다.
+                  PostingController.to.oSelectedValue = ObsOrInqClassification
+                      .values
+                      .firstWhere((enumValue) => enumValue.name == element);
+
+                  // GetBuilder를 호출하기 위해 update를 친다.
+                  PostingController.to.update(['postingPageObsOrInqDropdown']);
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 시스템 분류 코드를 결정하는 Dropdown을 담는 Widget
+  Widget sysClassification() {
+    return Container(
+      margin: EdgeInsets.only(left: 20.w),
+      child: Row(
+        children: [
+          // 장애 처리현황/문의 처리현황 Text 띄우기
+          Text('시스템', style: TextStyle(fontSize: 13.sp)),
+
+          SizedBox(width: 105.w),
+
+          // 시스템 분류 코드를 결정하는 Dropdown
+          GetBuilder<PostingController>(
+            id: 'postingPagesysClassificationDropdown',
+            builder: (controller) {
+              print('PostingPage 시스템 분류코드 Dropdown 호출');
+
+              return DropdownButton(
+                value: PostingController.to.sSelectedValue.name,
+                style: TextStyle(color: Colors.black, fontSize: 13.sp),
+                // Dropdown에 "시스템 전체"는 보여주지 않는다.
+                // "시스템 전체"는 검색 용도에만 쓰인다.
+                items: SysClassification.values
+                    .where((element) => element != SysClassification.ALL)
+                    .map((element) {
+                  // enum 값을 화면에 표시할 값으로 변환한다.
+                  String realText = element.asText;
+
+                  return DropdownMenuItem(
+                    value: element.name,
+                    child: Text(realText),
+                  );
+                }).toList(),
+                onChanged: (element) {
+                  // controller에 있는 값을 바꾼다.
+                  PostingController.to.sSelectedValue = SysClassification.values
+                      .firstWhere((enumValue) => enumValue.name == element);
+
+                  // GetBuilder를 호출하기 위해 update를 친다.
+                  PostingController.to
+                      .update(['postingPagesysClassificationDropdown']);
+                },
+              );
+            },
+          )
+        ],
+      ),
+    );
+  }
+
   // ImageContainer 입니다.
   Widget imageContainer() {
     return Container(
-      width: Get.width,
-      height: 100,
-      margin: const EdgeInsets.only(left: 10),
+      width: ScreenUtil().screenWidth,
+      height: 100.h,
+      margin: EdgeInsets.only(left: 2.5.w),
       child: Row(
         children: [
           // 사진 올리기
           Container(
-            margin: const EdgeInsets.only(left: 20),
-            // width: Get.width * 0.2,
-            // height: Get.width * 0.25,
+            margin: EdgeInsets.only(left: 15.w),
             width: 100.w,
             child: DottedBorder(
               strokeWidth: 2,
@@ -49,11 +144,11 @@ class PostingPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 25),
+                    SizedBox(height: 25.h),
 
                     const Icon(Icons.camera_alt_outlined),
 
-                    const SizedBox(height: 5),
+                    SizedBox(height: 5.h),
 
                     // 상태 변화 감지
                     Obx(
@@ -68,7 +163,7 @@ class PostingPage extends StatelessWidget {
               color: Colors.grey,
               dashPattern: const [5, 3],
               borderType: BorderType.RRect,
-              radius: const Radius.circular(10),
+              radius: Radius.circular(10.r),
             ),
           ),
 
@@ -78,7 +173,7 @@ class PostingPage extends StatelessWidget {
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 physics: const PageScrollPhysics(),
-                padding: const EdgeInsets.only(right: 20),
+                padding: EdgeInsets.only(right: 20.w),
                 itemCount: PostingController.to.imageList.length,
                 itemBuilder: (BuildContext context, int index) {
                   return showImage(
@@ -97,10 +192,8 @@ class PostingPage extends StatelessWidget {
   // 업로드한 사진들 보여주기 (내부 코드)
   Widget showImage(File file, int index) {
     return Container(
-      // width: Get.width * 0.2,
-      // height: Get.width * 0.25,
       width: 100.w,
-      margin: const EdgeInsets.only(left: 20),
+      margin: EdgeInsets.only(left: 20.w),
       child: GestureDetector(
         onTap: () {
           // Routing을 이용해서 PhotoViewPage를 보여준다.
@@ -115,10 +208,10 @@ class PostingPage extends StatelessWidget {
               color: Colors.grey,
               dashPattern: const [5, 3],
               borderType: BorderType.RRect,
-              radius: const Radius.circular(10),
+              radius: Radius.circular(10.r),
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
+                  borderRadius: BorderRadius.circular(10.0.r),
                   image: DecorationImage(
                     image: Image.file(file).image,
                     fit: BoxFit.cover,
@@ -133,10 +226,10 @@ class PostingPage extends StatelessWidget {
                 // 사진 삭제
                 PostingController.to.deleteImage(index);
               },
-              child: const CircleAvatar(
-                radius: 10,
+              child: CircleAvatar(
+                radius: 10.r,
                 backgroundColor: Colors.grey,
-                child: Icon(Icons.close, size: 15, color: Colors.black),
+                child: const Icon(Icons.close, size: 15, color: Colors.black),
               ),
             ),
           ],
@@ -148,14 +241,14 @@ class PostingPage extends StatelessWidget {
   // 글 제목 입니다.
   Widget textTitleContainer() {
     return Container(
-      width: Get.width,
-      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+      width: ScreenUtil().screenWidth,
+      margin: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
       child: GFBorder(
         color: Colors.black12,
         dashedLine: const [2, 0],
         type: GFBorderType.rect,
         child: SizedBox(
-          height: 40,
+          height: 40.h,
           child: TextField(
             onChanged: (value) {
               PostingController.to.titleString(value);
@@ -176,14 +269,14 @@ class PostingPage extends StatelessWidget {
   // 글 내용 입니다.
   Widget textContentContainer() {
     return Container(
-      width: Get.width,
-      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+      width: ScreenUtil().screenWidth,
+      margin: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
       child: GFBorder(
         color: Colors.black12,
         dashedLine: const [2, 0],
         type: GFBorderType.rect,
         child: SizedBox(
-          height: 250,
+          height: 200.h,
           child: TextField(
             onChanged: (value) {
               PostingController.to.contentString(value);
@@ -194,6 +287,34 @@ class PostingPage extends StatelessWidget {
             decoration: const InputDecoration(
               border: InputBorder.none,
               hintText: '내용을 입력해주세요',
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 전화번호를 입력하는 Widget
+  Widget enterYourPhoneNumber() {
+    return Container(
+      width: ScreenUtil().screenWidth,
+      margin: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
+      child: GFBorder(
+        color: Colors.black12,
+        dashedLine: const [2, 0],
+        type: GFBorderType.rect,
+        child: SizedBox(
+          height: 40.h,
+          child: TextField(
+            onChanged: (value) {
+              PostingController.to.phoneNumber = value;
+              print('phoneNumber : ${PostingController.to.phoneNumber}');
+            },
+            maxLength: 30,
+            decoration: const InputDecoration(
+              counterText: "",
+              border: InputBorder.none,
+              hintText: '010XXXXXXXX 형식의 전화번호',
             ),
           ),
         ),
@@ -217,9 +338,9 @@ class PostingPage extends StatelessWidget {
 
             BottomNavigationBarController.to.deleteBottomNaviBarHistory();
           },
-          icon: const Padding(
-            padding: EdgeInsets.all(8.5),
-            child: Icon(
+          icon: Container(
+            margin: EdgeInsets.only(top: 1.h),
+            child: const Icon(
               Icons.arrow_back,
               color: Colors.black,
             ),
@@ -227,49 +348,67 @@ class PostingPage extends StatelessWidget {
         ),
 
         // 타이틀
-        title: const Text(
+        title: Text(
           '글쓰기',
-          style: TextStyle(color: Colors.black, fontSize: 18),
+          style: TextStyle(color: Colors.black, fontSize: 18.sp),
         ),
 
         // 완료 버튼
         actions: [
           Container(
-            margin: const EdgeInsets.all(17.0),
+            width: 40.w,
+            margin: EdgeInsets.only(right: 10.w),
+            alignment: Alignment.centerLeft,
             child: GestureDetector(
               onTap: () {
                 // 다른 페이지로 Routing해서 Loading을 띄운다.
                 Get.to(() => const PostingUploadPage());
               },
-              child: const Text(
+              child: Text(
                 '완료',
-                style: TextStyle(color: Color(0xFFf08c0a), fontSize: 18),
+                style:
+                    TextStyle(color: const Color(0xFFf08c0a), fontSize: 18.sp),
               ),
             ),
-          )
+          ),
         ],
 
         elevation: 0.5,
       ),
       body: SingleChildScrollView(
         child: SizedBox(
-          width: Get.width,
+          width: ScreenUtil().screenWidth,
           child: Column(
             children: [
-              const SizedBox(height: 50),
+              SizedBox(height: 10.h),
+
+              // 장애 처리현황인지 문의 처리현황인지 결정하는 Dropdown을 담는 Widget
+              obsOrInqClassification(),
+
+              SizedBox(height: 10.h),
+
+              // 시스템 분류 코드를 결정하는 Dropdown을 담는 Widget
+              sysClassification(),
+
+              SizedBox(height: 50.h),
 
               // 사진 추가하는 곳
               imageContainer(),
 
-              const SizedBox(height: 50),
+              SizedBox(height: 50.h),
 
               // 글 제목(Text Title)
               textTitleContainer(),
 
-              const SizedBox(height: 10),
+              SizedBox(height: 10.h),
 
               // 글 내용(Text Content)
               textContentContainer(),
+
+              SizedBox(height: 10.h),
+
+              // 전화번호를 입력하는 Widget
+              enterYourPhoneNumber(),
             ],
           ),
         ),

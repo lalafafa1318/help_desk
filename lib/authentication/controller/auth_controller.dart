@@ -42,22 +42,21 @@ class AuthController extends GetxController {
   static AuthController get to => Get.find();
 
   // MainPage로 가기 전에 해야 하는 작업을 수행하는 method
-  void taskPriorMainPage(
-      AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> innerSnapshot) {
-    // innerSnapshot에서 서버에 저장된 Map 형식 User를 가져온다.
+  void taskPriorMainPage(AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> innerSnapshot) {
+    // innerSnapshot에서 Database에 저장된 Map 형식 User를 가져온다.
     Map<String, dynamic> mapUser = innerSnapshot.data!.docs.first.data();
 
-    // Map 구조 user를 class 구조 user 로 바꾼다.
+    // Map구조 user를 Model class구조 user 로 바꾼다.
     UserModel classUser = UserModel.fromMap(mapUser);
 
-    //AuthController - user에 class 구조 user를 대입한다.
+    // Model class구조의 user를 대입한다.
     user(classUser);
 
     // BottomNavigationBar
     // Posting
     // PostList
     // Notification
-    // Settings Controller를 등록한다.
+    // SettingsController를 등록한다.
     BindingController.addServalController();
 
     // 회원가입을 이미 했다는 의미로 false를 대입한다.
@@ -67,9 +66,8 @@ class AuthController extends GetxController {
     print('SettingsController- didSignUp : ${SettingsController.to.didSignUp}');
   }
 
-  // Firebase DataBase에서 User의 uid가 있는지 확인하는 method
-  Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(
-      String uid) async {
+  // FirebaseDataBase에서 useruid 있는지 확인하는 method
+  Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(String uid) async {
     QuerySnapshot<Map<String, dynamic>> userData =
         await CommunicateFirebase.getFireBaseUserUid(uid);
     return userData;
@@ -84,7 +82,7 @@ class AuthController extends GetxController {
     // Trigger the authentication flow
     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-    // 사용자가 Google Login 페이지에서 취소를 누를 떄
+    // 사용자가 GoogleLogin 페이지에서 취소를 누를 떄
     if (googleUser == null) {
       EasyLoading.dismiss();
 

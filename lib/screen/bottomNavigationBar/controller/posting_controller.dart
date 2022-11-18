@@ -6,6 +6,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
+import 'package:help_desk/const/obsOrInqClassification.dart';
+import 'package:help_desk/const/proClassification.dart';
+import 'package:help_desk/const/sysClassification.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/utils/toast_util.dart';
@@ -16,6 +19,15 @@ import 'package:intl/intl.dart';
 // 글쓰기 화면의 상태 변수와 메서드를 관리하는 controller 입니다.
 class PostingController extends GetxController {
   // Field
+
+  // 장애 처리현황, 문의 처리현황 DropDown에서
+  // 업로드 하려는 게시물이 장애 처리현황 쪽인지 문의 처리현황인지 판별하는 변수
+  ObsOrInqClassification oSelectedValue =
+      ObsOrInqClassification.obstacleHandlingStatus;
+
+  // 시스템 분류 코드 DropDown에서 무엇을 Tab했는가 나타내는 변수
+  SysClassification sSelectedValue = SysClassification.WICS;
+
   // 이미지를 담는 List
   RxList<File> imageList = <File>[].obs;
 
@@ -24,6 +36,9 @@ class PostingController extends GetxController {
 
   // 내용 String
   RxString contentString = ''.obs;
+
+  // 전화번호 String
+  String phoneNumber = '';
 
   // Gallery에서 image를 가져오기 위한 변수
   final ImagePicker imagePicker = ImagePicker();
@@ -66,9 +81,19 @@ class PostingController extends GetxController {
     // 여러 개 imageUrl을 저장하는 List
     List<String> imageUrlList = [];
 
-    // Validation 미통과
-    if (titleString.isEmpty || contentString.isEmpty) {
-      // 업로드후 상태 변수 초기화
+    // 제목을 입력하지 않았거나
+    // 내용을 입력하지 않았거나
+    // 전화번호를 입력하지 않았거나
+    // 전화번호를 입력해도, 정규표현식에 맞지 않았으면
+    // 게시물에 대한 upload validation이 실패했다.
+    if (titleString.isEmpty ||
+        contentString.isEmpty ||
+        phoneNumber.isEmpty ||
+        !(RegExp(r'^010?([0-9]{4})?([0-9]{4})$').hasMatch(phoneNumber))) {
+      // 제목, 내용, 전화번호 중에 한가지라도 빈칸인 경우 Validation 미통과이다.
+      print('게시물 업로드 Validation 미통과');
+
+      // PostingController에 있는 상태 변수를 초기화 한다.
       initPostingElement();
 
       // 업로드 실패 의미인 false를 반환한다.
@@ -84,9 +109,11 @@ class PostingController extends GetxController {
 
       // 업로드한 이미지가 최소 1개인 경우
       else {
-        // upload한 이미지를 Firebase Storage에 저장한다.
+        // 게시물이 장애 처리현황인가 문의 처리현황인가를 구별해
+        // Firebase Storage에 이미지를 저장하는 method
         postMap = CommunicateFirebase.postUploadImage(
           imageList: imageList,
+          obsOrInq: oSelectedValue,
           userUid: AuthController.to.user.value.userUid,
         );
 
@@ -94,9 +121,7 @@ class PostingController extends GetxController {
         // 동시에 image에 대한 url를 요청해서 시간 절약을 한다.
         for (UploadTask uploadTask
             in postMap['uploadTasks'] as List<UploadTask>) {
-          imageUrlFuture.add(
-            CommunicateFirebase.imageDownloadUrl(uploadTask),
-          );
+          imageUrlFuture.add(CommunicateFirebase.imageDownloadUrl(uploadTask));
         }
 
         // 동시에 image에 대한 url를 요청한 것을 순서대로 저장한다.
@@ -107,22 +132,23 @@ class PostingController extends GetxController {
           imageUrlList.add(result[i].toString());
         }
       }
+
       // 업로드한 이미지가 0개이든, 1개 이상이든 이하 공통 작업
+      print('게시물 업로드 Validation 통과');
 
-      // 게시물 올린 현재 시간을 파악한다.
-      DateTime currentDateTime = DateTime.now();
-      // DateTime.now().add(const Duration(minutes: 4, seconds: 30));
-      print('현재 시간 : $currentDateTime');
-
+      // 게시물 올린 시간을 측정한다.
       String formatDate =
-          DateFormat('yy/MM/dd - HH:mm:ss').format(currentDateTime);
-      print('수정된 형식의 현재 시간 : $formatDate');
+          DateFormat('yy/MM/dd - HH:mm:ss').format(DateTime.now());
 
-      // PostModel을 만듭니다.
+      // PostModel을 생성한다.
       PostModel post = PostModel(
+        obsOrInq: oSelectedValue,
+        sysClassficationCode: sSelectedValue,
         imageList: imageUrlList,
         postTitle: titleString.toString(),
         postContent: contentString.toString(),
+        phoneNumber: phoneNumber,
+        proStatus: ProClassification.INPROGRESS,
         userUid: AuthController.to.user.value.userUid,
         postUid: postMap['postUUid'],
         postTime: formatDate,
@@ -145,22 +171,28 @@ class PostingController extends GetxController {
     }
   }
 
-  // PostingController에서 관리하는 이미지, 글제목, 글내용을 초기화하는 method
+  // PostingController에 관리되고 있는 상태 변수 초기화 하는 method
   void initPostingElement() {
-    // 업로드한 이미지 여부에 따라 로직 결정
-    if (imageList.isEmpty) {
-      titleString('');
-      contentString('');
-    } else {
-      imageList.clear();
-      titleString('');
-      contentString('');
-    }
+    // PostingController에 관리되고 있는 상태 변수를 초기화 한다.
+    oSelectedValue = ObsOrInqClassification.obstacleHandlingStatus;
 
-    // 정말 상태 변수가 초기화 되었는지 확인한다.
-    print('imageList : ${PostingController.to.imageList}');
-    print('titleString : ${PostingController.to.titleString}');
-    print('contentString : ${PostingController.to.contentString}');
+    sSelectedValue = SysClassification.WICS;
+
+    imageList.clear();
+
+    titleString('');
+
+    contentString('');
+
+    phoneNumber = '';
+
+    // 상태 변수가 초기화 되었는지 확인한다.
+    print('oSelectedValue : $oSelectedValue');
+    print('sSelectedValue : $sSelectedValue');
+    print('imageList : $imageList');
+    print('titleString : $titleString');
+    print('contentString : $contentString');
+    print('phoneNumber : $phoneNumber');
   }
 
   // PostingController가 메모리에 처음 올라갈 떄 호출되는 method

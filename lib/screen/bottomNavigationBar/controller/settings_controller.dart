@@ -184,17 +184,17 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     whatIWroteUserDatas.clear();
 
     // PostListController.to.postDatas를 짧게 명명하고자 참조변수를 설정한다.
-    List<PostModel> postDatas = PostListController.to.postDatas;
-    List<UserModel> userDatas = PostListController.to.userDatas;
+    // List<PostModel> postDatas = PostListController.to.postDatas;
+    // List<UserModel> userDatas = PostListController.to.userDatas;
 
-    for (int i = 0; i < postDatas.length; i++) {
-      // postData의 userUid 속성이 현 계정의 userUid와 같은지 확인한다.
-      if (postDatas[i].userUid == settingUser!.userUid) {
-        // whatIWrotePostDatas와 whatIWroteUserDatas 배열에 PostData와 UserData를 추가한다.
-        whatIWrotePostDatas.add(postDatas[i]);
-        whatIWroteUserDatas.add(userDatas[i]);
-      }
-    }
+    // for (int i = 0; i < postDatas.length; i++) {
+    //   // postData의 userUid 속성이 현 계정의 userUid와 같은지 확인한다.
+    //   if (postDatas[i].userUid == settingUser!.userUid) {
+    //     // whatIWrotePostDatas와 whatIWroteUserDatas 배열에 PostData와 UserData를 추가한다.
+    //     whatIWrotePostDatas.add(postDatas[i]);
+    //     whatIWroteUserDatas.add(userDatas[i]);
+    //   }
+    // }
 
     return whatIWrotePostDatas;
   }
@@ -206,17 +206,17 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     whatICommentUserDatas.clear();
 
     // PostListController.to.postDatas를 짧게 명명하고자 참조변수를 설정한다.
-    List<PostModel> postDatas = PostListController.to.postDatas;
-    List<UserModel> userDatas = PostListController.to.userDatas;
+    // List<PostModel> postDatas = PostListController.to.postDatas;
+    // List<UserModel> userDatas = PostListController.to.userDatas;
 
-    for (int i = 0; i < postDatas.length; i++) {
-      // 해당 게시물의 whoWriteCommentThePost Property에 userUid가 있는지 확인한다.
-      if (postDatas[i].whoWriteCommentThePost.contains(settingUser!.userUid)) {
-        // whatICommentPostDatas와 whatICommentUserDatas 배열에 PostData와 UserData를 추가한다.
-        whatICommentPostDatas.add(postDatas[i]);
-        whatICommentUserDatas.add(userDatas[i]);
-      }
-    }
+    // for (int i = 0; i < postDatas.length; i++) {
+    //   // 해당 게시물의 whoWriteCommentThePost Property에 userUid가 있는지 확인한다.
+    //   if (postDatas[i].whoWriteCommentThePost.contains(settingUser!.userUid)) {
+    //     // whatICommentPostDatas와 whatICommentUserDatas 배열에 PostData와 UserData를 추가한다.
+    //     whatICommentPostDatas.add(postDatas[i]);
+    //     whatICommentUserDatas.add(userDatas[i]);
+    //   }
+    // }
 
     return whatICommentPostDatas;
   }

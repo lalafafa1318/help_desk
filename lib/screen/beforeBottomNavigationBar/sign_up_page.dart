@@ -8,6 +8,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/authentication/auth.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
@@ -69,22 +70,22 @@ class _SignUpPageState extends State<SignUpPage> {
   // ImageBox 입니다.
   Widget imageBox() {
     return Container(
-      margin: const EdgeInsets.only(top: 40),
+      margin: EdgeInsets.only(top: 40.h),
       child: Column(
         children: [
           // 이미지 입니다.
           SizedBox(
-            width: 150,
-            height: 150,
+            width: 150.w,
+            height: 150.h,
             child: DottedBorder(
               strokeWidth: 2,
               color: Colors.grey,
               dashPattern: const [5, 3],
               borderType: BorderType.RRect,
-              radius: const Radius.circular(10),
+              radius: Radius.circular(10.r),
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(8.r),
                   image: DecorationImage(
                     fit: BoxFit.cover,
                     image: imageFile == null
@@ -135,8 +136,7 @@ class _SignUpPageState extends State<SignUpPage> {
         children: [
           // name TextFormField
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 48.0, vertical: 8.0),
+            padding: EdgeInsets.symmetric(horizontal: 48.0.w, vertical: 8.0.h),
             child: TextFormField(
               controller: nameTextController,
               validator: (value) {
@@ -153,12 +153,11 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
 
           // description TextFormField
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 48.0, vertical: 8.0),
+            padding: EdgeInsets.symmetric(horizontal: 48.0.w, vertical: 8.0.h),
             child: TextFormField(
               maxLength: 50,
               maxLines: null,
@@ -184,7 +183,7 @@ class _SignUpPageState extends State<SignUpPage> {
   // 회원가입 하기 입니다.
   Widget signUpButton() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 48.0, vertical: 8.0),
+      padding: EdgeInsets.symmetric(horizontal: 48.0.w, vertical: 8.0.h),
       child:
           ElevatedButton(onPressed: signButton, child: const Text('회원가입 하기')),
     );
@@ -273,18 +272,11 @@ class _SignUpPageState extends State<SignUpPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 imageBox(),
-
-                const SizedBox(height: 80),
-
+                SizedBox(height: 80.h),
                 twoTextFormField(),
-
-                const SizedBox(height: 80),
-
+                SizedBox(height: 80.h),
                 signUpButton(),
-
-                const SizedBox(height: 80),
-
-                // temporyLogOut(),
+                SizedBox(height: 80.h),
               ],
             ),
           ),

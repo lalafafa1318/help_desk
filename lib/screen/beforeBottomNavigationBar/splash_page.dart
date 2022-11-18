@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/authentication/auth.dart';
 import 'package:help_desk/utils/connect_util.dart';
@@ -31,7 +32,7 @@ class _SplashState extends State<Splash> {
         // Wi-Fi, Mobile 상태가 아니면
         if (result == ConnectivityResult.none) {
           // 더이상 앱 진행이 불가능하다는 message를 보낸다.
-          ConnectUtil.dialog();
+          ConnectUtil.connectNoneDialog();
         }
         // Wi-Fi 또는 Mobile 상태이면?
         else {
@@ -59,7 +60,7 @@ class _SplashState extends State<Splash> {
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFFa7d678), Colors.white],
+        colors: [Color.fromARGB(255, 232, 223, 97), Colors.white],
       ),
     );
   }
@@ -68,16 +69,15 @@ class _SplashState extends State<Splash> {
   CircleAvatar circleAvatar() {
     const String imageLogoName = 'assets/images/help.png';
 
-    return const CircleAvatar(
-      radius: 70.0,
-      backgroundImage: AssetImage(imageLogoName),
+    return CircleAvatar(
+      radius: 70.0.r,
+      backgroundImage: const AssetImage(imageLogoName),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
+    double screenWidth = ScreenUtil().screenWidth;
 
     return SafeArea(
       child: WillPopScope(
@@ -87,41 +87,38 @@ class _SplashState extends State<Splash> {
           return false;
         },
 
-        child: MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-          child: Scaffold(
-            body: Container(
-              decoration: boxDecoration(),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  SizedBox(height: screenHeight * 0.384375),
+        child: Scaffold(
+          body: Container(
+            decoration: boxDecoration(),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                SizedBox(height: 250.h),
 
-                  // Image 자리 잡는 곳
-                  Container(
-                    child: circleAvatar(),
-                  ),
+                // Image 자리 잡는 곳
+                Container(
+                  child: circleAvatar(),
+                ),
 
-                  const Expanded(child: SizedBox()),
+                const Expanded(child: SizedBox()),
 
-                  // 하단 글씨 부분
-                  Align(
-                    child: Text(
-                      "© Copyright 2022, 김영우(wwkler)",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: screenWidth * (14 / 360),
-                        fontWeight: FontWeight.bold,
-                        // color: Color.fromRGBO(255, 255, 255, 0.6),
-                      ),
+                // 하단 글씨 부분
+                Align(
+                  child: Text(
+                    "© Copyright 2022, 김영우(wwkler)",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: screenWidth * (14 / 360),
+                      fontWeight: FontWeight.bold,
+                      // color: Color.fromRGBO(255, 255, 255, 0.6),
                     ),
                   ),
+                ),
 
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.0625,
-                  ),
-                ],
-              ),
+                SizedBox(
+                  height: ScreenUtil().screenHeight * 0.0625,
+                ),
+              ],
             ),
           ),
         ),

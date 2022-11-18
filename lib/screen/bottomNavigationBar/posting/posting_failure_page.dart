@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/components/button/gf_button.dart';
 import 'package:getwidget/types/gf_button_type.dart';
@@ -22,15 +23,17 @@ class PostingFailurePage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // 업로드 실패 image
-              Image.asset('assets/images/failure.png', width: 80),
+              Image.asset('assets/images/failure.png', width: 80.w),
 
-              const SizedBox(height: 20),
+              SizedBox(height: 20.h),
 
               // 업로드 실패 text
-              const Text('업로드가 실패했습니다.',
-                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+              Text(
+                '업로드가 실패했습니다.',
+                style: TextStyle(fontSize: 30.sp, fontWeight: FontWeight.bold),
+              ),
 
-              const SizedBox(height: 20),
+              SizedBox(height: 20.h),
 
               // 이전 페이지로 이동하는 Button
               GFButton(

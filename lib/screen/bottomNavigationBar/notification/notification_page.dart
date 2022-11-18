@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
+import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/model/notification_model.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
-import 'package:help_desk/routeDistinction/routeDistinction.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/notification_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
@@ -135,18 +135,18 @@ class NotificationPage extends StatelessWidget {
         NotificationController.to.notificationModelList[index];
 
     // PostListController.to.postDatas를 간단하게 명명한다.
-    List<PostModel> postDatas = PostListController.to.postDatas;
+    // List<PostModel> postDatas = PostListController.to.postDatas;
 
     // Notification을 Tap하면 SpecificPostPage로 Routing 할 때 0번쨰 argument
     int idx = -1;
 
     // notification에 따른 게시물(post) 데이터와 그에 따른 사용자(user) 데이터의 index를 찾는다.
-    for (int i = 0; i < postDatas.length; i++) {
-      if (postDatas[i].postUid == notificationModel.belongNotiPostUid) {
-        idx = i;
-        break;
-      }
-    }
+    // for (int i = 0; i < postDatas.length; i++) {
+    //   if (postDatas[i].postUid == notificationModel.belongNotiPostUid) {
+    //     idx = i;
+    //     break;
+    //   }
+    // }
 
     return Column(
       children: [
@@ -162,43 +162,43 @@ class NotificationPage extends StatelessWidget {
                       .removeAt(index);
 
                   // Notifcation과 관련된 게시물이 Server에 삭제되었는지 확인한다.
-                  bool isDeletePostResult = await PostListController.to
-                      .isDeletePost(notificationModel.belongNotiPostUid);
+                  // bool isDeletePostResult = await PostListController.to
+                  //     .isDeletePost(notificationModel.belongNotiPostUid);
 
                   // Notification과 관련된 게시물이 삭제되었다면?
-                  if (isDeletePostResult) {
-                    // Notification과 관련된 게시물 Uid가 notiPost Array의 몇번째 index에 있는지 확인한다.
-                    int index = NotificationController.to.notiPost
-                        .indexOf(notificationModel.belongNotiPostUid);
+                  // if (isDeletePostResult) {
+                  //   // Notification과 관련된 게시물 Uid가 notiPost Array의 몇번째 index에 있는지 확인한다.
+                  //   int index = NotificationController.to.notiPost
+                  //       .indexOf(notificationModel.belongNotiPostUid);
 
-                    // 왜 index != -1인 코드를 배치했는가?
-                    // case 1: A는 B가 올린 게시물의 알림을 받았다. -> B는 게시물을 삭제했다. -> A는 알림을 삭제한다.
-                    // -> 첫번쨰 알림을 지울 때는 문제가 없지만 두번쨰 알림부터 지우려면 문제가 발생한다. 따라서 위 코드를 배치했다.
+                  //   // 왜 index != -1인 코드를 배치했는가?
+                  //   // case 1: A는 B가 올린 게시물의 알림을 받았다. -> B는 게시물을 삭제했다. -> A는 알림을 삭제한다.
+                  //   // -> 첫번쨰 알림을 지울 때는 문제가 없지만 두번쨰 알림부터 지우려면 문제가 발생한다. 따라서 위 코드를 배치했다.
 
-                    // case2 : A는 B가 올린 게시물의 알림을 받았다. -> B는 게시물을 삭제했다. -> A는 앱을 재부팅하거나 PostListPage를 거쳤다.
-                    // -> 첫번쨰 알림을 지울 떄는 문제가 없지만 두번쨰 알림부터 지우려면 문제가 발생한다. 따라서 위 코드를 배치했다.
-                    if (index != -1) {
-                      // 실시간으로 Listen 하는 것을 중지하는 것을 넘어서 삭제한다.
-                      NotificationController.to.listenList[index].cancel();
+                  //   // case2 : A는 B가 올린 게시물의 알림을 받았다. -> B는 게시물을 삭제했다. -> A는 앱을 재부팅하거나 PostListPage를 거쳤다.
+                  //   // -> 첫번쨰 알림을 지울 떄는 문제가 없지만 두번쨰 알림부터 지우려면 문제가 발생한다. 따라서 위 코드를 배치했다.
+                  //   if (index != -1) {
+                  //     // 실시간으로 Listen 하는 것을 중지하는 것을 넘어서 삭제한다.
+                  //     NotificationController.to.listenList[index].cancel();
 
-                      // NotificationController의 notifPost Array에 게시물 uid를 삭제한다.
-                      NotificationController.to.notiPost.removeAt(index);
+                  //     // NotificationController의 notifPost Array에 게시물 uid를 삭제한다.
+                  //     NotificationController.to.notiPost.removeAt(index);
 
-                      // NotificationController의 commentCount Array에 element를 remove한다.
-                      NotificationController.to.commentCount.removeAt(index);
+                  //     // NotificationController의 commentCount Array에 element를 remove한다.
+                  //     NotificationController.to.commentCount.removeAt(index);
 
-                      // NotificationController의 listenList Array에 element을 remove한다.
-                      NotificationController.to.listenList.removeAt(index);
+                  //     // NotificationController의 listenList Array에 element을 remove한다.
+                  //     NotificationController.to.listenList.removeAt(index);
 
-                      // Server의 post가 삭제되어 없을 떄
-                      // Server의 user - notiPost 속성
-                      // 알림과 관련된 게시물 Uid를 삭제한다.
-                      await NotificationController.to.deleteNotiPostFromUser(
-                        notificationModel.belongNotiPostUid,
-                        SettingsController.to.settingUser!.userUid,
-                      );
-                    }
-                  }
+                  //     // Server의 post가 삭제되어 없을 떄
+                  //     // Server의 user - notiPost 속성
+                  //     // 알림과 관련된 게시물 Uid를 삭제한다.
+                  //     await NotificationController.to.deleteNotiPostFromUser(
+                  //       notificationModel.belongNotiPostUid,
+                  //       SettingsController.to.settingUser!.userUid,
+                  //     );
+                  //   }
+                  // }
 
                   // Server의 notification을 삭제하는 코드
                   await NotificationController.to.deleteNotification(

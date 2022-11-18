@@ -21,7 +21,7 @@ class MainPage extends GetView<BottomNavigationBarController> {
     PostingPage(),
 
     // Notification page
-   NotificationPage(),
+    NotificationPage(),
 
     // Settings page
     SettingsPage(),
@@ -39,14 +39,15 @@ class MainPage extends GetView<BottomNavigationBarController> {
             bottomNavigationBar: BottomNavyBar(
               selectedIndex: controller.selectedIndex.value,
               showElevation: true, // use this to remove appBar's elevation
+
               onItemSelected: (int index) {
                 controller.checkBottomNaviState(index);
               },
               items: [
-                // Post List ItemBar
+                // PostList ItemBar
                 BottomNavyBarItem(
                   icon: const Icon(Icons.search),
-                  title: const Text('Post List'),
+                  title: const Text('PostList'),
                   activeColor: Colors.red,
                 ),
 

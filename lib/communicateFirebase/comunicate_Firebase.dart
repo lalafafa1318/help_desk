@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
+import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/model/comment_model.dart';
 import 'package:help_desk/model/notification_model.dart';
 import 'package:help_desk/model/post_model.dart';
@@ -24,7 +25,8 @@ class CommunicateFirebase {
   static final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
 
   // Firebase Database에서 uid가 있는지 확인하는 method
-  static Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(String userUid) async {
+  static Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(
+      String userUid) async {
     QuerySnapshot<Map<String, dynamic>> userData = await _firebaseFirestore
         .collection('users')
         .where('userUid', isEqualTo: userUid)
@@ -44,7 +46,8 @@ class CommunicateFirebase {
   }
 
   // "회원가입" 페이지에 있는 Image를 Firebase Storage에 upload하는 method
-  static UploadTask signInUploadImage({required File imageFile, required String userUid}) {
+  static UploadTask signInUploadImage(
+      {required File imageFile, required String userUid}) {
     // ImageFile의 확장자(png, jpg) 가져오기
     String imageFileExt = imageFile.toString().split('.').last.substring(0, 3);
 
@@ -59,9 +62,13 @@ class CommunicateFirebase {
     return uploadFileEvent;
   }
 
-  // "Posting" 페이지에 게시물을 업로드할 떄 Image를
-  //  Firebase Stroage에 upload하는 method
-  static Map<String, dynamic> postUploadImage({required RxList<File> imageList, required String userUid}) {
+  // 게시물이 장애 처리현황인가 문의 처리현황인가를 구별해
+  // Firebase Storage에 이미지를 저장하는 method
+  static Map<String, dynamic> postUploadImage({
+    required RxList<File> imageList,
+    required ObsOrInqClassification obsOrInq,
+    required String userUid,
+  }) {
     // UploadTask을 관리하는 배열 입니다.
     List<UploadTask> uploadTasks = [];
 
@@ -69,20 +76,41 @@ class CommunicateFirebase {
     // 게시물 Uid를 정립한 것이다.
     String postUUid = UUidUtil.getUUid();
 
-    for (File image in imageList) {
-      // ImageFile의 확장자(png, jpg) 가져오기
-      String imageFileExt = image.toString().split('.').last.substring(0, 3);
+    // 업로드한 게시물이 장애 처리현황인 경우
+    if (obsOrInq == ObsOrInqClassification.obstacleHandlingStatus) {
+      for (File image in imageList) {
+        // ImageFile의 확장자(png, jpg) 가져오기
+        String imageFileExt = image.toString().split('.').last.substring(0, 3);
 
-      // image를 FirebaseStorage 어떤 경로에 배치할 지 정한다.
-      Reference storageReference = _firebaseStorage
-          .ref()
-          .child('posts/$postUUid/${UUidUtil.getUUid()}.$imageFileExt');
+        // image를 FirebaseStorage 어떤 경로에 배치할 지 정한다.
+        Reference storageReference = _firebaseStorage
+            .ref()
+            .child('obsPosts/$postUUid/${UUidUtil.getUUid()}.$imageFileExt');
 
-      // image를 해당 경로에 저장한다.
-      UploadTask uploadFileEvent = storageReference.putFile(image);
+        // image를 해당 경로에 저장한다.
+        UploadTask uploadFileEvent = storageReference.putFile(image);
 
-      // uploadTask을 배열에 추가한다.
-      uploadTasks.add(uploadFileEvent);
+        // uploadTask을 배열에 추가한다.
+        uploadTasks.add(uploadFileEvent);
+      }
+    }
+    // 업로드한 게시물이 문의 처리현황인 경우
+    else {
+      for (File image in imageList) {
+        // ImageFile의 확장자(png, jpg) 가져오기
+        String imageFileExt = image.toString().split('.').last.substring(0, 3);
+
+        // image를 FirebaseStorage 어떤 경로에 배치할 지 정한다.
+        Reference storageReference = _firebaseStorage
+            .ref()
+            .child('inqPosts/$postUUid/${UUidUtil.getUUid()}.$imageFileExt');
+
+        // image를 해당 경로에 저장한다.
+        UploadTask uploadFileEvent = storageReference.putFile(image);
+
+        // uploadTask을 배열에 추가한다.
+        uploadTasks.add(uploadFileEvent);
+      }
     }
 
     // uploadTasks, postUUid 2가지가 다른 곳에서 필요하기 떄문에 map으로 설정했다.
@@ -93,7 +121,8 @@ class CommunicateFirebase {
   }
 
   // "프로필 수정" 페이지에서 수정한 Image를 Firebase Storage에 update하는 method
-  static Future<UploadTask> editUploadImage({required File imageFile, required String userUid}) async {
+  static Future<UploadTask> editUploadImage(
+      {required File imageFile, required String userUid}) async {
     // ImageFile의 확장자(png, jpg) 가져오기
     String imageFileExt = imageFile.toString().split('.').last.substring(0, 3);
 
@@ -148,11 +177,23 @@ class CommunicateFirebase {
         .update(UserModel.toMap(updateUser));
   }
 
-  // Server에 저장된 게시물(Post)의 whoLikeThePost 속성과 whoWriteTheCommentThePost 속성을 확인하여 가져오는 method
+  // DataBase에 저장된 obsPosts 또는 inqPosts의
+  // whoLikeThePost 속성과 whoWriteTheCommentThePost 속성을 확인하여 가져오는 method
   static Future<Map<String, List<String>>>
-      checkWhoLikeThePostAndWhoWriteCommentThePost(String postUid) async {
-    DocumentSnapshot<Map<String, dynamic>> postData =
-        await _firebaseFirestore.collection('posts').doc(postUid).get();
+      checkWhoLikeThePostAndWhoWriteCommentThePost(
+          ObsOrInqClassification obsOrInq, String postUid) async {
+    DocumentSnapshot<Map<String, dynamic>> postData;
+
+    // 해당 게시물이 장애 처리현황 게시물인 경우...
+    if (obsOrInq == ObsOrInqClassification.obstacleHandlingStatus) {
+      postData =
+          await _firebaseFirestore.collection('obsPosts').doc(postUid).get();
+    }
+    // 헤당 게시물이 문의 처리현황 게시물인 경우...
+    else {
+      postData =
+          await _firebaseFirestore.collection('inqPosts').doc(postUid).get();
+    }
 
     return {
       // 공감 데이터
@@ -160,136 +201,235 @@ class CommunicateFirebase {
           List<String>.from(postData.data()!['whoLikeThePost'] as List),
       // 댓글 데이터
       'commentData':
-          List<String>.from(postData['whoWriteCommentThePost'] as List),
+          List<String>.from(postData.data()!['whoWriteCommentThePost'] as List),
     };
   }
 
-  // 전체 게시물을 업로드 시간 내림차순 기준으로 가져오는 method
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllPostData() async* {
-    yield* _firebaseFirestore
-        .collection('posts')
+  // 장애 처리현황 게시물을 postTime 내림차순 기준으로 가져오는 method
+  static Future<QuerySnapshot<Map<String, dynamic>>> getObsPostData() async {
+    return await _firebaseFirestore
+        .collection('obsPosts')
         .orderBy('postTime', descending: true)
-        .snapshots();
+        .get();
+  }
+
+  // 문서 처리현황 게시물을 postTime 내림차순 기준으로 가져오는 method
+  static Future<QuerySnapshot<Map<String, dynamic>>> getInqPostData() async {
+    return await _firebaseFirestore
+        .collection('inqPosts')
+        .orderBy('postTime', descending: true)
+        .get();
   }
 
   // Firebase DataBase에 Post 정보를 set하는 method
   static Future<void> setPostData(PostModel post, String postUid) async {
-    await _firebaseFirestore
-        .collection('posts')
-        .doc(postUid)
-        .set(PostModel.toMap(post));
+    // 업로드 하려는 게시물이 장애 처리현황이다.
+    if (post.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus) {
+      await _firebaseFirestore
+          .collection('obsPosts')
+          .doc(postUid)
+          .set(PostModel.toMap(post));
+    }
+    // 업로드 하려는 게시물이 문의 처리현황이다.
+    else {
+      await _firebaseFirestore
+          .collection('inqPosts')
+          .doc(postUid)
+          .set(PostModel.toMap(post));
+    }
   }
 
-  // Server에 Post 정보를 get하는 method
-  static Future<Map<String, dynamic>> getPost(String postUid) async {
-    DocumentSnapshot<Map<String, dynamic>> documentSnapshotPostData =
-        await _firebaseFirestore.collection('posts').doc(postUid).get();
+  // DataBase에 obsPosts 또는 inqPosts 정보를 get하는 method
+  static DocumentReference<Map<String, dynamic>> getPostData(
+      ObsOrInqClassification obsOrInq, String postUid) {
+    DocumentReference<Map<String, dynamic>> documentRefrence;
+    // 해당 게시물이 장애 처리현황 게시물인 경우..
+    if (obsOrInq == ObsOrInqClassification.obstacleHandlingStatus) {
+      documentRefrence = _firebaseFirestore.collection('obsPosts').doc(postUid);
+    }
+    // 문의 처리현황 게시물인 경우...
+    else {
+      documentRefrence = _firebaseFirestore.collection('inqPosts').doc(postUid);
+    }
 
-    Map<String, dynamic> postData = documentSnapshotPostData.data()!;
-
-    return postData;
+    return documentRefrence;
   }
 
-  // Server에 게시물을 delete하는 method (postuid 필요)
-  static Future<void> deletePost(String postUid) async {
-    // Server에 게시물(Post) 정보를 받아온다.
-    Map<String, dynamic> postData = await getPost(postUid);
+  // DataBase에 게시물을 delete하는 method (postuid 필요)
+  static Future<void> deletePostData(PostModel postData) async {
+    // 게시물에 대한 imageList(이미지 url)를 가져온다.
+    List<String> imageList = postData.imageList;
 
-    // Server에 게시물(Post)에 대한 imageList(사진 Url)을 배열에 가져온다.
-    List<String> imageList = List<String>.from(postData['imageList'] as List);
-
+    // 게시물과 관련된 이미지를 FirebaseStorage에서 제거한다.
     if (imageList.isNotEmpty) {
-      // Server에서 Post에 대한 image Storage를 찾아 삭제한다.
       for (String image in imageList) {
         await _firebaseStorage.refFromURL(image).delete();
       }
     }
 
-    // Server에서 게시물(Post) 정보를 삭제한다.
-    await _firebaseFirestore.collection('posts').doc(postUid).delete();
-
-    // 변수 초기화
-    postData.clear();
-    imageList.clear();
+    // DataBase에서 게시물(obsPosts or inqPosts)을 삭제한다.
+    // 헤당 게시물이 장애 처리현황인 경우...
+    if (postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus) {
+      await _firebaseFirestore
+          .collection('obsPosts')
+          .doc(postData.postUid)
+          .delete();
+    }
+    // 해당 게시물이 문의 처리현황인 경우...
+    else {
+      await _firebaseFirestore
+          .collection('inqPosts')
+          .doc(postData.postUid)
+          .delete();
+    }
   }
 
-  // Server에 저장된 게시물(Post)의 whoLikeThePost 속성에 사용자 uid을 추가하는 method
-  static Future<void> addWhoLikeThePost(String postUid, String userUid) async {
-    // Server에서 게시물(Post) 정보를 get하는 method를 실행한다.
-    Map<String, dynamic> postData = await getPost(postUid);
+  // DataBase에 저장된 게시물의 whoLikeThePost 속성에 사용자 uid을 추가하는 method
+  static Future<void> addWhoLikeThePost(
+      PostModel postData, String userUid) async {
+    // Database에 저장된 게시물을 가져온다.
+    DocumentReference<Map<String, dynamic>> documentReference =
+        getPostData(postData.obsOrInq, postData.postUid);
 
-    // Server에서 게시물(Post) 정보의 whoLikeThePost 속성을 가져와 배열에 저장한다.
-    List<String> whoLikeThePostArray =
-        List<String>.from(postData['whoLikeThePost'] as List);
+    // 여러 사용자가 공감 버튼을 동시에 클릭하여 대량의 트래픽이 발생할 경우를 대비해 transaction을 이용한다.
+    await _firebaseFirestore.runTransaction(
+      maxAttempts: 5,
+      (transaction) async {
+        DocumentSnapshot<Map<String, dynamic>> snapshot =
+            await transaction.get<Map<String, dynamic>>(documentReference);
 
-    whoLikeThePostArray.add(userUid);
+        if (!snapshot.exists) {
+          throw Exception('Does not exists');
+        }
 
-    // Server에서 게시물(Post) 정보의 whoLikeThePost 속성의 값을 업데이트 한다.
-    await _firebaseFirestore
-        .collection('posts')
-        .doc(postUid)
-        .update({'whoLikeThePost': whoLikeThePostArray});
+        List<String> whoLikeThePost =
+            List<String>.from(snapshot.data()!['whoLikeThePost'] as List);
 
-    // 변수 초기화
-    postData.clear();
-    whoLikeThePostArray.clear();
+        whoLikeThePost.add(userUid);
+
+        transaction
+            .update(documentReference, {'whoLikeThePost': whoLikeThePost});
+      },
+    );
   }
 
-  // Server에서 게시물의 postUid가 있는지 없는지 확인하는 method
-  static Future<bool> checkPostUid(String postUid) async {
-    final postData = await _firebaseFirestore
-        .collection('posts')
-        .where('postUid', isEqualTo: postUid)
-        .get();
+  // 게시물이 삭제되었는지 확인하는 method
+  static Future<bool> isDeletePost(
+      ObsOrInqClassification obsOrInq, String postUid) async {
+    DocumentSnapshot<Map<String, dynamic>> postData;
 
-    // isEmpty면 게시물은 삭제가 되었다는 뜻이다. -> true를 반환한다.
-    // isNotEmpty면 게시물은 존재한다는 뜻이다. -> false를 반환한다.
-    return postData.docs.isEmpty;
+    // 확인하려는 게시물이 장애 처리현황인 경우...
+    if (obsOrInq == ObsOrInqClassification.obstacleHandlingStatus) {
+      postData =
+          await _firebaseFirestore.collection('obsPosts').doc(postUid).get();
+    }
+    // 확인하려는 게시물이 문의 처리현황인 경우...
+    else {
+      postData =
+          await _firebaseFirestore.collection('inqPosts').doc(postUid).get();
+    }
+
+    // 게시물 Uid에 대한 doc이 없으면 true를 반환한다.
+    return !(postData.exists);
   }
 
-  // Server에 게시물(post)의 whoWriteCommentThePost 속성에 사용자 uid를 추가하는 method
-  static Future<void> addWhoWriteCommentThePost(String postUid) async {
-    // Server에 게시물(post) 정보를 받아온다.
-    DocumentSnapshot<Map<String, dynamic>> postData =
-        await _firebaseFirestore.collection('posts').doc(postUid).get();
+  // Database에 게시물(post)의 whoWriteCommentThePost 속성에 사용자 uid를 추가하는 method
+  static Future<void> addWhoWriteCommentThePost(
+      PostModel postData, String userUid) async {
+    // Database에 존재하는 게시물을 가져온다.
+    DocumentReference<Map<String, dynamic>> documentReference =
+        getPostData(postData.obsOrInq, postData.postUid);
 
-    // Server에 게시물(post)의 whoWriteCommentThePost 속성의 값을 배열에 대입한다.
-    List<String> whoWriteCommentThePost =
-        List<String>.from(postData.data()!['whoWriteCommentThePost'] as List);
+    // 대량의 트래픽이 발생할 경우를 대비해 transaction을 이용한다.
+    await _firebaseFirestore.runTransaction(
+      maxAttempts: 5,
+      (transaction) async {
+        DocumentSnapshot<Map<String, dynamic>> snapshot =
+            await transaction.get<Map<String, dynamic>>(documentReference);
 
-    // 배열에 사용자 Uid를 추가한다.
-    whoWriteCommentThePost.add(SettingsController.to.settingUser!.userUid);
+        if (!snapshot.exists) {
+          throw Exception('Does not exists');
+        }
 
-    // Server에 게시물(post)의 whoWriteCommentThePost 속성의 값을 업데이트 한다.
-    await _firebaseFirestore
-        .collection('posts')
-        .doc(postUid)
-        .update({'whoWriteCommentThePost': whoWriteCommentThePost});
+        List<String> whoWriteCommentThePost = List<String>.from(
+            snapshot.data()!['whoWriteCommentThePost'] as List);
 
-    // 변수 초기화
-    whoWriteCommentThePost.clear();
+        whoWriteCommentThePost.add(userUid);
+
+        transaction.update(
+          documentReference,
+          {'whoWriteCommentThePost': whoWriteCommentThePost},
+        );
+      },
+    );
   }
 
-  // Server에 comment(댓글)을 추가하는 method
-  static Future<void> setCommentData(CommentModel commentModel) async {
-    // Firebase DataBase comment 정보를 set
-    await _firebaseFirestore
-        .collection('posts')
-        .doc(commentModel.belongCommentPostUid)
-        .collection('comments')
-        .doc(commentModel.commentUid)
-        .set(CommentModel.toMap(commentModel));
+  // DataBase에 comment(댓글)을 가져오는 method
+  static DocumentReference<Map<String, dynamic>> getCommentData(
+      CommentModel comment, PostModel postData) {
+    DocumentReference<Map<String, dynamic>> documentRefrence;
+    // 댓글과 관련된 게시물이 장애 처리현황 게시물인 경우..
+    if (postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus) {
+      documentRefrence = _firebaseFirestore
+          .collection('obsPosts')
+          .doc(postData.postUid)
+          .collection('comments')
+          .doc(comment.commentUid);
+    }
+    // 댓글과 관련된 게시물이 문의 처리현황 게시물인 경우...
+    else {
+      documentRefrence = _firebaseFirestore
+          .collection('obsPosts')
+          .doc(postData.postUid)
+          .collection('comments')
+          .doc(comment.commentUid);
+    }
+
+    return documentRefrence;
   }
 
-  // Server에서 게시물(post)에 대한 여러 comment를 가져오는 method
-  static Future<Map<String, dynamic>> getCommentAndUser(String postUid) async {
-    // Server에서 게시물(post)에 해당하는 여러 comment을 가져온다.
-    QuerySnapshot<Map<String, dynamic>> comments = await _firebaseFirestore
-        .collection('posts')
-        .doc(postUid)
-        .collection('comments')
-        .orderBy('uploadTime', descending: false)
-        .get();
+  // DataBase에 comment(댓글)을 추가하는 method
+  static Future<void> setCommentData(
+      CommentModel commentModel, PostModel postData) async {
+    // 댓글과 관련된 게시물이 장애 처리현황인 경우
+    if (postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus) {
+      // Database에 comment 정보를 set한다.
+      await _firebaseFirestore
+          .collection('obsPosts')
+          .doc(commentModel.belongCommentPostUid)
+          .collection('comments')
+          .doc(commentModel.commentUid)
+          .set(CommentModel.toMap(commentModel));
+    }
+    // 댓글과 관련된 게시물이 문의 처리현황인 경우
+    else {
+      // Database에 comment 정보를 set한다.
+      await _firebaseFirestore
+          .collection('inqPosts')
+          .doc(commentModel.belongCommentPostUid)
+          .collection('comments')
+          .doc(commentModel.commentUid)
+          .set(CommentModel.toMap(commentModel));
+    }
+  }
+
+  // Database에서 게시물(post)에 대한 여러 comment를 가져오는 method
+  static Future<Map<String, dynamic>> getCommentAndUser(PostModel postData) async {
+    // Database에서 게시물(post)에 해당하는 여러 comment을 가져온다.
+    QuerySnapshot<Map<String, dynamic>> comments =
+        (postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus
+            ? await _firebaseFirestore
+                .collection('obsPosts')
+                .doc(postData.postUid)
+                .collection('comments')
+                .orderBy('uploadTime', descending: false)
+                .get()
+            : await _firebaseFirestore
+                .collection('inqPosts')
+                .doc(postData.postUid)
+                .collection('comments')
+                .orderBy('uploadTime', descending: false)
+                .get());
 
     // 여러 Comment와 Comment에 대한 User를 담는 Map를 설정한다.
     Map<String, dynamic> commentAndUser = {};
@@ -325,95 +465,105 @@ class CommunicateFirebase {
     return commentAndUser;
   }
 
-  // Firebase DataBase comment 정보의 whoLikeThePost 속성에 접근하여
-  // 사용자가 comment에 대해서 클릭한 적이 있는지 판별하는 method
-  static Future<bool> checkLikeUsersFromTheComment(CommentModel comment, String userUid) async {
-    // post - postUid - comments - commentUid에 접근하여 해당 comment에 접근한다.
-    DocumentSnapshot<Map<String, dynamic>> commentData =
-        await _firebaseFirestore
-            .collection('posts')
-            .doc(comment.belongCommentPostUid)
-            .collection('comments')
-            .doc(comment.commentUid)
-            .get();
+  // // Firebase DataBase comment 정보의 whoLikeThePost 속성에 접근하여
+  // // 사용자가 comment에 대해서 클릭한 적이 있는지 판별하는 method
+  // static Future<bool> checkLikeUsersFromTheComment(
+  //     CommentModel comment, String userUid) async {
+  //   // post - postUid - comments - commentUid에 접근하여 해당 comment에 접근한다.
+  //   DocumentSnapshot<Map<String, dynamic>> commentData =
+  //       await _firebaseFirestore
+  //           .collection('posts')
+  //           .doc(comment.belongCommentPostUid)
+  //           .collection('comments')
+  //           .doc(comment.commentUid)
+  //           .get();
 
-    // comment - whoCommentLike Property에 userUid가 있는지 확인한다.
-    for (String uid in commentData.data()!['whoCommentLike']) {
-      if (uid == userUid) {
-        // 해당 comment에 대해서 좋아요를 이미 눌렀다는 뜻이다. 따라서 true를 반환한다.
-        return true;
-      }
-    }
+  //   // comment - whoCommentLike Property에 userUid가 있는지 확인한다.
+  //   for (String uid in commentData.data()!['whoCommentLike']) {
+  //     if (uid == userUid) {
+  //       // 해당 comment에 대해서 좋아요를 이미 눌렀다는 뜻이다. 따라서 true를 반환한다.
+  //       return true;
+  //     }
+  //   }
 
-    // 해당 comment에 대해서 좋아요를 누르지 않았다는 뜻이다. 따라서 false를 반환한다.
-    return false;
-  }
+  //   // 해당 comment에 대해서 좋아요를 누르지 않았다는 뜻이다. 따라서 false를 반환한다.
+  //   return false;
+  // }
 
   // Server에 저장된 comment(댓글)의 whoCommentLike 속성에 사용자 uid를 추가하는 method
-  static Future<void> addWhoCommentLike(CommentModel comment) async {
-    // post - postUid - comments - commentUid에 접근하여 해당 comment에 접근한다.
-    DocumentSnapshot<Map<String, dynamic>> commentData =
-        await _firebaseFirestore
-            .collection('posts')
-            .doc(comment.belongCommentPostUid)
-            .collection('comments')
-            .doc(comment.commentUid)
-            .get();
+  static Future<void> addWhoCommentLike(
+      CommentModel comment, PostModel postData) async {
+    // Database에 저장된 게시물을 가져온다.
+    DocumentReference<Map<String, dynamic>> documentReference =
+        getCommentData(comment, postData);
 
-    // Server에 저장된 comment(댓글)의 whoCommentLike 속성의 값을 배열에 저장한다.
-    List<String> whoCommentLike =
-        List<String>.from(commentData['whoCommentLike'] as List);
+    // 대량의 트래픽이 발생할 경우를 대비해 transaction을 이용한다.
+    await _firebaseFirestore.runTransaction(
+      maxAttempts: 5,
+      (transaction) async {
+        DocumentSnapshot<Map<String, dynamic>> snapshot =
+            await transaction.get<Map<String, dynamic>>(documentReference);
 
-    // 배열에 사용자 Uid를 추가한다.
-    whoCommentLike.add(SettingsController.to.settingUser!.userUid);
+        if (!snapshot.exists) {
+          throw Exception('Does not exists');
+        }
 
-    // Server에 저장된 comment(댓글)의 whoCommentLike 속성의 값을 업데이트 한다.
-    await _firebaseFirestore
-        .collection('posts')
-        .doc(comment.belongCommentPostUid)
-        .collection('comments')
-        .doc(comment.commentUid)
-        .update({'whoCommentLike': whoCommentLike});
+        List<String> whoCommentLike =
+            List<String>.from(snapshot.data()!['whoCommentLike'] as List);
 
-    // 변수 초기화
-    whoCommentLike.clear();
+        whoCommentLike.add(SettingsController.to.settingUser!.userUid);
+
+        transaction.update(
+          documentReference,
+          {'whoCommentLike': whoCommentLike},
+        );
+      },
+    );
   }
 
-  // Server에 comment을 삭제한다.
-  static Future<void> deleteComment(CommentModel comment) async {
-    // Server에 comment를 삭제한다.
-    await _firebaseFirestore
-        .collection('posts')
-        .doc(comment.belongCommentPostUid)
-        .collection('comments')
-        .doc(comment.commentUid)
-        .delete();
+  // Database에 comment을 삭제한다.
+  static Future<void> deleteComment(
+      CommentModel comment, PostModel postData) async {
+    // Database의 comemnt을 가져온다.
+    DocumentReference<Map<String, dynamic>> commentReference =
+        getCommentData(comment, postData);
 
-    // comment의 belogCommentPostUid 속성을 참고하여 Server의 게시물(Post)에 접근한다.
-    // Server에 게시물(Post)의 whoWriteCommentThePost 속성에 사용자 uid를 삭제한다.
-    DocumentSnapshot<Map<String, dynamic>> postData = await _firebaseFirestore
-        .collection('posts')
-        .doc(comment.belongCommentPostUid)
-        .get();
+    // Database의 comment을 삭제한다.
+    await commentReference.delete();
 
-    // Server에 게시물(Post)의 whoWriteCommentThePost 속성의 값을 가져와 배열에 대입한다.
-    List<String> whoWriteCommentThePost =
-        List<String>.from(postData['whoWriteCommentThePost'] as List);
+    // Database의 comment와 관련 있는 post을 가져온다.
+    DocumentReference<Map<String, dynamic>> postReference =
+        getPostData(postData.obsOrInq, postData.postUid);
 
-    whoWriteCommentThePost.remove(SettingsController.to.settingUser!.userUid);
+    // Database의 post에 존재하는 whoWriteCommentThePost 속성에 comment를 쓴 사용자 uid를 삭제한다.
+    // 대량의 트래픽이 발생할 경우를 대비해 transaction을 이용한다.
+    await _firebaseFirestore.runTransaction(
+      maxAttempts: 5,
+      (transaction) async {
+        DocumentSnapshot<Map<String, dynamic>> snapshot =
+            await transaction.get<Map<String, dynamic>>(postReference);
 
-    // Server에 게시물(Post)의 whoWriteCommentThePost 속성의 값을 업데이트 한다.
-    await _firebaseFirestore
-        .collection('posts')
-        .doc(comment.belongCommentPostUid)
-        .update({'whoWriteCommentThePost': whoWriteCommentThePost});
+        if (!snapshot.exists) {
+          throw Exception('Does not exists');
+        }
 
-    // 변수 clear
-    whoWriteCommentThePost.clear();
+        List<String> whoWriteCommentThePost = List<String>.from(
+            snapshot.data()!['whoWriteCommentThePost'] as List);
+
+        whoWriteCommentThePost
+            .remove(SettingsController.to.settingUser!.userUid);
+
+        transaction.update(
+          postReference,
+          {'whoWriteCommentThePost': whoWriteCommentThePost},
+        );
+      },
+    );
   }
 
   // Server에 게시글 작성한 사람(User)의 image 속성과 userName 속성을 확인하여 가져오는 method
-  static Future<Map<String, String>> checkImageAndUserNameToUser(String userUid) async {
+  static Future<Map<String, String>> checkImageAndUserNameToUser(
+      String userUid) async {
     DocumentSnapshot<Map<String, dynamic>> user =
         await _firebaseFirestore.collection('users').doc(userUid).get();
 
@@ -424,7 +574,8 @@ class CommunicateFirebase {
   }
 
   // Server에 User의 notiPost 속성에 게시물 uid를 추가한다.
-  static Future<void> addNotiPostFromUser(String postUid, String userUid) async {
+  static Future<void> addNotiPostFromUser(
+      String postUid, String userUid) async {
     DocumentSnapshot<Map<String, dynamic>> user =
         await _firebaseFirestore.collection('users').doc(userUid).get();
 
@@ -438,7 +589,8 @@ class CommunicateFirebase {
   }
 
   // Server에 User의 notiPost 속성에 게시물 uid를 삭제한다.
-  static Future<void> deleteNotiPostFromUser(String postUid, String userUid) async {
+  static Future<void> deleteNotiPostFromUser(
+      String postUid, String userUid) async {
     DocumentSnapshot<Map<String, dynamic>> user =
         await _firebaseFirestore.collection('users').doc(userUid).get();
 
@@ -473,7 +625,8 @@ class CommunicateFirebase {
   }
 
   // Server에 Notificaion을 모두 가져오는 method
-  static Future<List<NotificationModel>> getNotificationFromUser(String userUid) async {
+  static Future<List<NotificationModel>> getNotificationFromUser(
+      String userUid) async {
     List<NotificationModel> notificationModelList = [];
 
     QuerySnapshot<Map<String, dynamic>> notifications = await _firebaseFirestore
@@ -496,7 +649,7 @@ class CommunicateFirebase {
 
   // Server에 Notification을 삭제하는 method
   static Future<void> deleteNotification(String notiUid, String userUid) async {
-   await _firebaseFirestore
+    await _firebaseFirestore
         .collection('users')
         .doc(userUid)
         .collection('notifications')

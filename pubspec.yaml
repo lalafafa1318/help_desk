@@ -29,6 +29,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations: # Add this line
+    sdk: flutter 
 
   cupertino_icons: ^1.0.2
 
@@ -128,6 +130,16 @@ dependencies:
 
   # 연결
   connectivity_plus: ^3.0.2
+
+  # Paging
+  number_paginator: ^0.2.2
+  flutter_pagination: ^0.0.8
+
+  # tap_to_expand
+  tap_to_expand: ^0.6.1
+
+  # cr_calendar
+  cr_calendar: ^1.0.0+1
 
   
   

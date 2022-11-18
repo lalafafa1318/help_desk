@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/utils/toast_util.dart';
@@ -9,7 +10,7 @@ class LoginPage extends StatelessWidget {
   // Google Login Button
   Widget googleLoginButton() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 80.0),
+      padding: EdgeInsets.symmetric(horizontal: 80.0.w),
       child: ElevatedButton.icon(
         onPressed: () async {
           await AuthController.to.googleLogin();
@@ -28,7 +29,7 @@ class LoginPage extends StatelessWidget {
   // Kakao Login Button
   Widget kakaoLoginButton() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 80.0),
+      padding: EdgeInsets.symmetric(horizontal: 80.0.w),
       child: ElevatedButton.icon(
         onPressed: () async {
           await AuthController.to.viewModel.login();
@@ -46,7 +47,7 @@ class LoginPage extends StatelessWidget {
   // Facebook Login Button
   Widget facebookLoginButton() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 80.0),
+      padding: EdgeInsets.symmetric(horizontal: 80.0.w),
       child: ElevatedButton.icon(
         onPressed: () async {
           await AuthController.to.facebookLogin();
@@ -65,7 +66,7 @@ class LoginPage extends StatelessWidget {
   // Apple Login Button
   Widget appleLoginButton() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 80.0),
+      padding: EdgeInsets.symmetric(horizontal: 80.0.w),
       child: ElevatedButton.icon(
         onPressed: () {
           print("You pressed Icon Elevated Button");
@@ -84,7 +85,7 @@ class LoginPage extends StatelessWidget {
   // Twitter Login Button
   Widget twitterLoginButton() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 80.0),
+      padding: EdgeInsets.symmetric(horizontal: 80.0.w),
       child: ElevatedButton.icon(
         onPressed: () async {
           await AuthController.to.twitterLogin();
@@ -124,13 +125,13 @@ class LoginPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               googleLoginButton(),
-              const SizedBox(height: 50.0),
+              SizedBox(height: 50.0.h),
               kakaoLoginButton(),
-              const SizedBox(height: 50.0),
+              SizedBox(height: 50.0.h),
               facebookLoginButton(),
-              const SizedBox(height: 50.0),
+              SizedBox(height: 50.0.h),
               appleLoginButton(),
-              const SizedBox(height: 50.0),
+              SizedBox(height: 50.0.h),
               twitterLoginButton(),
             ],
           ),

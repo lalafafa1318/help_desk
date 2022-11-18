@@ -6,9 +6,9 @@ import 'package:getwidget/components/avatar/gf_avatar.dart';
 import 'package:getwidget/components/card/gf_card.dart';
 import 'package:getwidget/components/list_tile/gf_list_tile.dart';
 import 'package:getwidget/position/gf_position.dart';
+import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
-import 'package:help_desk/routeDistinction/routeDistinction.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_post_page.dart';
 

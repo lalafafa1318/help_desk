@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/components/button/gf_button.dart';
 import 'package:getwidget/types/gf_button_type.dart';
@@ -47,15 +48,17 @@ class _PostingSuccessPageState extends State<PostingSuccessPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // 업로드 성공 image
-              Image.asset('assets/images/success.png', width: 70),
+              Image.asset('assets/images/success.png', width: 70.w),
 
-              const SizedBox(height: 40),
+              SizedBox(height: 40.h),
 
               // 업로드 성공 text
-              const Text('업로드가 완료되었습니다.',
-                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+              Text(
+                '업로드가 완료되었습니다.',
+                style: TextStyle(fontSize: 30.sp, fontWeight: FontWeight.bold),
+              ),
 
-              const SizedBox(height: 20),
+              SizedBox(height: 20.h),
 
               // 이전 페이지로 이동하는 Button
               GFButton(

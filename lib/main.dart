@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/bindingController/binding_controller.dart';
@@ -25,6 +26,7 @@ void main() async {
 
   runApp(
     ScreenUtilInit(
+      // 기종이 다른 스마트폰에서 화면 사이즈를 (360 * 690)으로 통일한다.
       designSize: const Size(360, 690),
       minTextAdapt: false,
       splitScreenMode: false,
@@ -35,10 +37,11 @@ void main() async {
               child: GetMaterialApp(
                 debugShowCheckedModeBanner: false,
                 initialBinding: BindingController(),
-                getPages: [
-                  GetPage(
-                      name: '/PostListPage', page: () => const PostListPage())
+                localizationsDelegates: const [
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
                 ],
+               
                 home: const Splash(),
                 builder: EasyLoading.init(),
               ),
