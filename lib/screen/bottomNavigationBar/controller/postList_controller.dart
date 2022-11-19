@@ -155,12 +155,6 @@ class PostListController extends GetxController {
     else {
       selectObsOrInq = ObsOrInqClassification.obstacleHandlingStatus;
     }
-
-    // GetBuilder를 통해 장애 처리현황 게시물 또는 문의 처리현황 게시물을 보여준다.
-    PostListController.to.update(['getObsOrInqPostDataLive']);
-
-    // 보여주는 게시물이 장애 처리현황인지 문의 처리현황인지 보여준다.
-    PostListController.to.update(['isObsOrInq']);
   }
 
   // 장애 처리현황 게시물에서 필터링하는 method

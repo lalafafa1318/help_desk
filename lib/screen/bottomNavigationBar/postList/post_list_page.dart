@@ -4,6 +4,7 @@ import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_pagination/flutter_pagination.dart';
 import 'package:flutter_pagination/widgets/button_styles.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -35,179 +36,14 @@ class PostListPage extends StatefulWidget {
 }
 
 class _PostListPageState extends State<PostListPage> {
-  // 장애/문의, 시스템별 분류코드와 처리상태 분류코드 Dropdown을 담는 Widget (차선책)
-  Widget classfication() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 45.0.w),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const PageScrollPhysics(),
-        child: SizedBox(
-          width: 700.w,
-          height: 50.h,
-          child: Row(
-            children: [
-              // 장애 처리현황인지 문의 처리현황인지 결정하는 Dropdown을 담는 Widget
-              Flexible(
-                flex: 1,
-                fit: FlexFit.tight,
-                child: obsOrInqClassification(),
-              ),
+  // PostListPage의 Pager의 현재 번호
+  int pagerCurrentPage = 0;
 
-              SizedBox(width: 10.w),
+  // PostListPage의 Pager 끝 번호
+  int pagerLastPage = 0;
 
-              // 시스템별 분류 코드에 관한 Dropdown을 담는 Widget
-              Flexible(
-                flex: 1,
-                fit: FlexFit.tight,
-                child: sysClassification(),
-              ),
-
-              // 처리상태 분류 코드에 관한 Dropdown을 담는 Widget
-              Flexible(
-                flex: 1,
-                fit: FlexFit.tight,
-                child: proClassification(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // 장애 처리현황인지 문의 처리현황인지 결정하는 Dropdown을 담는 Widget(차선책)
-  Widget obsOrInqClassification() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // 장애 처리현황/문의 처리현황 Text 띄우기
-        Text('장애/문의', style: TextStyle(color: Colors.black, fontSize: 12.sp)),
-
-        SizedBox(width: 20.w),
-
-        // 장애 처리현황인지 문의 처리현황인지 결정하는 Dropdown
-        GetBuilder<PostListController>(
-          id: 'obsOrInqDropdown',
-          builder: (controller) {
-            print('장애/문의 처리현황 DropDown 호출');
-            return DropdownButton(
-              value: PostListController.to.oSelectedValue.name,
-              style: TextStyle(color: Colors.black, fontSize: 13.sp),
-              items: ObsOrInqClassification.values.map((element) {
-                // enum의 값을 화면에 표시할 값으로 변환한다.
-                String realText = element.asText;
-
-                return DropdownMenuItem(
-                  value: element.name,
-                  child: Text(realText),
-                );
-              }).toList(),
-              onChanged: (element) {
-                // PostListController의 oSelectedValue의 값을 바꾼다.
-                PostListController.to.oSelectedValue = ObsOrInqClassification
-                    .values
-                    .firstWhere((enumValue) => enumValue.name == element);
-
-                // 장애 처리현황인지 문의 처리현황인지 결정하는 Dropdown만 재랜더링 한다.
-                PostListController.to.update(['obsOrInqDropdown']);
-              },
-            );
-          },
-        )
-      ],
-    );
-  }
-
-  // 시스템별 분류코드에 관한 Dropdown를 담는 Widget(차선책)
-  Widget sysClassification() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          '시스템',
-          style: TextStyle(color: Colors.black, fontSize: 12.sp),
-        ),
-
-        SizedBox(width: 20.w),
-
-        // 시스템 분류 코드를 나타내는 DropDown
-        GetBuilder<PostListController>(
-          id: 'sysClassificationDropdown',
-          builder: (controller) {
-            print('시스템 분류코드 DropDown 호출');
-            return DropdownButton(
-              value: PostListController.to.sSelectedValue.name,
-              style: TextStyle(color: Colors.black, fontSize: 13.sp),
-              items: SysClassification.values.map((element) {
-                // enum의 값을 화면에 표시할 값으로 변환한다.
-                String realText = element.asText;
-
-                return DropdownMenuItem(
-                  value: element.name,
-                  child: Text(realText),
-                );
-              }).toList(),
-              onChanged: (element) {
-                // PostListController의 sSelectedValue의 값을 바꾼다.
-                PostListController.to.sSelectedValue = SysClassification.values
-                    .firstWhere((enumValue) => enumValue.name == element);
-
-                // 시스템 분류 코드를 결정하는 Dropdown만 재랜더링 한다.
-                PostListController.to.update(['sysClassificationDropdown']);
-              },
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  // 처리상태 분류코드에 관한 Dropdown을 담는 Widget(차선책)
-  Widget proClassification() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        SizedBox(width: 25.w),
-
-        // 처리상태 text
-        Text(
-          '처리상태',
-          style: TextStyle(color: Colors.black, fontSize: 12.sp),
-        ),
-
-        SizedBox(width: 20.w),
-
-        // 처리상태 단계를 나타내는 Dropdown
-        GetBuilder<PostListController>(
-          id: 'proClassficationDropdown',
-          builder: (controller) {
-            print('처리상태 단계 DropDown 호출');
-            return DropdownButton(
-              value: PostListController.to.pSelectedValue.name,
-              style: TextStyle(color: Colors.black, fontSize: 13.sp),
-              items: ProClassification.values.map((element) {
-                // enum의 값을 화면에 표시될 값으로 변환한다.
-                String realText = element.asText;
-                return DropdownMenuItem(
-                  value: element.name,
-                  child: Text(realText),
-                );
-              }).toList(),
-              onChanged: (element) {
-                // PostListController의 pSelectedValue의 값을 바꾼다.
-                PostListController.to.pSelectedValue = ProClassification.values
-                    .firstWhere((enumValue) => enumValue.name == element);
-
-                // 처리 상태 분류 코드를 결정하는 Dropdown만 재랜더링 한다.
-                PostListController.to.update(['proClassficationDropdown']);
-              },
-            );
-          },
-        ),
-      ],
-    );
-  }
+  // Pager를 보여줄지 결정하는 변수
+  bool isShowPager = false;
 
   // 장애/문의, 시스템 분류 코드 그리고 처리상태 분류 코드 Dropdown을 담는다. (제 1책)
   Widget newClassification() {
@@ -384,58 +220,53 @@ class _PostListPageState extends State<PostListPage> {
 
   // 장애 처리현황 또는 문의 처리현황 게시글을 가져오는 Widget
   Widget getObsOrInqPostDataLive() {
-    return GetBuilder<PostListController>(
-      id: 'getObsOrInqPostDataLive',
-      builder: (controller) {
-        // PostListController의 selectObsOrInq 변수가 'obstacleHandlingStatus'인 경우
-        // 즉 장애 처리현황 버튼을 클릭했으면...
-        if (PostListController.to.selectObsOrInq ==
-            ObsOrInqClassification.obstacleHandlingStatus) {
-          print('장애 처리현황 게시물 가져오기');
-          return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            future: PostListController.to.getObsPostData(),
-            builder: (context, snapshot) {
-              // 데이터가 아직 오지 않았을 때
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return waitAllPostData();
-              }
+    // PostListController의 selectObsOrInq 변수가 'obstacleHandlingStatus'인 경우
+    // 즉 장애 처리현황 버튼을 클릭했으면...
+    if (PostListController.to.selectObsOrInq ==
+        ObsOrInqClassification.obstacleHandlingStatus) {
+      print('장애 처리현황 게시물 가져오기');
+      return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        future: PostListController.to.getObsPostData(),
+        builder: (context, snapshot) {
+          // 데이터가 아직 오지 않았을 때
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return waitAllPostData();
+          }
 
-              // 데이터가 왔는데 사이즈가 0이면..
-              if (snapshot.data!.size == 0) {
-                return noPostData();
-              }
-              // 사이즈가 1 이상이면...
-              else {
-                return prepareShowObsPostData(snapshot.data!.docs);
-              }
-            },
-          );
-        }
-        // PostListController의 selectObsOrInq 변수가 'inqueryHandlingStatus'인 경우
-        // 즉 문의 처리현황 버튼을 클릭했다면...
-        else {
-          print('문의 처리현황 게시물 가져오기');
-          return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            future: PostListController.to.getInqPostData(),
-            builder: (context, snapshot) {
-              // 데이터가 아직 오지 않았을 때
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return waitAllPostData();
-              }
+          // 데이터가 왔는데 사이즈가 0이면..
+          if (snapshot.data!.size == 0) {
+            return noPostData();
+          }
+          // 사이즈가 1 이상이면...
+          else {
+            return prepareShowObsPostData(snapshot.data!.docs);
+          }
+        },
+      );
+    }
+    // PostListController의 selectObsOrInq 변수가 'inqueryHandlingStatus'인 경우
+    // 즉 문의 처리현황 버튼을 클릭했다면...
+    else {
+      print('문의 처리현황 게시물 가져오기');
+      return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        future: PostListController.to.getInqPostData(),
+        builder: (context, snapshot) {
+          // 데이터가 아직 오지 않았을 때
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return waitAllPostData();
+          }
 
-              // 데이터가 왔는데 사이즈가 0이면..
-              if (snapshot.data!.size == 0) {
-                return noPostData();
-              }
-              // 사이즈가 1 이상이면...
-              else {
-                return prepareShowInqPostData(snapshot.data!.docs);
-              }
-            },
-          );
-        }
-      },
-    );
+          // 데이터가 왔는데 사이즈가 0이면..
+          if (snapshot.data!.size == 0) {
+            return noPostData();
+          }
+          // 사이즈가 1 이상이면...
+          else {
+            return prepareShowInqPostData(snapshot.data!.docs);
+          }
+        },
+      );
+    }
   }
 
   // 장애 처리현황 게시물 또는 문서 처리현황 게시물을 기다리고 있으면 Loading Bar를 띄우는 Widget
@@ -474,7 +305,8 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 장애 처리현황 게시물을 obsPostData에 추가하는 method
-  Widget prepareShowObsPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowObsPostData(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocObsPostDataInArray(allData),
       builder: (context, snapshot) {
@@ -483,17 +315,73 @@ class _PostListPageState extends State<PostListPage> {
           return waitAllPostData();
         }
 
-        // 데이터가 왔으면 Column으로 표현한다.
-        // ListView 또는 ListView.builder()로 표현할 수 있으나
-        // 이미 SliverList로 감쌌기 떄문에 의미가 없어진다.
-        return Column(
-          children: PostListController.to.obsPostData
-              .asMap()
-              .keys
-              .toList()
-              .map((index) => showObsPostData(index))
-              .toList(),
-        );
+        // 장애 처리현황 게시물이 5개 이상이면? -> Pager를 보여준다.
+        if (PostListController.to.obsPostData.length >= 5) {
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) {
+              isShowPager = true;
+              PostListController.to.update(['showPager']);
+            },
+          );
+          // 한 페이지당 5개 게시물을 가져온다.
+          return GetBuilder<PostListController>(
+            id: 'updateObsPostData',
+            builder: (controller) {
+              print('PostListPage - updateObsPostData 호출');
+
+              // 처음 페이지를 보여줄 떄
+              if (pagerCurrentPage == 0) {
+                return Column(
+                  children: PostListController.to.obsPostData
+                      .asMap()
+                      .keys
+                      .toList()
+                      .getRange(pagerCurrentPage, pagerCurrentPage + 5)
+                      .map((index) => showObsPostData(index))
+                      .toList(),
+                );
+              }
+
+              // 중간 중간 페이지를 보여줄 떄
+              else if (pagerCurrentPage + 1 != pagerLastPage) {
+                return Column(
+                  children: PostListController.to.obsPostData
+                      .asMap()
+                      .keys
+                      .toList()
+                      .getRange(pagerCurrentPage * 5, pagerCurrentPage * 5 + 5)
+                      .map((index) => showObsPostData(index))
+                      .toList(),
+                );
+              }
+
+              // 마지막 페이지를 보여줄 떄
+              else {
+                return Column(
+                  children: PostListController.to.obsPostData
+                      .asMap()
+                      .keys
+                      .toList()
+                      .getRange(pagerCurrentPage * 5,
+                          PostListController.to.obsPostData.length)
+                      .map((index) => showObsPostData(index))
+                      .toList(),
+                );
+              }
+            },
+          );
+        }
+        // 장애 처리현황 게시물이 5개 미만이면? -> Pager를 보여주지 않는다.
+        else {
+          return Column(
+            children: PostListController.to.obsPostData
+                .asMap()
+                .keys
+                .toList()
+                .map((index) => showObsPostData(index))
+                .toList(),
+          );
+        }
       },
     );
   }
@@ -508,6 +396,9 @@ class _PostListPageState extends State<PostListPage> {
           waitAllPostData();
         }
 
+        // 데이터가 왔으면 Column으로 표현한다.
+        // ListView 또는 ListView.builder()로 표현할 수 있으나
+        // 이미 SliverList로 감쌌기 떄문에 의미가 없어진다.
         return Column(
           children: PostListController.to.inqPostData
               .asMap()
@@ -985,78 +876,12 @@ class _PostListPageState extends State<PostListPage> {
     );
   }
 
-  // 장애 처리현황 게시판 보기, 문의 처리현황 게시판 보기 Button을 제공하는 Widget
-  // 지금은 쓰지 않지만 최악의 상황에 쓴다.
-  Widget obsOrInqButtons() {
-    return ExpansionTile(
-      backgroundColor: Colors.white,
-      title: const Text('장애/문의 게시물 선택'),
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20.0.w, vertical: 10.0.h),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  // PostListController의 selectObsOrInq 값을 업데이트 한다.
-                  PostListController.to.selectObsOrInq =
-                      ObsOrInqClassification.obstacleHandlingStatus;
-
-                  // 장애 처리현황 또는 문의 처리현황 개시물을 가져오는 로직만 재랜더링 한다.
-                  PostListController.to.update(['getObsOrInqPostDataLive']);
-                },
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                    (Set<MaterialState> states) {
-                      if (states.contains(MaterialState.pressed))
-                        return Colors.blueAccent;
-                      return Colors.white;
-                    },
-                  ),
-                ),
-                child: const Text(
-                  '장애 처리현황',
-                  style: TextStyle(color: Colors.black),
-                ),
-              ),
-              SizedBox(width: 10.w),
-              ElevatedButton(
-                onPressed: () {
-                  // PostListController의 selectObsOrInq 값을 업데이트 한다.
-                  PostListController.to.selectObsOrInq =
-                      ObsOrInqClassification.inqueryHandlingStatus;
-
-                  // 장애 처리현황 또는 문의 처리현황 개시물을 가져오는 로직만 재랜더링 한다.
-                  PostListController.to.update(['getObsOrInqPostDataLive']);
-
-                  // setState(() {});
-                },
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                    (Set<MaterialState> states) {
-                      if (states.contains(MaterialState.pressed))
-                        return Colors.blueAccent;
-                      return Colors.white;
-                    },
-                  ),
-                ),
-                child: const Text(
-                  '문의 처리현황',
-                  style: TextStyle(color: Colors.black),
-                ),
-              ),
-            ],
-          ),
-        )
-      ],
-    );
-  }
-
-  // 전체적으로 화면을 build
   @override
-  Widget build(BuildContext context) {
-    print('PostListPage - build() 실행');
+  void initState() {
+    super.initState();
+
+    print('PostListPage - initState() 호출');
+
     // 장애/문의 : default는 '장애 처리현황'
     // 시스템 : deault는 'ALL'
     // 처리상태 : default는 'ALL'
@@ -1067,16 +892,32 @@ class _PostListPageState extends State<PostListPage> {
     PostListController.to.pSelectedValue = ProClassification.ALL;
     PostListController.to.selectObsOrInq =
         ObsOrInqClassification.obstacleHandlingStatus;
+  }
+
+  @override
+  void dispose() {
+    print('PostListPage - dispose() 호출');
+
+    super.dispose();
+  }
+
+
+  // 전체적으로 화면을 build
+  @override
+  Widget build(BuildContext context) {
+    print('PostListPage - build() 실행');
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.grey,
-        onPressed: () {
-          // 장애 처리현황 또는 문의 처리현황 게시물을 선택해서 보여주는 method를 실행한다.
-          PostListController.to.changePost();
-        },
-        child: const Icon(Icons.change_circle_outlined, size: 40),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   backgroundColor: Colors.grey,
+      //   onPressed: () {
+      //     // 장애 처리현황 또는 문의 처리현황 게시물을 선택해서 보여주는 method를 실행한다.
+      //     PostListController.to.changePost();
+
+      //     setState(() {});
+      //   },
+      //   child: const Icon(Icons.change_circle_outlined, size: 40),
+      // ),
       body: CustomScrollView(
         physics: const PageScrollPhysics(),
         slivers: [
@@ -1101,34 +942,23 @@ class _PostListPageState extends State<PostListPage> {
 
           // 장애 처리현황인지 문의 처리현황인지 나타내는 Text
           SliverToBoxAdapter(
-            child: GetBuilder<PostListController>(
-              id: 'isObsOrInq',
-              builder: (controller) {
-                return Container(
-                  margin: EdgeInsets.only(left: 10.w, top: 10.h),
-                  width: ScreenUtil().screenWidth,
-                  height: 50.h,
-                  child: Text(
-                    PostListController.to.selectObsOrInq ==
-                            ObsOrInqClassification.obstacleHandlingStatus
-                        ? '장애 처리현황'
-                        : '문의 처리현황',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                );
-              },
+            child: Container(
+              margin: EdgeInsets.only(left: 10.w, top: 10.h),
+              width: ScreenUtil().screenWidth,
+              height: 50.h,
+              child: Text(
+                PostListController.to.selectObsOrInq ==
+                        ObsOrInqClassification.obstacleHandlingStatus
+                    ? '장애 처리현황'
+                    : '문의 처리현황',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
-
-          // 장애 처리현황 또는 문의 처리현황을 선택하는 Widget
-          // 지금은 쓰지 않지만 최악의 경우 쓴다.
-          // SliverToBoxAdapter(
-          //   child: obsOrInqButtons(),
-          // ),
 
           // 장애 처리현황 또는 문의 처리현황 게시물을 가져오는 Widget
           SliverList(
@@ -1137,6 +967,59 @@ class _PostListPageState extends State<PostListPage> {
                 // 장애 처리현황 또는 문의 처리현황 게시글을 가져오는 Widget
                 getObsOrInqPostDataLive(),
               ],
+            ),
+          ),
+
+          // Pager 입니다.
+          // 장애 처리현황, 문의 처리현황과 같은 종류별 게시물이 5개 미만이면 Pager를 보여주지 않습니다.
+          SliverToBoxAdapter(
+            child: GetBuilder<PostListController>(
+              id: 'showPager',
+              builder: (controller) {
+                print('PostListPage - showPager 호출');
+
+                int postDataLength = 0;
+
+                // 장애 처리현황, 문의 처리현황 마다 다르게 Pager의 numberPages를 결정한다.
+                if (PostListController.to.selectObsOrInq ==
+                    ObsOrInqClassification.obstacleHandlingStatus) {
+                  postDataLength = PostListController.to.obsPostData.length;
+                }
+                //
+                else {
+                  postDataLength = PostListController.to.inqPostData.length;
+                }
+                return isShowPager == true
+                       // Pager를 보여준다.
+                    ? Container(
+                        padding: EdgeInsets.all(8.0.w),
+                        margin: EdgeInsets.only(bottom: 10.h),
+                        width: ScreenUtil().screenWidth,
+                        height: 50.h,
+                        child: NumberPaginator(
+                          numberPages: postDataLength % 5 == 0
+                              ? pagerLastPage = (postDataLength / 5).floor()
+                              : pagerLastPage =
+                                  (postDataLength / 5).floor() + 1,
+                          initialPage: pagerCurrentPage,
+                          onPageChange: (int pagerUpdatePage) async {
+                            pagerCurrentPage = pagerUpdatePage;
+
+                            PostListController.to.update(['showPager']);
+
+                            await Future.delayed(
+                                const Duration(milliseconds: 5));
+
+                            PostListController.to.update(['updateObsPostData']);
+                          },
+                        ),
+                      )
+                       // Pager를 보여주지 않는다.
+                    : const Visibility(
+                        visible: false,
+                        child: Text('Pager가 보이지 않습니다.'),
+                      );
+              },
             ),
           ),
         ],
