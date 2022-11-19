@@ -474,8 +474,7 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 장애 처리현황 게시물을 obsPostData에 추가하는 method
-  Widget prepareShowObsPostData(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowObsPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocObsPostDataInArray(allData),
       builder: (context, snapshot) {
@@ -500,8 +499,7 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 문의 처리현황 게시물을 inqPostData에 추가하는 method
-  Widget prepareShowInqPostData(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowInqPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocInqPostDataInArray(allData),
       builder: (context, snapshot) {
@@ -551,10 +549,12 @@ class _PostListPageState extends State<PostListPage> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 게시물의 index를 표시한다.
             Container(
               margin: EdgeInsets.only(top: 30.h),
               child: Text('${index + 1}'),
             ),
+            // 게시물
             Expanded(
               child: GFCard(
                 elevation: 2.0,

@@ -92,8 +92,7 @@ class PostListController extends GetxController {
 
   // Database에서 받은 장애 처리현황 게시물을 obsPostData에 추가하는 method
   // 그리고 게시물에 대한 사용자 정보를 파악하여 obsUserData에 추가하는 method
-  Future<List<PostModel>> allocObsPostDataInArray(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
+  Future<List<PostModel>> allocObsPostDataInArray(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
     // 장애 처리현황 게시물을 담고 있는 obsPostData
     // 게시물에 대한 사용자 정보를 담고 있는 obsUserData를 clear 한다.
     obsPostData.clear();
@@ -119,8 +118,7 @@ class PostListController extends GetxController {
 
   // Database에서 받은 문의 처리현황 게시물을 inqPostData에 추가하는 method
   // 그리고 게시물에 대한 사용자 정보를 파악하여 inqUserData에 추가하는 method
-  Future<List<PostModel>> allocInqPostDataInArray(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
+  Future<List<PostModel>> allocInqPostDataInArray(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
     // 문의 처리현황 게시물을 담고 있는 inqPostData
     // 게시물에 대한 사용자 정보를 담고 있는 inqUserData를 clear 한다.
 
@@ -407,29 +405,19 @@ class PostListController extends GetxController {
               ? processDate
               : null,
       // 실제 처리시간 (장애 처리현황 게시물에 한함)
-      actualProcessTime:
-          postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus
-              ? '${commentHSelectedValue.asText.substring(0,2)}:${commentMSelectedValue.asText.substring(0,2)}'
-              : null,
+      actualProcessTime: postData.obsOrInq ==
+              ObsOrInqClassification.obstacleHandlingStatus
+          ? '${commentHSelectedValue.asText.substring(0, 2)}:${commentMSelectedValue.asText.substring(0, 2)}'
+          : null,
     );
 
     // Database에 comment(댓글)을 추가한다.
     await CommunicateFirebase.setCommentData(commentModel, postData);
   }
 
-  // // 사용자가 해당 commen에 대해서 좋아요 버튼을 클릭할 떄
-  // // 서버에 존재하는 comment의 whoCommentLike 속성에 사용자 uid가 있는지 판별하는 method
-  // Future<bool> checkLikeUsersFromTheComment(
-  //     CommentModel comment, String userUid) async {
-  //   bool isResult = await CommunicateFirebase.checkLikeUsersFromTheComment(
-  //       comment, userUid);
-
-  //   return isResult;
-  // }
 
   // Database에 저장된 comment(댓글)의 whoCommentLike 속성에 사용자 uid를 추가한다.
-  Future<void> addWhoCommentLike(
-      CommentModel comment, PostModel postData) async {
+  Future<void> addWhoCommentLike(CommentModel comment, PostModel postData) async {
     await CommunicateFirebase.addWhoCommentLike(comment, postData);
   }
 
@@ -439,8 +427,7 @@ class PostListController extends GetxController {
   }
 
   // 게시물이 삭제되었는지 확인하는 method
-  Future<bool> isDeletePost(
-      ObsOrInqClassification obsOrInq, String postUid) async {
+  Future<bool> isDeletePost(ObsOrInqClassification obsOrInq, String postUid) async {
     // Database에서 게시물의 postUid가 있는지 없는지 확인한다.
     return await CommunicateFirebase.isDeletePost(obsOrInq, postUid);
   }
@@ -466,8 +453,11 @@ class PostListController extends GetxController {
     inqPostData.clear();
     inqUserData.clear();
 
-    // conditionTextPostDatas.clear();
-    // conditionTextUserDatas.clear();
+    conditionObsPostData.clear();
+    conditionObsUserData.clear();
+
+    conditionInqPostData.clear();
+    conditionInqUserData.clear();
 
     super.onClose();
   }

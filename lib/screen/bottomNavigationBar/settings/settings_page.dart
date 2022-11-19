@@ -21,7 +21,7 @@ class SettingsPage extends StatelessWidget {
   // 아바타 view(name, description 포함)  + Edit Outlined Button view
   Widget topView(SettingsController controller) {
     return SizedBox(
-      width: Get.width,
+      width: ScreenUtil().screenWidth,
       height: 270.h,
       child: Stack(
         alignment: Alignment.center,
@@ -33,7 +33,7 @@ class SettingsPage extends StatelessWidget {
           Align(
             alignment: Alignment.topRight,
             child: Container(
-              margin: const EdgeInsets.only(top: 15, right: 10),
+              margin: EdgeInsets.only(top: 15.h, right: 10.w),
               child: editOutlinedButtonView(),
             ),
           ),
@@ -82,7 +82,7 @@ class SettingsPage extends StatelessWidget {
         Text(
           // '${SettingsController.to.settingUser!.userName}',
           '${controller.settingUser!.userName}',
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+          style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w400),
         ),
 
         SizedBox(height: 10.h),
@@ -120,9 +120,9 @@ class SettingsPage extends StatelessWidget {
   // 기능 View 입니다.
   Widget functionView() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30.0),
+      padding: EdgeInsets.symmetric(horizontal: 30.0.w),
       child: Container(
-        width: Get.width,
+        width: ScreenUtil().screenWidth,
         height: 210.h,
         color: Colors.white70,
         child: ListView(
@@ -130,12 +130,12 @@ class SettingsPage extends StatelessWidget {
             // 프로필 변경 이동 페이지 칸
             changeProfileView(),
 
-            const Divider(height: 3, thickness: 1),
+            Divider(height: 3.h, thickness: 1.w),
 
             // 내가 쓴 글 이동 페이지 칸
             writeView(),
 
-            const Divider(height: 3, thickness: 1),
+            Divider(height: 3.h, thickness: 1.w),
 
             // 내가 댓글 단 글 이동 페이지 칸
             commentView(),
@@ -153,24 +153,24 @@ class SettingsPage extends StatelessWidget {
   //  프로필 변경 이동 페이지 칸
   Widget changeProfileView() {
     return SizedBox(
-      height: 50,
+      height: 50.h,
       child: InkWell(
         onTap: () {
-          Get.to(() => EditProfilePage());
+          Get.to(() => const EditProfilePage());
         },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             // 아이콘
-            Icon(Icons.change_circle_outlined, size: 20),
+            const Icon(Icons.change_circle_outlined, size: 20),
 
             // 아이콘과 제목 간격을 10만큼 넓힌다.
-            SizedBox(width: 10),
+            SizedBox(width: 10.w),
 
             // 제목
             Text(
               '프로필 수정',
-              style: TextStyle(fontSize: 20),
+              style: TextStyle(fontSize: 20.sp),
             ),
           ],
         ),
@@ -186,20 +186,20 @@ class SettingsPage extends StatelessWidget {
         Get.to(() => const WhatIWrotePage());
       },
       child: SizedBox(
-        height: 50,
+        height: 50.h,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             // 아이콘
-            Icon(Icons.list, size: 20),
+            const Icon(Icons.list, size: 20),
 
             // 아이콘과 제목 간격을 5만큼 넓힌다.
-            SizedBox(width: 10),
+            SizedBox(width: 10.w),
 
             // 제목
             Text(
               '내가 쓴 글',
-              style: TextStyle(fontSize: 20),
+              style: TextStyle(fontSize: 20.sp),
             ),
           ],
         ),
@@ -215,20 +215,20 @@ class SettingsPage extends StatelessWidget {
         Get.to(() => const WhatICommentPage());
       },
       child: SizedBox(
-        height: 50,
+        height: 50.h,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             // 아이콘
             Icon(Icons.comment_bank_outlined, size: 20),
 
             // 아이콘과 제목 간격을 10만큼 넓힌다.
-            SizedBox(width: 10),
+            SizedBox(width: 10.w),
 
             // 제목
             Text(
               '내가 댓글 단 글',
-              style: TextStyle(fontSize: 20),
+              style: TextStyle(fontSize: 20.sp),
             ),
           ],
         ),
@@ -239,24 +239,24 @@ class SettingsPage extends StatelessWidget {
   //  로그아웃 칸
   Widget logoutView() {
     return SizedBox(
-      height: 50,
+      height: 50.h,
       child: InkWell(
         onTap: () {
           AuthController.to.notKakaoLogout();
         },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             // 아이콘
-            Icon(Icons.logout_outlined, size: 20),
+            const Icon(Icons.logout_outlined, size: 20),
 
             // 아이콘과 제목 간격을 10만큼 넓힌다.
-            SizedBox(width: 10),
+            SizedBox(width: 10.w),
 
             // 제목
             Text(
               '로그아웃',
-              style: TextStyle(fontSize: 20),
+              style: TextStyle(fontSize: 20.sp),
             ),
           ],
         ),

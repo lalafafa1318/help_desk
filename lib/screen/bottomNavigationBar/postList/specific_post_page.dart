@@ -28,6 +28,7 @@ import 'package:help_desk/screen/bottomNavigationBar/controller/settings_control
 import 'package:help_desk/screen/bottomNavigationBar/postList/post_list_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_photo_view_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
+import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:tap_to_expand/tap_to_expand.dart';
 
@@ -1592,11 +1593,11 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-// Method
-// PostListPage에서 Routing 됐는지
-// KeyWordPostListPage에서 Routing 됐는지
-// WhatIWrotePage에서 Routing 됐는지
-// WhatICommentPage에서 Routing 됐는지 결정하는 method
+ // Method
+ // PostListPage에서 Routing 됐는지
+ // KeyWordPostListPage에서 Routing 됐는지
+ // WhatIWrotePage에서 Routing 됐는지
+ // WhatICommentPage에서 Routing 됐는지 결정하는 method
   void whereRouting() {
     switch (Get.arguments[1]) {
       // PostListPage의 장애 처리현황 게시물을 Tab했다면?
@@ -1617,21 +1618,31 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         whereRoute =
             RouteDistinction.keywordPostListPageInqPostToSpecificPostPage;
         break;
-      //
-      case RouteDistinction.whatIWrotePage_to_specificPostPage:
-        whereRoute = RouteDistinction.whatIWrotePage_to_specificPostPage;
+      // WhatIWrotePostPage의 장애 처리현황 게시물을 Tab했다면?
+      case RouteDistinction.whatIWrotePageObsPostToSpecificPostPage:
+        whereRoute = RouteDistinction.whatIWrotePageObsPostToSpecificPostPage;
         break;
-      case RouteDistinction.whatICommentPage_to_specificPostPage:
-        whereRoute = RouteDistinction.whatICommentPage_to_specificPostPage;
+      // WhatIWrotePostPage의 문의 처리현황 게시물을 Tab했다면?
+      case RouteDistinction.whatIWrotePageInqPostToSpecificPostPage:
+        whereRoute = RouteDistinction.whatIWrotePageInqPostToSpecificPostPage;
         break;
+      // WhatICommentPage의 장애 처리현황 게시물을 Tab했다면?
+      case RouteDistinction.whatICommentPageObsPostToSpecificPostPage:
+        whereRoute = RouteDistinction.whatICommentPageObsPostToSpecificPostPage;
+        break;
+      // WhatICommentPage의 문의 처리현황 게시물을 Tab했다면?
+      case RouteDistinction.whatICommentPageInqPostToSpecificPostPage:
+        whereRoute = RouteDistinction.whatICommentPageInqPostToSpecificPostPage;
+        break;
+      // Notificationpage에서 알림 게시물을 Tab했다면?
       case RouteDistinction.notificationPage_to_specifcPostPage:
         whereRoute = RouteDistinction.notificationPage_to_specifcPostPage;
         break;
     }
   }
 
-// 이전 페이지에서 넘겨 받은 index를 통해
-// 게시물 데이터와 사용자 정보 데이터를 copy(clone)하는 method
+  // 이전 페이지에서 넘겨 받은 index를 통해
+  // 게시물 데이터와 사용자 정보 데이터를 copy(clone)하는 method
   void copyPostAndUserData() {
     int index = Get.arguments[0];
 
@@ -1670,23 +1681,46 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       // Tab했던 문의 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
       userData = PostListController.to.conditionInqUserData[index].copyWith();
     }
-    // whatIWrotePage에서 Routing 했었다면?
+    // WhatIWrotePostPage의 장애 처리현황 게시물을 Tab해서 Routing 되었을 경우
     else if (whereRoute ==
-        RouteDistinction.whatIWrotePage_to_specificPostPage) {
-      // postData를 복제한다.
-      postData = SettingsController.to.whatIWrotePostDatas[index].copyWith();
+        RouteDistinction.whatIWrotePageObsPostToSpecificPostPage) {
+      // Tab했던 장애 처리현황 게시물을 copy(clone)한다.
+      postData = SettingsController.to.obsWhatIWrotePostDatas[index].copyWith();
 
-      // userData를 복제한다.
-      userData = SettingsController.to.whatIWroteUserDatas[index].copyWith();
+      // Tab했던 장애 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
+      userData = SettingsController.to.obsWhatIWroteUserDatas[index].copyWith();
     }
-    // whatICommentPage에서 Routing 했었다면?
+    // WhatIWrotePostPage의 문의 처리현황 게시물을 Tab해서 Routing 되었을 경우
     else if (whereRoute ==
-        RouteDistinction.whatICommentPage_to_specificPostPage) {
-      // postData를 복제한다.
-      postData = SettingsController.to.whatICommentPostDatas[index].copyWith();
+        RouteDistinction.whatIWrotePageInqPostToSpecificPostPage) {
+      // Tab했던 문의 처리현황 게시물을 copy(clone)한다.
+      postData = SettingsController.to.inqWhatIWrotePostDatas[index].copyWith();
 
-      // userData를 복제한다.
-      userData = SettingsController.to.whatICommentUserDatas[index].copyWith();
+      // Tab했던 문의 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
+      userData = SettingsController.to.inqWhatIWroteUserDatas[index].copyWith();
+    }
+    // WhatICommentPostPage의 장애 처리현황 게시물을 Tab해서 Routing 되었을 경우
+    else if (whereRoute ==
+        RouteDistinction.whatICommentPageObsPostToSpecificPostPage) {
+      // Tab했던 장애 처리현황 게시물을 copy(clone)한다.
+      postData =
+          SettingsController.to.obsWhatICommentPostDatas[index].copyWith();
+
+      // Tab했던 장애 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
+      userData =
+          SettingsController.to.obsWhatICommentUserDatas[index].copyWith();
+    }
+
+    // WhatICommentPostPage의 문의 처리현황 게시물을 Tab해서 Routing 되었을 경우
+    else if (whereRoute ==
+        RouteDistinction.whatICommentPageInqPostToSpecificPostPage) {
+      // Tab했던 문의 처리현황 게시물을 copy(clone)한다.
+      postData =
+          SettingsController.to.inqWhatICommentPostDatas[index].copyWith();
+
+      // Tab했던 문의 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
+      userData =
+          SettingsController.to.inqWhatICommentUserDatas[index].copyWith();
     }
   }
 
@@ -1988,8 +2022,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // comment의 whoCommentLike 속성에 사용자 Uid가 있는지 없는지에 따라 다른 로직을 구현하는 method
-  Future<void> isUserUidInWhoCommentLikeFromCommentData(
-      bool isResult, CommentModel comment) async {
+  Future<void> isUserUidInWhoCommentLikeFromCommentData(bool isResult, CommentModel comment) async {
     // comment의 whoCommentLike 속성에 사용자 Uid가 있었다.
     if (isResult) {
       // 하단 snackBar로 "이미 공감한 comment 입니다 :)" 표시한다.
@@ -2309,28 +2342,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
               answerInformationInput(),
 
               SizedBox(height: 20.h),
-
-              // 답변 정보 입력을 보여주는 Widget
-              // GetBuilder<PostListController>(
-              //   id: 'showAnswerInformationInput',
-              //   builder: (controller) {
-              //     return isShowAnswerInformationInput == true
-              //         ? answerInformationInput()
-              //         : const Visibility(
-              //             visible: false,
-              //             child: Text('답변 정보 입력 Widget을 보여주지 않습니다.'),
-              //           );
-              //   },
-              // ),
-
-              // GetBuilder<PostListController>(
-              //   id: 'showAnswerInformationInputBottomSize',
-              //   builder: (controller) {
-              //     return isShowAnswerInformationInput == true
-              //         ? SizedBox(height: 20.h)
-              //         : SizedBox(height: 0.h);
-              //   },
-              // ),
             ],
           ),
         ),
