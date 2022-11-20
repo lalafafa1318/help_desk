@@ -23,6 +23,9 @@ enum RouteDistinction {
   // WhatICommentPage의 문의 처리현황 게시물을 Tab -> SpecificPostPage로 Routing할 떄 증명하는 상수값
   whatICommentPageInqPostToSpecificPostPage,
 
-  // NotificationPage -> SpecificPostPage로 Routing할 떄 증명 상수값
-  notificationPage_to_specifcPostPage,
+  // NotificationPage의 장애 처리현황 게시물을 Tab -> SpecificPostPage로 Routing할 떄 증명 상수값
+  notificationPageObsToSpecifcPostPage,
+
+  // NotificationPage의 문의 처리현황 게시물을 Tab -> SpecificPostPage로 Routing할 떄 증명 상수값
+  notificationPageInqToSpecifcPostPage,
 }

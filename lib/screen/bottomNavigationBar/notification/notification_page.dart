@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
+import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/model/notification_model.dart';
 import 'package:help_desk/model/post_model.dart';
@@ -20,32 +22,35 @@ class NotificationPage extends StatelessWidget {
   // topView 입니다.
   Widget topView() {
     return SizedBox(
-      width: Get.width,
+      width: ScreenUtil().screenWidth,
       child: Row(
         children: [
-          const SizedBox(width: 5),
+          SizedBox(width: 5.h),
 
           // 이전 페이지로 가는 Button
           IconButton(
             onPressed: () {
               BottomNavigationBarController.to.deleteBottomNaviBarHistory();
             },
-            icon: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 2),
-              child: Icon(
+            icon: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 2.w),
+              child: const Icon(
                 Icons.arrow_back,
                 color: Colors.black,
               ),
             ),
           ),
 
-          const SizedBox(width: 10),
+          SizedBox(width: 10.w),
 
           // 알림 목록 text 입니다.
-          const Text(
+          Text(
             '알림 목록',
             style: TextStyle(
-                color: Colors.black, fontSize: 18, fontWeight: FontWeight.w500),
+              color: Colors.black,
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -55,51 +60,53 @@ class NotificationPage extends StatelessWidget {
   // 새로 고침하는 View 입니다.
   Widget refreshView() {
     return Container(
-      margin: const EdgeInsets.only(left: 5, right: 5, bottom: 5),
+      margin: EdgeInsets.only(left: 5.w, right: 5.w, bottom: 5.h),
       alignment: Alignment.centerRight,
       child: IconButton(
         onPressed: () async {
-          await NotificationController.to.getNotifcationFromUser(
-              SettingsController.to.settingUser!.userUid);
+          // await NotificationController.to.getNotifcationFromUser(
+          //     SettingsController.to.settingUser!.userUid);
 
-          // 필요한 부분만 재랜더링 한다.
-          NotificationController.to.update();
+          // GetBuilder를 통해 재랜더링 한다.
+          NotificationController.to.update(['getNotificationData']);
         },
         icon: const Icon(Icons.refresh_outlined),
       ),
     );
   }
 
-  // 알림 목록 view 입니다.
-  Widget notificationView() {
+  // 알림 데이터를 준비하는 Widget 입니다.
+  Widget prepareNotificationData() {
     return Expanded(
       flex: 1,
-      child: FutureBuilder<List<NotificationModel>>(
-          future: NotificationController.to.getNotifcationFromUser(
-            SettingsController.to.settingUser!.userUid,
-          ),
-          builder: (context, snapshot) {
-            // snapshot을 기다립니다.
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
+      child: GetBuilder<NotificationController>(
+        id: 'getNotificationData',
+        builder: (controller) {
+          return FutureBuilder<List<NotificationModel>>(
+            future: NotificationController.to.getNotifcationFromUser(
+              SettingsController.to.settingUser!.userUid,
+            ),
+            builder: (context, snapshot) {
+              // snapshot을 기다립니다.
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-            return GetBuilder<NotificationController>(
-              builder: (controller) {
-                // snapshot이 도착했으나 데이터가 empty인 경우
-                if (NotificationController.to.notificationModelList.isEmpty) {
-                  return noNotificationData();
-                }
+              // snapshot이 도착했으나 데이터가 empty인 경우
+              if (NotificationController.to.notificationModelList.isEmpty) {
+                return noNotificationData();
+              }
 
-                return ListView.builder(
-                  itemCount:
-                      NotificationController.to.notificationModelList.length,
-                  itemBuilder: (BuildContext context, int index) =>
-                      messageView(index),
-                );
-              },
-            );
-          }),
+              return ListView.builder(
+                itemCount:
+                    NotificationController.to.notificationModelList.length,
+                itemBuilder: (BuildContext context, int index) =>
+                    messageView(index),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -108,20 +115,20 @@ class NotificationPage extends StatelessWidget {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           // 금지 아이콘
-          Icon(
+          const Icon(
             Icons.info_outline,
             size: 60,
             color: Colors.grey,
           ),
 
-          SizedBox(height: 10),
+          SizedBox(height: 10.h),
 
           // 검색 결과가 없다는 Text
           Text(
             '알림 데이터가 없습니다.',
-            style: TextStyle(color: Colors.grey, fontSize: 20),
+            style: TextStyle(color: Colors.grey, fontSize: 20.sp),
           ),
         ],
       ),
@@ -130,26 +137,43 @@ class NotificationPage extends StatelessWidget {
 
   // 알림 메시지 view 입니다.
   Widget messageView(int index) {
+    // Notification을 Tap하면 SpecificPostPage로 Routing 할 때 0번쨰 argument
+    int idx = -1;
+
     // index를 통해 해당하는 NotificationModel을 가져온다.
     NotificationModel notificationModel =
         NotificationController.to.notificationModelList[index];
 
-    // PostListController.to.postDatas를 간단하게 명명한다.
-    // List<PostModel> postDatas = PostListController.to.postDatas;
+    // NotifcationModel이 장애 처리현황과 관련이 있다.
+    if (notificationModel.belongNotiObsOrInq ==
+        ObsOrInqClassification.obstacleHandlingStatus) {
+      // PostListController.to.obsPostData를 간단하게 명명한다.
+      List<PostModel> obsPostDatas = PostListController.to.obsPostData;
 
-    // Notification을 Tap하면 SpecificPostPage로 Routing 할 때 0번쨰 argument
-    int idx = -1;
+      // NotificationModel과 관련된 장애 처리현황 게시물과 그에 따른 사용자(user) 데이터의 index를 찾는다.
+      for (int i = 0; i < obsPostDatas.length; i++) {
+        if (obsPostDatas[i].postUid == notificationModel.belongNotiPostUid) {
+          idx = i;
+          break;
+        }
+      }
+    }
+    // NotificationModel이 문의 처리현황과 관련이 있다.
+    else {
+      List<PostModel> inqPostDatas = PostListController.to.inqPostData;
 
-    // notification에 따른 게시물(post) 데이터와 그에 따른 사용자(user) 데이터의 index를 찾는다.
-    // for (int i = 0; i < postDatas.length; i++) {
-    //   if (postDatas[i].postUid == notificationModel.belongNotiPostUid) {
-    //     idx = i;
-    //     break;
-    //   }
-    // }
+      // NotificationModel과 관련된 문의 처리현황 게시물과 그에 따른 사용자(user) 데이터의 index를 찾는다.
+      for (int i = 0; i < inqPostDatas.length; i++) {
+        if (inqPostDatas[i].postUid == notificationModel.belongNotiPostUid) {
+          idx = i;
+          break;
+        }
+      }
+    }
 
     return Column(
       children: [
+        // 알림을 삭제하는 Slidable
         Slidable(
           endActionPane: ActionPane(
             motion: const ScrollMotion(),
@@ -161,53 +185,56 @@ class NotificationPage extends StatelessWidget {
                   NotificationController.to.notificationModelList
                       .removeAt(index);
 
-                  // Notifcation과 관련된 게시물이 Server에 삭제되었는지 확인한다.
-                  // bool isDeletePostResult = await PostListController.to
-                  //     .isDeletePost(notificationModel.belongNotiPostUid);
+                  // Notifcation과 관련된 장애 처리현황 또는 문의 처리현황 게시물이 Database에 삭제되었는지 확인한다.
+                  bool isDeletePostResult =
+                      await PostListController.to.isDeletePost(
+                    notificationModel.belongNotiObsOrInq,
+                    notificationModel.belongNotiPostUid,
+                  );
 
-                  // Notification과 관련된 게시물이 삭제되었다면?
-                  // if (isDeletePostResult) {
-                  //   // Notification과 관련된 게시물 Uid가 notiPost Array의 몇번째 index에 있는지 확인한다.
-                  //   int index = NotificationController.to.notiPost
-                  //       .indexOf(notificationModel.belongNotiPostUid);
+                  // Notification과 관련된 장애 처리현황 또는 문의 처리현황 게시물이 삭제되었다면?
+                  if (isDeletePostResult) {
+                    // Notification과 관련된 게시물 Uid가 notiPost Array의 몇번째 index에 있는지 확인한다.
+                    int index = NotificationController.to.notiPost
+                        .indexOf(notificationModel.belongNotiPostUid);
 
-                  //   // 왜 index != -1인 코드를 배치했는가?
-                  //   // case 1: A는 B가 올린 게시물의 알림을 받았다. -> B는 게시물을 삭제했다. -> A는 알림을 삭제한다.
-                  //   // -> 첫번쨰 알림을 지울 때는 문제가 없지만 두번쨰 알림부터 지우려면 문제가 발생한다. 따라서 위 코드를 배치했다.
+                    // 왜 index != -1인 코드를 배치했는가?
+                    // case 1: A는 B가 올린 게시물의 알림을 받았다. -> B는 게시물을 삭제했다. -> A는 알림을 삭제한다.
+                    // -> 첫번쨰 알림을 지울 때는 문제가 없지만 두번쨰 알림부터 지우려면 문제가 발생한다. 따라서 위 코드를 배치했다.
 
-                  //   // case2 : A는 B가 올린 게시물의 알림을 받았다. -> B는 게시물을 삭제했다. -> A는 앱을 재부팅하거나 PostListPage를 거쳤다.
-                  //   // -> 첫번쨰 알림을 지울 떄는 문제가 없지만 두번쨰 알림부터 지우려면 문제가 발생한다. 따라서 위 코드를 배치했다.
-                  //   if (index != -1) {
-                  //     // 실시간으로 Listen 하는 것을 중지하는 것을 넘어서 삭제한다.
-                  //     NotificationController.to.listenList[index].cancel();
+                    // case2 : A는 B가 올린 게시물의 알림을 받았다. -> B는 게시물을 삭제했다. -> A는 앱을 재부팅하거나 PostListPage를 거쳤다.
+                    // -> 첫번쨰 알림을 지울 떄는 문제가 없지만 두번쨰 알림부터 지우려면 문제가 발생한다. 따라서 위 코드를 배치했다.
+                    if (index != -1) {
+                      // 실시간으로 Listen 하는 것을 중지하는 것을 넘어서 삭제한다.
+                      NotificationController.to.listenList[index].cancel();
 
-                  //     // NotificationController의 notifPost Array에 게시물 uid를 삭제한다.
-                  //     NotificationController.to.notiPost.removeAt(index);
+                      // NotificationController의 notifPost Array에 게시물 uid를 삭제한다.
+                      NotificationController.to.notiPost.removeAt(index);
 
-                  //     // NotificationController의 commentCount Array에 element를 remove한다.
-                  //     NotificationController.to.commentCount.removeAt(index);
+                      // NotificationController의 commentCount Array에 element를 remove한다.
+                      NotificationController.to.commentCount.removeAt(index);
 
-                  //     // NotificationController의 listenList Array에 element을 remove한다.
-                  //     NotificationController.to.listenList.removeAt(index);
+                      // NotificationController의 listenList Array에 element을 remove한다.
+                      NotificationController.to.listenList.removeAt(index);
 
-                  //     // Server의 post가 삭제되어 없을 떄
-                  //     // Server의 user - notiPost 속성
-                  //     // 알림과 관련된 게시물 Uid를 삭제한다.
-                  //     await NotificationController.to.deleteNotiPostFromUser(
-                  //       notificationModel.belongNotiPostUid,
-                  //       SettingsController.to.settingUser!.userUid,
-                  //     );
-                  //   }
-                  // }
+                      // Database의 장애 처리현황 또는 문의 처리현황 게시물이 삭제되어 없을 떄
+                      // Database의 user - notiPost 속성
+                      // 알림과 관련된 게시물 Uid를 삭제한다.
+                      await NotificationController.to.deleteNotiPostFromUser(
+                        notificationModel.belongNotiPostUid,
+                        SettingsController.to.settingUser!.userUid,
+                      );
+                    }
+                  }
 
-                  // Server의 notification을 삭제하는 코드
+                  // Database의 notification을 삭제하는 코드
                   await NotificationController.to.deleteNotification(
                     notificationModel.notiUid,
                     SettingsController.to.settingUser!.userUid,
                   );
 
                   // GetBuilder 있는데만 화면 재랜더링 한다.
-                  NotificationController.to.update();
+                  NotificationController.to.update(['getNotificationData']);
                 },
                 backgroundColor: const Color(0xFFFE4A49),
                 foregroundColor: Colors.white,
@@ -216,6 +243,7 @@ class NotificationPage extends StatelessWidget {
               ),
             ],
           ),
+          // 알림에 대한 본 내용을 알리는 ListTile
           child: ListTile(
             onTap: () {
               if (idx == -1) {
@@ -223,48 +251,65 @@ class NotificationPage extends StatelessWidget {
               }
               //
               else {
-                // SpecificPostPage로 Routing
-                // argument 0번쨰 : PostListController의 PostData와 UserData들을 담고 있는 배열의 index
-                // argument 1번쨰 : NotificationPage에서 Routing 되었다는 것을 알려준다.
-                Get.to(
-                  () => const SpecificPostPage(),
-                  arguments: [
-                    idx,
-                    RouteDistinction.notificationPage_to_specifcPostPage,
-                  ],
-                );
+                // NotificationModel이 장애 처리현황과 관련이 있다.
+                if (notificationModel.belongNotiObsOrInq ==
+                    ObsOrInqClassification.obstacleHandlingStatus) {
+                  // SpecificPostPage로 Routing
+                  // argument 0번쨰 : PostListController의 obsPostData와 obsUserData들을 담고 있는 배열의 index
+                  // argument 1번쨰 : NotificationPage에서 Routing 되었다는 것을 알려준다.
+                  Get.to(
+                    () => const SpecificPostPage(),
+                    arguments: [
+                      idx,
+                      RouteDistinction.notificationPageObsToSpecifcPostPage,
+                    ],
+                  );
+                }
+                // NotificationModel이 문의 처리현황과 관련이 있다.
+                else {
+                  // SpecificPostPage로 Routing
+                  // argument 0번쨰 : PostListController의 PostData와 UserData들을 담고 있는 배열의 index
+                  // argument 1번쨰 : NotificationPage에서 Routing 되었다는 것을 알려준다.
+                  Get.to(
+                    () => const SpecificPostPage(),
+                    arguments: [
+                      idx,
+                      RouteDistinction.notificationPageInqToSpecifcPostPage,
+                    ],
+                  );
+                }
               }
             },
 
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Notification Title
                 Text(
                   notificationModel.title,
-                  style: TextStyle(color: Colors.grey[500], fontSize: 20),
+                  style: TextStyle(color: Colors.grey[500], fontSize: 20.sp),
                 ),
 
-                const SizedBox(height: 5),
+                SizedBox(height: 5.h),
 
                 // Notification Body
                 Text(notificationModel.body),
 
-                const SizedBox(height: 5),
+                SizedBox(height: 5.h),
               ],
             ),
             // Notification Time
             subtitle: Text(
               notificationModel.notiTime.substring(0, 16),
-              style: const TextStyle(color: Colors.black, fontSize: 10),
+              style: TextStyle(color: Colors.black, fontSize: 10.sp),
             ),
           ),
         ),
 
         // 구분자
-        const Divider(height: 5, color: Colors.black26),
+        Divider(height: 5.h, color: Colors.black26),
       ],
     );
   }
@@ -276,18 +321,18 @@ class NotificationPage extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 5),
+          SizedBox(height: 5.h),
 
           // topView 입니다.
           topView(),
 
-          const SizedBox(height: 5),
+          SizedBox(height: 5.h),
 
           // 새로 고침을 나타내는 View 입니다.
           refreshView(),
 
           // 알림 목록 View 입니다.
-          notificationView(),
+          prepareNotificationData(),
         ],
       ),
     );

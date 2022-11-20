@@ -46,7 +46,7 @@ class _PostListPageState extends State<PostListPage> {
   bool isShowPager = false;
 
   // 장애/문의, 시스템 분류 코드 그리고 처리상태 분류 코드 Dropdown을 담는다. (제 1책)
-  Widget newClassification() {
+  Widget dropdownClassification() {
     return Row(
       children: [
         SizedBox(width: 20.w),
@@ -63,9 +63,9 @@ class _PostListPageState extends State<PostListPage> {
   Widget obsOrInqDropdown() {
     // 장애 처리현황인지 문의 처리현황인지 결정하는 Dropdown
     return GetBuilder<PostListController>(
-      id: 'postListPageObsOrInqDropdown',
+      id: 'obsPageObsOrInqDropdown',
       builder: (controller) {
-        print('PostListPage - 장애/문의 처리현황 DropDown 호출');
+        print('장애/문의 처리현황 DropDown 호출');
         return DropdownButton(
           value: PostListController.to.oSelectedValue.name,
           style: TextStyle(color: Colors.black, fontSize: 13.sp),
@@ -84,7 +84,7 @@ class _PostListPageState extends State<PostListPage> {
                 .firstWhere((enumValue) => enumValue.name == element);
 
             // 장애 처리현황인지 문의 처리현황인지 결정하는 Dropdown만 재랜더링 한다.
-            PostListController.to.update(['postListPageObsOrInqDropdown']);
+            PostListController.to.update(['obsPageObsOrInqDropdown']);
           },
         );
       },
@@ -95,9 +95,9 @@ class _PostListPageState extends State<PostListPage> {
   Widget sysDropdown() {
     // 시스템 분류 코드를 나타내는 DropDown
     return GetBuilder<PostListController>(
-      id: 'postListPageSysClassificationDropdown',
+      id: 'sysClassificationDropdown',
       builder: (controller) {
-        print('PostListPage 시스템 분류코드 DropDown 호출');
+        print('시스템 분류코드 DropDown 호출');
         return DropdownButton(
           value: PostListController.to.sSelectedValue.name,
           style: TextStyle(color: Colors.black, fontSize: 13.sp),
@@ -117,7 +117,7 @@ class _PostListPageState extends State<PostListPage> {
 
             // 시스템 분류 코드를 결정하는 Dropdown만 재랜더링 한다.
             PostListController.to
-                .update(['postListPageSysClassificationDropdown']);
+                .update(['sysClassificationDropdown']);
           },
         );
       },
@@ -128,9 +128,9 @@ class _PostListPageState extends State<PostListPage> {
   Widget proDropdown() {
     // 처리상태 단계를 나타내는 Dropdown
     return GetBuilder<PostListController>(
-      id: 'postListPageProClassficationDropdown',
+      id: 'proClassficationDropdown',
       builder: (controller) {
-        print('PostListPage 처리상태 단계 DropDown 호출');
+        print('처리상태 단계 DropDown 호출');
         return DropdownButton(
           value: PostListController.to.pSelectedValue.name,
           style: TextStyle(color: Colors.black, fontSize: 13.sp),
@@ -149,7 +149,7 @@ class _PostListPageState extends State<PostListPage> {
 
             // 처리 상태 분류 코드를 결정하는 Dropdown만 재랜더링 한다.
             PostListController.to
-                .update(['postListPageProClassficationDropdown']);
+                .update(['proClassficationDropdown']);
           },
         );
       },
@@ -387,7 +387,8 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 문의 처리현황 게시물을 inqPostData에 추가하는 method
-  Widget prepareShowInqPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowInqPostData(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocInqPostDataInArray(allData),
       builder: (context, snapshot) {
@@ -396,17 +397,73 @@ class _PostListPageState extends State<PostListPage> {
           waitAllPostData();
         }
 
-        // 데이터가 왔으면 Column으로 표현한다.
-        // ListView 또는 ListView.builder()로 표현할 수 있으나
-        // 이미 SliverList로 감쌌기 떄문에 의미가 없어진다.
-        return Column(
-          children: PostListController.to.inqPostData
-              .asMap()
-              .keys
-              .toList()
-              .map((index) => showInqPostData(index))
-              .toList(),
-        );
+        // 문의 처리현황 게시물이 5개 이상이면? -> Pager를 보여준다.
+        if (PostListController.to.inqPostData.length >= 5) {
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) {
+              isShowPager = true;
+              PostListController.to.update(['showPager']);
+            },
+          );
+          // 한 페이지당 5개 게시물을 가져온다.
+          return GetBuilder<PostListController>(
+            id: 'updateInqPostData',
+            builder: (controller) {
+              print('PostListPage - updateInqPostData 호출');
+
+              // 처음 페이지를 보여줄 떄
+              if (pagerCurrentPage == 0) {
+                return Column(
+                  children: PostListController.to.inqPostData
+                      .asMap()
+                      .keys
+                      .toList()
+                      .getRange(pagerCurrentPage, pagerCurrentPage + 5)
+                      .map((index) => showInqPostData(index))
+                      .toList(),
+                );
+              }
+
+              // 중간 중간 페이지를 보여줄 떄
+              else if (pagerCurrentPage + 1 != pagerLastPage) {
+                return Column(
+                  children: PostListController.to.inqPostData
+                      .asMap()
+                      .keys
+                      .toList()
+                      .getRange(pagerCurrentPage * 5, pagerCurrentPage * 5 + 5)
+                      .map((index) => showInqPostData(index))
+                      .toList(),
+                );
+              }
+
+              // 마지막 페이지를 보여줄 떄
+              else {
+                return Column(
+                  children: PostListController.to.inqPostData
+                      .asMap()
+                      .keys
+                      .toList()
+                      .getRange(pagerCurrentPage * 5,
+                          PostListController.to.inqPostData.length)
+                      .map((index) => showInqPostData(index))
+                      .toList(),
+                );
+              }
+            },
+          );
+        }
+        // 문의 처리현황 게시물이 5개 미만이면? -> Pager를 보여주지 않는다.
+        else {
+          return Column(
+            children: PostListController.to.inqPostData
+                .asMap()
+                .keys
+                .toList()
+                .map((index) => showInqPostData(index))
+                .toList(),
+          );
+        }
       },
     );
   }
@@ -608,34 +665,6 @@ class _PostListPageState extends State<PostListPage> {
                         ),
                       ],
                     ),
-
-                    // 시스템 분류 코드와 처리 상태 분류 코드 (차선책)
-                    // Column(
-                    //   crossAxisAlignment: CrossAxisAlignment.start,
-                    //   children: [
-                    //     // 시스템 분류 코드
-                    //     GFListTile(
-                    //       color: Colors.black12,
-                    //       title: const Text(
-                    //         '시스템',
-                    //         style: TextStyle(fontWeight: FontWeight.bold),
-                    //       ),
-                    //       subTitle: Text(postData.sysClassficationCode.asText),
-                    //     ),
-
-                    //     SizedBox(height: 20.h),
-
-                    //     // 처리 상태 분류 코드
-                    //     GFListTile(
-                    //       color: Colors.black12,
-                    //       title: const Text(
-                    //         '처리상태',
-                    //         style: TextStyle(fontWeight: FontWeight.bold),
-                    //       ),
-                    //       subTitle: Text(postData.proStatus.asText),
-                    //     ),
-                    //   ],
-                    // ),
                   ],
                 ),
               ),
@@ -901,23 +930,35 @@ class _PostListPageState extends State<PostListPage> {
     super.dispose();
   }
 
-
   // 전체적으로 화면을 build
   @override
   Widget build(BuildContext context) {
     print('PostListPage - build() 실행');
 
     return Scaffold(
-      // floatingActionButton: FloatingActionButton(
-      //   backgroundColor: Colors.grey,
-      //   onPressed: () {
-      //     // 장애 처리현황 또는 문의 처리현황 게시물을 선택해서 보여주는 method를 실행한다.
-      //     PostListController.to.changePost();
+      floatingActionButton: Align(
+        alignment:
+            Alignment(Alignment.bottomRight.x, Alignment.bottomRight.y - 0.2),
+        child: FloatingActionButton(
+          backgroundColor: Colors.grey,
+          onPressed: () {
+            // PostListController의 selectObsOrInq 변수를 업데이트한다.
+            PostListController.to.changePost();
 
-      //     setState(() {});
-      //   },
-      //   child: const Icon(Icons.change_circle_outlined, size: 40),
-      // ),
+            setState(() {
+              // PostListPage의 Pager의 현재 번호
+              pagerCurrentPage = 0;
+
+              // PostListPage의 Pager 끝 번호
+              pagerLastPage = 0;
+
+              // Pager를 보여줄지 결정하는 변수
+              isShowPager = false;
+            });
+          },
+          child: const Icon(Icons.change_circle_outlined, size: 40),
+        ),
+      ),
       body: CustomScrollView(
         physics: const PageScrollPhysics(),
         slivers: [
@@ -931,7 +972,7 @@ class _PostListPageState extends State<PostListPage> {
             pinned: false,
             expandedHeight: 100.h,
             // 장애/문의 Dropdown, 시스템 Dropdown, 처리상태 Dropdown를 보여준다.
-            title: newClassification(),
+            title: dropdownClassification(),
             // 키워드를 검색하는 입력창을 보여준다.
             bottom: AppBar(
               backgroundColor: Colors.white,
@@ -990,9 +1031,9 @@ class _PostListPageState extends State<PostListPage> {
                   postDataLength = PostListController.to.inqPostData.length;
                 }
                 return isShowPager == true
-                       // Pager를 보여준다.
+                    // Pager를 보여준다.
                     ? Container(
-                        padding: EdgeInsets.all(8.0.w),
+                        padding: EdgeInsets.all(5.0.w),
                         margin: EdgeInsets.only(bottom: 10.h),
                         width: ScreenUtil().screenWidth,
                         height: 50.h,
@@ -1010,11 +1051,17 @@ class _PostListPageState extends State<PostListPage> {
                             await Future.delayed(
                                 const Duration(milliseconds: 5));
 
-                            PostListController.to.update(['updateObsPostData']);
+                            PostListController.to.selectObsOrInq ==
+                                    ObsOrInqClassification
+                                        .obstacleHandlingStatus
+                                ? PostListController.to
+                                    .update(['updateObsPostData'])
+                                : PostListController.to
+                                    .update(['updateInqPostData']);
                           },
                         ),
                       )
-                       // Pager를 보여주지 않는다.
+                    // Pager를 보여주지 않는다.
                     : const Visibility(
                         visible: false,
                         child: Text('Pager가 보이지 않습니다.'),

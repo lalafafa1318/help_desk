@@ -8,6 +8,7 @@ import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
+import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/model/notification_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/utils/uuid_util.dart';
@@ -18,16 +19,16 @@ import 'package:timezone/timezone.dart' as tz;
 
 // 알림 목록을 관리하는 controller 입니다.
 class NotificationController extends GetxController {
-  // 사용자가 알림 신청한 게시물 Uid를 담는 배열
+  // 사용자가 알림 신청한 게시물 Uid를 담는 배열 (장애 처리현황, 문의 처리현황 게시물 모두 한곳에 저장)
   List<String> notiPost = [];
 
-  // 사용자가 알림 신청한 게시물(Post)에 대한 댓글 개수를 담는 배열
+  // 사용자가 알림 신청한 게시물(Post)에 대한 댓글 개수를 담는 배열 (장애 처리현황, 문의 처리현황 게시물 댓글 개수 모두 한곳에 저장)
   List<int> commentCount = [];
 
   // 사용자가 알림 신청한 게시물을 실시간으로 Listen 하는 배열
   List<StreamSubscription<QuerySnapshot>> listenList = [];
 
-  // Server에 저장된 Notification을 저장하는 배열
+  // Database에 저장된 Notification을 저장하는 배열
   List<NotificationModel> notificationModelList = [];
 
   // Flutter Local Notification에 필요한 변수
@@ -40,17 +41,17 @@ class NotificationController extends GetxController {
   // Controller를 더 쉽게 사용할 수 있도록 하는 get method
   static NotificationController get to => Get.find();
 
-  // Server에 User의 notiPost 속성에 게시물 uid를 추가한다.
+  // Database에 User의 notiPost 속성에 게시물 uid를 추가한다.
   Future<void> addNotiPostFromUser(String postUid, String userUid) async {
     await CommunicateFirebase.addNotiPostFromUser(postUid, userUid);
   }
 
-  // Server에 User의 notiPost 속성에 게시물 uid를 삭제한다.
+  // Database에 User의 notiPost 속성에 게시물 uid를 삭제한다.
   Future<void> deleteNotiPostFromUser(String postUid, String userUid) async {
     await CommunicateFirebase.deleteNotiPostFromUser(postUid, userUid);
   }
 
-  // Server에 User의 notiPost 속성을 가져와 notiPost Array에 값을 대입한다.
+  // Database에 User의 notiPost 속성을 가져와 notiPost Array에 값을 대입한다.
   Future<void> getNotiPostFromUser() async {
     List<String> localNotiPost = await CommunicateFirebase.getNotiPostFromUser(
       AuthController.to.user.value.userUid,
@@ -59,7 +60,8 @@ class NotificationController extends GetxController {
     notiPost.addAll(localNotiPost);
   }
 
-  // Server에 게시물(Post)에 대한 댓글(comment)의 개수를 찾아 commentCount Array에 값을 대입하는 method
+  // Database에 장애 처리현황 또는 문의 처리현황 게시물에 대한 댓글(comment)의 개수를 찾아
+  // commentCount Array에 값을 대입하는 method
   Future<void> getCountFromComments() async {
     for (int i = 0; i < notiPost.length; i++) {
       int count = await CommunicateFirebase.getCountFromComments(notiPost[i]);
@@ -68,7 +70,7 @@ class NotificationController extends GetxController {
     }
   }
 
-  // Server에 Notificaion을 모두 가져오는 method
+  // Database에 Notificaion을 모두 가져오는 method
   Future<List<NotificationModel>> getNotifcationFromUser(String userUid) async {
     notificationModelList.clear();
 
@@ -78,15 +80,16 @@ class NotificationController extends GetxController {
     return notificationModelList;
   }
 
-  // Sercer에 Notification을 삭제하는 method
+  // Databse에 Notification을 삭제하는 method
   Future<void> deleteNotification(String notiUid, String userUid) async {
     await CommunicateFirebase.deleteNotification(notiUid, userUid);
   }
 
   // Flutter Local Notification을 setting 하는 method
-  Future<void> initialize() async {
-    var androidIntialize = AndroidInitializationSettings('mipmap/ic_launcher');
-    var iOSInitialize = DarwinInitializationSettings();
+  Future<void> localNotificationInitialize() async {
+    var androidIntialize =
+        const AndroidInitializationSettings('mipmap/ic_launcher');
+    var iOSInitialize = const DarwinInitializationSettings();
     var initializationSettings = InitializationSettings(
       android: androidIntialize,
       iOS: iOSInitialize,
@@ -96,9 +99,13 @@ class NotificationController extends GetxController {
   }
 
   // Flutter Loal Notification을 show하는 method
-  Future<void> showBigTextNotification({var id = 0, required String title, required String body, var payload}) async {
+  Future<void> showBigTextNotification(
+      {var id = 0,
+      required String title,
+      required String body,
+      var payload}) async {
     AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
+        const AndroidNotificationDetails(
       'you_can_name_it_whatever1',
       'channel_name',
       playSound: false,
@@ -109,7 +116,7 @@ class NotificationController extends GetxController {
 
     var not = NotificationDetails(
       android: androidPlatformChannelSpecifics,
-      iOS: DarwinNotificationDetails(),
+      iOS: const DarwinNotificationDetails(),
     );
 
     await flutterLocalNotificationsPlugin.show(
@@ -120,76 +127,100 @@ class NotificationController extends GetxController {
     );
   }
 
-  // Server에서 게시물(post)의 변동 사항을 listen한다.
-  void setListen() {
+  // Database에서 게시물(post)의 변동 사항을 listen한다.
+  Future<void> setListen() async {
+    // 오직 하나의 Instnace만 쓰도록 하기 위해 설정했다.
+    FirebaseFirestore firebaseFirestore =
+        CommunicateFirebase.getFirebaseFirestoreInstnace();
+
     for (int i = 0; i < notiPost.length; i++) {
-      // FirebaseFirestore.instance.collection('posts).doc(notiPost[i])를 간단하게 명명한다.
-      // FirebaseFirestore.instance.collection('users')를 간단하게 명명한다.
-      var postPath =
-          FirebaseFirestore.instance.collection('posts').doc(notiPost[i]);
+      // 장애 처리현황 또는 문의 처리현황 게시물에 접근 하기 위한 background
+      DocumentReference<Map<String, dynamic>> postPath;
+      // 사용자 정보에 접근하기 위한 background
+      CollectionReference<Map<String, dynamic>> userPath =
+          firebaseFirestore.collection('users');
 
-      var userPath = FirebaseFirestore.instance.collection('users');
+      // 알림 신청한 게시물이 장애 처리현황인지 문의 처리현황인지 확인한다.
+      DocumentSnapshot<Map<String, dynamic>> whichBelongPostUid =
+          await firebaseFirestore.collection('obsPosts').doc(notiPost[i]).get();
 
+      // 알림 신청한 게시물이 장애 처리현황에 속한다면?
+      if (whichBelongPostUid.data() != null) {
+        postPath = firebaseFirestore.collection('obsPosts').doc(notiPost[i]);
+      }
+      // 알림 신청한 게시물이 장애 처리현황에 속하지 않는다면?
+      else {
+        postPath = firebaseFirestore.collection('inqPosts').doc(notiPost[i]);
+      }
+
+      // 사용자가 알림 신청한 게시물을 실시간으로 Listen 하는 배열에 추가한다.
       listenList.add(
         postPath.collection('comments').snapshots().listen(
-          (event) async {
+          (QuerySnapshot<Map<String, dynamic>> event) async {
             // 앱이 처음 시작하면 개발자 의도에 맞지 않게 listen() 이하 내용이 호출된다.
             // 이하 내용이 호출되지만, if문을 실행하지 않게 하여 무효화 시킨다.
             if (initListen == false) {
-              // Server에 있는 댓글(comment) 개수와
+              // Database에 있는 댓글(comment) 개수와
               // commentCount의 댓글(comment)개수를 비교한다.
 
-              // Server에 있는 댓글(comment) 개수가
+              // Database에 있는 댓글(comment) 개수가
               // commentCount의 댓글(comment)개수보다 크다
-              // -> 사용자가 알림 신청한 게시물(Post)에 댓글이 추가됐다는 것을 의미한다.
+              // -> 사용자가 알림 신청한 장애 처리현황 또는 문의 처리현황 게시물에 댓글이 추가됐다는 것을 의미한다.
               if (commentCount[i] < event.size) {
-                // Server에 있는 댓글(comment)에 uploadTime 속성이 가장 최근인 데이터를 가져온다.
+                // Database에 있는 댓글(comment)에 uploadTime 속성이 가장 최근인 데이터를 가져온다.
                 QuerySnapshot<Map<String, dynamic>> lastComment = await postPath
                     .collection('comments')
                     .orderBy('uploadTime', descending: false)
                     .get();
+                Map<String, dynamic> lastCommentData =
+                    lastComment.docs.last.data();
 
-                Map<String, dynamic> data = lastComment.docs.last.data();
-
-                // 사용자가 알림 신청한 게시물에 댓글을 작성할 떄는 Flutter Local Notification을 보내지 않도록 한다.
-                if (data['whoWriteUserUid'].toString() !=
+                // 사용자가
+                // 알림 신청한 게시물에 댓글을 작성할 떄는 Flutter Local Notification을 보내지 않도록 한다.
+                if (lastCommentData['whoWriteUserUid'].toString() !=
                     SettingsController.to.settingUser!.userUid) {
-                  // Server에 게시물(Post)를 가져온다.
+                  // Database에 장애 처리현황 또는 문의 처리현황 게시물을 가져온다.
                   DocumentSnapshot<Map<String, dynamic>> post =
                       await postPath.get();
 
                   // 게시물 작성한 사람(UserName) 데이터를 가져온다.
                   String userUid = post['userUid'].toString();
-
                   DocumentSnapshot<Map<String, dynamic>> user =
                       await userPath.doc(userUid).get();
-
                   String userName = user['userName'].toString();
 
                   // 게시물 제목 데이터를 가져온다.
                   String postTitle = post['postTitle'].toString();
 
                   // 댓글 내용 데이터를 가져온다.
-                  String content = data['content'].toString();
+                  String content = lastCommentData['content'].toString();
+
+                  // 게시물이 장애 처리현황인지 문의 처리현황인지 관련된 정보를 가져온다.
+                  ObsOrInqClassification belongNotiObsOrInq =
+                      ObsOrInqClassification.values.firstWhere(
+                    (element) =>
+                        element.toString() == post['obsOrInq'].toString(),
+                  );
 
                   // Flutter Local Notification 전송
                   await showBigTextNotification(
-                    title: '${userName} - ${postTitle}',
-                    body: '새로운 댓글이 달렸어요 : ${content}',
+                    title: '$userName - $postTitle',
+                    body: '새로운 댓글이 달렸어요 : $content',
                   );
 
                   // NotificationModel을 만든다.
                   NotificationModel noti = NotificationModel(
-                    title: '${userName} - ${postTitle}',
-                    body: '새로운 댓글이 달렸어요 : ${content}',
+                    title: '$userName - $postTitle',
+                    body: '새로운 댓글이 달렸어요 : $content',
                     notiUid: UUidUtil.getUUid(),
                     belongNotiPostUid: notiPost[i],
                     notiTime: DateFormat('yy/MM/dd - HH:mm:ss').format(
                       DateTime.now(),
                     ),
+                    belongNotiObsOrInq: belongNotiObsOrInq,
                   );
 
-                  // Server에 Notification을 저장한다.
+                  // Database에 Notification을 저장한다.
                   await userPath
                       .doc(SettingsController.to.settingUser!.userUid)
                       .collection('notifications')
@@ -197,7 +228,7 @@ class NotificationController extends GetxController {
                       .set(NotificationModel.toMap(noti));
                 }
               }
-              // Server에 있는 댓글(comment) 개수를 commentCount 배열에 업데이트한다.
+              // Database에 있는 댓글(comment) 개수를 commentCount 배열에 업데이트한다.
               commentCount[i] = event.size;
             }
           },
@@ -206,74 +237,99 @@ class NotificationController extends GetxController {
     }
   }
 
-  // Server에서 게시물(post)의 변동 사항을 추가로 listen 한다.
-  void addListen(int index) {
-    // FirebaseFirestore.instance.collection('posts).doc(postUid)를 간단하게 명명한다.
-    // FirebaseFirestore.instance.collection('users')를 간단하게 명명한다.
-    var postPath =
-        FirebaseFirestore.instance.collection('posts').doc(notiPost[index]);
+  // Database에서 게시물(post)의 변동 사항을 추가로 listen 한다.
+  Future<void> addListen(int index) async {
+    // 오직 하나의 Instnace만 쓰도록 하기 위해 설정했다.
+    FirebaseFirestore firebaseFirestore =
+        CommunicateFirebase.getFirebaseFirestoreInstnace();
 
-    var userPath = FirebaseFirestore.instance.collection('users');
+    // 장애 처리현황 또는 문의 처리현황 게시물에 접근 하기 위한 background
+    DocumentReference<Map<String, dynamic>> postPath;
+    // 사용자 정보에 접근하기 위한 background
+    CollectionReference<Map<String, dynamic>> userPath =
+        firebaseFirestore.collection('users');
 
+    // 알림 신청한 게시물이 장애 처리현황인지 문의 처리현황인지 확인한다.
+    DocumentSnapshot<Map<String, dynamic>> whichBelongPostUid =
+        await firebaseFirestore
+            .collection('obsPosts')
+            .doc(notiPost[index])
+            .get();
+
+    // 알림 신청한 게시물이 장애 처리현황에 속한다면?
+    if (whichBelongPostUid.data() != null) {
+      postPath = firebaseFirestore.collection('obsPosts').doc(notiPost[index]);
+    }
+    // 알림 신청한 게시물이 장애 처리현황에 속하지 않는다면?
+    else {
+      postPath = firebaseFirestore.collection('inqPosts').doc(notiPost[index]);
+    }
+
+    // 사용자가 알림 신청한 게시물을 실시간으로 Listen 하는 배열에 추가한다.
     listenList.add(
       postPath.collection('comments').snapshots().listen(
         (event) async {
-          // Server에 있는 댓글(comment) 개수와
+          // Database에 있는 댓글(comment) 개수와
           // commentCount의 댓글(comment)개수를 비교한다.
 
-          // Server에 있는 댓글(comment) 개수가
+          // Database에 있는 댓글(comment) 개수가
           // commentCount의 댓글(comment)개수보다 크다
-          // -> 사용자가 알림 신청한 게시물(Post)에 댓글이 추가됐다는 것을 의미한다.
+          // -> 사용자가 알림 신청한 장애 처리현황 또는 문의 처리현황 게시물에 댓글이 추가됐다는 것을 의미한다.
           if (commentCount[index] < event.size) {
-            // Server에 있는 댓글(comment)에 uploadTime 속성이 가장 최근인 데이터를 가져온다.
+            // Database에 있는 댓글(comment)에 uploadTime 속성이 가장 최근인 데이터를 가져온다.
             QuerySnapshot<Map<String, dynamic>> lastComment = await postPath
                 .collection('comments')
                 .orderBy('uploadTime', descending: false)
                 .get();
+            Map<String, dynamic> lastCommentData = lastComment.docs.last.data();
 
-            Map<String, dynamic> data = lastComment.docs.last.data();
-
-            // 사용자가 알림신청을 한 게시물에 댓글을 작성할 떄는 Flutter Local Notification을 보내지 않도록 한다.
-            if (data['whoWriteUserUid'].toString() !=
+            // 사용자가
+            // 알림신청을 한 게시물에 댓글을 작성할 떄는 Flutter Local Notification을 보내지 않도록 한다.
+            if (lastCommentData['whoWriteUserUid'].toString() !=
                 SettingsController.to.settingUser!.userUid) {
-              // Server에 게시물(Post)를 가져온다.
+              // Database에 게시물(Post)를 가져온다.
               DocumentSnapshot<Map<String, dynamic>> post =
                   await postPath.get();
 
               // 게시물 작성한 사람(userName) 데이터를 가져온다.
               String userUid = post['userUid'].toString();
-
               DocumentSnapshot<Map<String, dynamic>> user =
-                  await FirebaseFirestore.instance
+                  await firebaseFirestore
                       .collection('users')
                       .doc(userUid)
                       .get();
-
               String userName = user['userName'].toString();
 
               // 게시물 제목(postTitle) 데이터를 가져온다.
               String postTitle = post['postTitle'].toString();
 
               // 댓글 내용 데이터를 가져온다.
-              String content = data['content'].toString();
+              String content = lastCommentData['content'].toString();
+
+              // 게시물이 장애 처리현황인지 문의 처리현황인지 관련된 정보를 가져온다.
+              ObsOrInqClassification belongNotiObsOrInq =
+                  ObsOrInqClassification.values.firstWhere(
+                (element) => element.toString() == post['obsOrInq'].toString(),
+              );
 
               // Flutter Local Notification 전송
               await showBigTextNotification(
-                title: '${userName} - ${postTitle}',
-                body: '새로운 댓글이 달렸어요 : ${content}',
+                title: '$userName - $postTitle',
+                body: '새로운 댓글이 달렸어요 : $content',
               );
 
               // NotificationModel을 만든다.
               NotificationModel noti = NotificationModel(
-                title: '${userName} - ${postTitle}',
-                body: '새로운 댓글이 달렸어요 : ${content}',
+                title: '$userName - $postTitle',
+                body: '새로운 댓글이 달렸어요 : $content',
                 notiUid: UUidUtil.getUUid(),
                 belongNotiPostUid: notiPost[index],
                 notiTime:
                     DateFormat('yy/MM/dd - HH:mm:ss').format(DateTime.now()),
+                belongNotiObsOrInq: belongNotiObsOrInq,
               );
 
-              // Server에 Notification을 저장한다.
+              // Database에 Notification을 저장한다.
               await userPath
                   .doc(SettingsController.to.settingUser!.userUid)
                   .collection('notifications')
@@ -281,7 +337,7 @@ class NotificationController extends GetxController {
                   .set(NotificationModel.toMap(noti));
             }
           }
-          // Server에 있는 댓글(comment) 개수를 commentCount 배열에 업데이트한다.
+          // Database에 있는 댓글(comment) 개수를 commentCount 배열에 업데이트한다.
           commentCount[index] = event.size;
         },
       ),
@@ -294,23 +350,24 @@ class NotificationController extends GetxController {
   void onInit() {
     super.onInit();
 
-    // Server에서 user의 notiPost 속성에 값을 가져와 notiPost Array에 값을 대입한다.
+    // Database에서 user의 notiPost 속성에 값을 가져와 notiPost Array에 값을 대입한다.
     getNotiPostFromUser().then(
       (value) async {
         print('notiPostLength : ${notiPost.length}');
 
-        // Server에 게시물(Post)에 대한 댓글(comment)의 개수를 찾아 commentCount Array에 값을 대입하는 method
+        // Database에 장애 처리현황 또는 문의 처리현황 게시물에 대한 댓글(comment)의 개수를 찾아
+        // commentCount Array에 값을 대입하는 method
         await getCountFromComments();
 
         print('commentCountLength : ${commentCount.length}');
 
         // Flutter Local Notification Setting
-        await initialize();
+        await localNotificationInitialize();
 
         print('Flutter Local Notification Setting 완료');
 
-        // Server에서 게시물(post)의 변동사항을 listen한다.
-        setListen();
+        // Database에서 게시물(post)의 변동사항을 listen한다.
+        await setListen();
 
         await Future.delayed(const Duration(seconds: 5));
 

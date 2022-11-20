@@ -120,8 +120,9 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // 알림 버튼 입니다.
   Widget notifyButton() {
     return GetBuilder<NotificationController>(
+      id: 'notifyButton',
       builder: (controller) {
-        print('notifyButton - 재랜더링 호출');
+        print('SpecificPostPage - notifyButton 호출');
         // 사용자가 게시물(post)에 대해서 알림 신청을 했는지 하지 않았는지 여부를 판별한다.
         bool isResult =
             NotificationController.to.notiPost.contains(postData!.postUid);
@@ -165,14 +166,14 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                 // NotificationController의 listenList Array에 element을 remove한다.
                 NotificationController.to.listenList.removeAt(index);
 
-                // Server에 User의 notiPost 속성에 게시물 uid를 삭제한다.
+                // Database에 User의 notiPost 속성에 게시물 uid를 삭제한다.
                 await NotificationController.to.deleteNotiPostFromUser(
                   postData!.postUid,
                   SettingsController.to.settingUser!.userUid,
                 );
 
                 // Notification.to.update()를 실행행 notifyButton Widget만 재랜더링 한다.
-                NotificationController.to.update();
+                NotificationController.to.update(['notifyButton']);
 
                 // 하단 SnackBar 알림
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -200,17 +201,17 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   ),
                 );
 
-                // Server에서 게시물(post)의 변동사항을 추가로 listen 한다.
-                NotificationController.to.addListen(index);
+                // Database에서 게시물(post)의 변동사항을 추가로 listen 한다.
+                await NotificationController.to.addListen(index);
 
-                // Server에 User의 notiPost 속성에 게시물 uid를 추가한다.
+                // DataBase에 User의 notiPost 속성에 게시물 uid를 추가한다.
                 await NotificationController.to.addNotiPostFromUser(
                   postData!.postUid,
                   SettingsController.to.settingUser!.userUid,
                 );
 
                 // Notification.to.update()를 실행해 notifyButton Widget만 재랜더링 한다.
-                NotificationController.to.update();
+                NotificationController.to.update(['notifyButton']);
 
                 // 하단 SnackBar 알림
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -1593,11 +1594,11 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
- // Method
- // PostListPage에서 Routing 됐는지
- // KeyWordPostListPage에서 Routing 됐는지
- // WhatIWrotePage에서 Routing 됐는지
- // WhatICommentPage에서 Routing 됐는지 결정하는 method
+  // Method
+  // PostListPage에서 Routing 됐는지
+  // KeyWordPostListPage에서 Routing 됐는지
+  // WhatIWrotePage에서 Routing 됐는지
+  // WhatICommentPage에서 Routing 됐는지 결정하는 method
   void whereRouting() {
     switch (Get.arguments[1]) {
       // PostListPage의 장애 처리현황 게시물을 Tab했다면?
@@ -1634,9 +1635,13 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       case RouteDistinction.whatICommentPageInqPostToSpecificPostPage:
         whereRoute = RouteDistinction.whatICommentPageInqPostToSpecificPostPage;
         break;
-      // Notificationpage에서 알림 게시물을 Tab했다면?
-      case RouteDistinction.notificationPage_to_specifcPostPage:
-        whereRoute = RouteDistinction.notificationPage_to_specifcPostPage;
+      // NotificationPage에서 알림과 관련된 장애 처리현황 게시물을 Tab했다면?
+      case RouteDistinction.notificationPageObsToSpecifcPostPage:
+        whereRoute = RouteDistinction.notificationPageObsToSpecifcPostPage;
+        break;
+      // NotificationPage에서 알림과 관련된 문의 처리현황 게시물을 Tab했다면?
+      default:
+        whereRoute = RouteDistinction.notificationPageInqToSpecifcPostPage;
         break;
     }
   }
@@ -1722,10 +1727,30 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       userData =
           SettingsController.to.inqWhatICommentUserDatas[index].copyWith();
     }
+
+    // NotificationPage의 알림과 관련된 장애 처리현황 게시물을 Tab해서 Routing 되었을 경우
+    else if (whereRoute ==
+        RouteDistinction.notificationPageObsToSpecifcPostPage) {
+      // Tab했던 장애 처리현황 게시물을 copy(clone)한다.
+      postData = PostListController.to.obsPostData[index].copyWith();
+
+      // Tab했던 장애 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
+      userData = PostListController.to.obsUserData[index].copyWith();
+    }
+
+    // NotificationPage의 알림과 관련된 문의 처리현황 게시물을 Tab해서 Routing 되었을 경우
+    else {
+      // Tab했던 문의 처리현황 게시물을 copy(clone)한다.
+      postData = PostListController.to.inqPostData[index].copyWith();
+
+      // Tab했던 문의 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
+      userData = PostListController.to.inqUserData[index].copyWith();
+    }
   }
 
   // 게시물이 삭제되었는지 확인하는 method
-  Future<bool> isDeletePost(ObsOrInqClassification obsOrInq, String postUid) async {
+  Future<bool> isDeletePost(
+      ObsOrInqClassification obsOrInq, String postUid) async {
     print('SpecificPostPage - isDeletePost() 호출');
 
     // 게시물이 삭제됐으면 isDeletePostResult는 true
@@ -2022,7 +2047,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // comment의 whoCommentLike 속성에 사용자 Uid가 있는지 없는지에 따라 다른 로직을 구현하는 method
-  Future<void> isUserUidInWhoCommentLikeFromCommentData(bool isResult, CommentModel comment) async {
+  Future<void> isUserUidInWhoCommentLikeFromCommentData(
+      bool isResult, CommentModel comment) async {
     // comment의 whoCommentLike 속성에 사용자 Uid가 있었다.
     if (isResult) {
       // 하단 snackBar로 "이미 공감한 comment 입니다 :)" 표시한다.

@@ -35,6 +35,11 @@ class PostListController extends GetxController {
   // PostListPage , KeywordPostListPage 처리상태 분류 코드 DropDown에서 무엇을 Tab했는가 나타내는 변수
   ProClassification pSelectedValue = ProClassification.ALL;
 
+  // PostListPage 장애/게시물 선택에서
+  // 장애 처리현황을 선택했는가? 문의 처리현황을 선택했는가?
+  ObsOrInqClassification selectObsOrInq =
+      ObsOrInqClassification.obstacleHandlingStatus;
+
   // 장애 처리현황 게시물을 담는 배열
   List<PostModel> obsPostData = [];
   // 장애 처리현황 게시물에 대한 사용자 정보를 담는 배열
@@ -58,11 +63,7 @@ class PostListController extends GetxController {
   // 사용자가 입력한 댓글과 대댓글을 control 하는 Field
   TextEditingController commentController = TextEditingController();
 
-  // PostListPage 장애/게시물 선택에서
-  // 장애 처리현황을 선택했는가? 문의 처리현황을 선택했는가?
-  ObsOrInqClassification selectObsOrInq =
-      ObsOrInqClassification.obstacleHandlingStatus;
-
+  
   // SpecificPostPage의 comment 처리상태를 관리하는 변수
   ProClassification commentPSelectedValue = ProClassification.INPROGRESS;
 
@@ -307,18 +308,12 @@ class PostListController extends GetxController {
   bool validTextFromKeywordPostListPage() {
     // PostListPage 검색창에 입력한 text가 빈 값인 경우
     if (PostListController.to.searchTextController.text.isEmpty) {
-      // 키보드 내리기
-      FocusManager.instance.primaryFocus?.unfocus();
-
       ToastUtil.showToastMessage('키워드가 빈칸 입니다 :)');
 
       return false;
     }
     // PostListPage 검색창에 입력한 text가 한 글자인 경우
     else if (PostListController.to.searchTextController.text.length == 1) {
-      // 키보드 내리기
-      FocusManager.instance.primaryFocus?.unfocus();
-
       ToastUtil.showToastMessage('두 글자 이상 입력해주세요 :)');
 
       return false;
@@ -377,7 +372,8 @@ class PostListController extends GetxController {
   }
 
   // DataBase에 comment(댓글)을 추가하는 method
-  Future<void> addComment(String comment, String processDate, PostModel postData) async {
+  Future<void> addComment(
+      String comment, String processDate, PostModel postData) async {
     // Comment 모델 만들기
     CommentModel commentModel = CommentModel(
       content: comment,
@@ -409,9 +405,9 @@ class PostListController extends GetxController {
     await CommunicateFirebase.setCommentData(commentModel, postData);
   }
 
-
   // Database에 저장된 comment(댓글)의 whoCommentLike 속성에 사용자 uid를 추가한다.
-  Future<void> addWhoCommentLike(CommentModel comment, PostModel postData) async {
+  Future<void> addWhoCommentLike(
+      CommentModel comment, PostModel postData) async {
     await CommunicateFirebase.addWhoCommentLike(comment, postData);
   }
 
@@ -421,7 +417,8 @@ class PostListController extends GetxController {
   }
 
   // 게시물이 삭제되었는지 확인하는 method
-  Future<bool> isDeletePost(ObsOrInqClassification obsOrInq, String postUid) async {
+  Future<bool> isDeletePost(
+      ObsOrInqClassification obsOrInq, String postUid) async {
     // Database에서 게시물의 postUid가 있는지 없는지 확인한다.
     return await CommunicateFirebase.isDeletePost(obsOrInq, postUid);
   }

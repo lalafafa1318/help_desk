@@ -15,91 +15,95 @@ import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_post_page.dart';
+import 'package:number_paginator/number_paginator.dart';
 
-class WhatICommentPage extends StatelessWidget {
+class WhatICommentPage extends StatefulWidget {
   const WhatICommentPage({super.key});
+
+  @override
+  State<WhatICommentPage> createState() => _WhatICommentPageState();
+}
+
+class _WhatICommentPageState extends State<WhatICommentPage> {
+  // PostListPage의 Pager의 현재 번호
+  int pagerCurrentPage = 0;
+
+  // PostListPage의 Pager 끝 번호
+  int pagerLastPage = 0;
+
+  // Pager를 보여줄지 결정하는 변수
+  bool isShowPager = false;
 
   // 장애 처리현황인지 문의 처리현황인지 Text를 보여준다.
   Widget getObsOrInqText() {
-    return GetBuilder<SettingsController>(
-      id: 'getObsOrInqText',
-      builder: (controller) {
-        print('whatICommentPage - getObsOrInqText() 호출');
-        return Container(
-          alignment: Alignment.centerLeft,
-          margin: EdgeInsets.only(left: 20.w),
-          width: ScreenUtil().screenWidth,
-          height: 50.h,
-          child: Text(
-            SettingsController.to.selectObsOrInq ==
-                    ObsOrInqClassification.obstacleHandlingStatus
-                ? '장애 처리현황'
-                : '문의 처리현황',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        );
-      },
+    return Container(
+      alignment: Alignment.centerLeft,
+      margin: EdgeInsets.only(left: 20.w),
+      width: ScreenUtil().screenWidth,
+      height: 50.h,
+      child: Text(
+        SettingsController.to.selectObsOrInq ==
+                ObsOrInqClassification.obstacleHandlingStatus
+            ? '장애 처리현황'
+            : '문의 처리현황',
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 20.sp,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
   // 내가 댓글 단 게시물에 대한 목록을 가져오는 Widget
   Widget getObsOrInqWhatICommentThePost() {
-    return GetBuilder<SettingsController>(
-      id: 'getObsOrInqPost',
-      builder: (controller) {
-        // SettingsController의 selectObsOrInq 변수가 'obstacleHandlingStatus'인 경우
-        // 즉 장애 처리현황 버튼을 클릭했으면...
-        if (SettingsController.to.selectObsOrInq ==
-            ObsOrInqClassification.obstacleHandlingStatus) {
-          return FutureBuilder(
-            future: SettingsController.to.getObsWhatICommentPostData(),
-            builder: (context, snapshot) {
-              // 데이터가 아직 도착하지 않았다면?
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return waitData();
-              }
+    // SettingsController의 selectObsOrInq 변수가 'obstacleHandlingStatus'인 경우
+    // 즉 장애 처리현황 버튼을 클릭했으면...
+    if (SettingsController.to.selectObsOrInq ==
+        ObsOrInqClassification.obstacleHandlingStatus) {
+      return FutureBuilder(
+        future: SettingsController.to.getObsWhatICommentPostData(),
+        builder: (context, snapshot) {
+          // 데이터가 아직 도착하지 않았다면?
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return waitData();
+          }
 
-              // 데이터가 도착했다.
-              // 하지만 장애 처리현황과 관련해 내가 댓글 작성한 게시물이 없다면??
-              if (SettingsController.to.obsWhatICommentPostDatas.isEmpty) {
-                return noWhatICommentThePostData();
-              }
+          // 데이터가 도착했다.
+          // 하지만 장애 처리현황과 관련해 내가 댓글 작성한 게시물이 없다면??
+          if (SettingsController.to.obsWhatICommentPostDatas.isEmpty) {
+            return noWhatICommentThePostData();
+          }
 
-              // 데이터가 도착했다.
-              // 장애 처리현황과 관련해 내가 쓴 게시물이 존재한다면?
-              return prepareObsWhatICommentThePostData();
-            },
-          );
-        }
-        // SettingsController의 selectObsOrInq 변수가 'inqueryHandlingStatus'인 경우
-        // 즉 문의 처리현황 버튼을 클릭했다면...
-        else {
-          return FutureBuilder(
-            future: SettingsController.to.getInqWhatICommentPostData(),
-            builder: (context, snapshot) {
-              // 데이터가 아직 도착하지 않았다면?
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return waitData();
-              }
+          // 데이터가 도착했다.
+          // 장애 처리현황과 관련해 내가 쓴 게시물이 존재한다면?
+          return prepareObsWhatICommentThePostData();
+        },
+      );
+    }
+    // SettingsController의 selectObsOrInq 변수가 'inqueryHandlingStatus'인 경우
+    // 즉 문의 처리현황 버튼을 클릭했다면...
+    else {
+      return FutureBuilder(
+        future: SettingsController.to.getInqWhatICommentPostData(),
+        builder: (context, snapshot) {
+          // 데이터가 아직 도착하지 않았다면?
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return waitData();
+          }
 
-              // 데이터가 도착했다.
-              // 하지만 문의 처리현황과 관련해서 내가 쓴 글이 없다면?
-              if (SettingsController.to.inqWhatICommentPostDatas.isEmpty) {
-                return noWhatICommentThePostData();
-              }
+          // 데이터가 도착했다.
+          // 하지만 문의 처리현황과 관련해서 내가 쓴 글이 없다면?
+          if (SettingsController.to.inqWhatICommentPostDatas.isEmpty) {
+            return noWhatICommentThePostData();
+          }
 
-              // 데이터가 도착했다.
-              // 문의 처리현황과 관련해서 내가 쓴 글이 있다면?
-              return prepareInqWhatICommentThePostData();
-            },
-          );
-        }
-      },
-    );
+          // 데이터가 도착했다.
+          // 문의 처리현황과 관련해서 내가 쓴 글이 있다면?
+          return prepareInqWhatICommentThePostData();
+        },
+      );
+    }
   }
 
   // 데이터가 아직 오지 않았을 떄 호출되는 Widget
@@ -109,58 +113,170 @@ class WhatICommentPage extends StatelessWidget {
     );
   }
 
-  // 장애 처리현황과 관련해서 내가 댓글 작성한 글이 없으면 호출되는 Widget
+  // 내가 댓글 작성한 게시물이 없으면 호출되는 Widget
   Widget noWhatICommentThePostData() {
-    return Expanded(
-      flex: 1,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // 금지 아이콘
-            const Icon(
-              Icons.info_outline,
-              size: 60,
-              color: Colors.grey,
-            ),
-
-            SizedBox(height: 10.h),
-
-            // 검색 결과가 없다는 Text
-            Text(
-              '검색 결과가 없습니다.',
-              style: TextStyle(color: Colors.grey, fontSize: 20.sp),
-            ),
-          ],
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(height: 200.h),
+        // 금지 아이콘
+        const Icon(
+          Icons.info_outline,
+          size: 60,
+          color: Colors.grey,
         ),
-      ),
+
+        SizedBox(height: 10.h),
+
+        // 검색 결과가 없다는 Text
+        Text(
+          '검색 결과가 없습니다.',
+          style: TextStyle(color: Colors.grey, fontSize: 20.sp),
+        ),
+      ],
     );
   }
 
   // 장애 처리현황과 관련해 내가 댓글 작성한 글을 ListView로 보여주기 위해 준비하는 Widget
   Widget prepareObsWhatICommentThePostData() {
-    return Expanded(
-      flex: 1,
-      child: ListView.builder(
-        itemCount: SettingsController.to.obsWhatICommentPostDatas.length,
-        itemBuilder: (BuildContext context, int index) {
-          return showObsWhatICommentPostData(index);
+    // 장애 처리현황과 관련해 내가 작성한 게시물이 5개 이상이면? -> Pager를 보여준다.
+    if (SettingsController.to.obsWhatICommentPostDatas.length >= 5) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) {
+          isShowPager = true;
+          SettingsController.to.update(['whatICommentPageShowPager']);
         },
-      ),
-    );
+      );
+      // 한 페이지당 5개 게시물을 가져온다.
+      return GetBuilder<SettingsController>(
+        id: 'updateWhatICommentObsPostData',
+        builder: (controller) {
+          print('whatICommentPage - updateWhatICommentObsPostData 호출');
+
+          // 처음 페이지를 보여줄 떄
+          if (pagerCurrentPage == 0) {
+            return Column(
+              children: SettingsController.to.obsWhatICommentPostDatas
+                  .asMap()
+                  .keys
+                  .toList()
+                  .getRange(pagerCurrentPage, pagerCurrentPage + 5)
+                  .map((index) => showObsWhatICommentPostData(index))
+                  .toList(),
+            );
+          }
+
+          // 중간 중간 페이지를 보여줄 떄
+          else if (pagerCurrentPage + 1 != pagerLastPage) {
+            return Column(
+              children: SettingsController.to.obsWhatICommentPostDatas
+                  .asMap()
+                  .keys
+                  .toList()
+                  .getRange(pagerCurrentPage * 5, pagerCurrentPage * 5 + 5)
+                  .map((index) => showObsWhatICommentPostData(index))
+                  .toList(),
+            );
+          }
+
+          // 마지막 페이지를 보여줄 떄
+          else {
+            return Column(
+              children: SettingsController.to.obsWhatICommentPostDatas
+                  .asMap()
+                  .keys
+                  .toList()
+                  .getRange(pagerCurrentPage * 5,
+                      SettingsController.to.obsWhatICommentPostDatas.length)
+                  .map((index) => showObsWhatICommentPostData(index))
+                  .toList(),
+            );
+          }
+        },
+      );
+    }
+    // 장애 처리현황 게시물이 5개 미만이면? -> Pager를 보여주지 않는다.
+    else {
+      return Column(
+        children: SettingsController.to.obsWhatICommentPostDatas
+            .asMap()
+            .keys
+            .toList()
+            .map((index) => showObsWhatICommentPostData(index))
+            .toList(),
+      );
+    }
   }
 
   // 문의 처리현황과 관련해 내가 댓글 작성한 글을 ListView로 보여주기 위해 준비하는 Widget
   Widget prepareInqWhatICommentThePostData() {
-    return Expanded(
-      flex: 1,
-      child: ListView.builder(
-        itemCount: SettingsController.to.inqWhatICommentPostDatas.length,
-        itemBuilder: (BuildContext context, int index) {
-          return showInqWhatICommentPostData(index);
+    // 장애 처리현황과 관련해 내가 작성한 게시물이 5개 이상이면? -> Pager를 보여준다.
+    if (SettingsController.to.inqWhatICommentPostDatas.length >= 5) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) {
+          isShowPager = true;
+          SettingsController.to.update(['whatICommentPageShowPager']);
         },
-      ),
-    );
+      );
+      // 한 페이지당 5개 게시물을 가져온다.
+      return GetBuilder<SettingsController>(
+        id: 'updateWhatICommentInqPostData',
+        builder: (controller) {
+          print('whatICommentPage - updateWhatICommentInqPostData 호출');
+
+          // 처음 페이지를 보여줄 떄
+          if (pagerCurrentPage == 0) {
+            return Column(
+              children: SettingsController.to.inqWhatICommentPostDatas
+                  .asMap()
+                  .keys
+                  .toList()
+                  .getRange(pagerCurrentPage, pagerCurrentPage + 5)
+                  .map((index) => showInqWhatICommentPostData(index))
+                  .toList(),
+            );
+          }
+
+          // 중간 중간 페이지를 보여줄 떄
+          else if (pagerCurrentPage + 1 != pagerLastPage) {
+            return Column(
+              children: SettingsController.to.inqWhatICommentPostDatas
+                  .asMap()
+                  .keys
+                  .toList()
+                  .getRange(pagerCurrentPage * 5, pagerCurrentPage * 5 + 5)
+                  .map((index) => showInqWhatICommentPostData(index))
+                  .toList(),
+            );
+          }
+
+          // 마지막 페이지를 보여줄 떄
+          else {
+            return Column(
+              children: SettingsController.to.inqWhatICommentPostDatas
+                  .asMap()
+                  .keys
+                  .toList()
+                  .getRange(pagerCurrentPage * 5,
+                      SettingsController.to.inqWhatICommentPostDatas.length)
+                  .map((index) => showInqWhatICommentPostData(index))
+                  .toList(),
+            );
+          }
+        },
+      );
+    }
+    // 장애 처리현황 게시물이 5개 미만이면? -> Pager를 보여주지 않는다.
+    else {
+      return Column(
+        children: SettingsController.to.inqWhatICommentPostDatas
+            .asMap()
+            .keys
+            .toList()
+            .map((index) => showInqWhatICommentPostData(index))
+            .toList(),
+      );
+    }
   }
 
   // 장애 처리현황과 관련해 내가 댓글 작성한 글을 각각 보여주는 Widget
@@ -571,6 +687,77 @@ class WhatICommentPage extends StatelessWidget {
     );
   }
 
+  // Pager
+  Widget pager() {
+    return GetBuilder<SettingsController>(
+      id: 'whatICommentPageShowPager',
+      builder: (controller) {
+        print('WhatICommentPage - showPager 호출');
+
+        int postDataLength = 0;
+
+        // 장애 처리현황, 문의 처리현황 마다 다르게 Pager의 numberPages를 결정한다.
+        if (SettingsController.to.selectObsOrInq ==
+            ObsOrInqClassification.obstacleHandlingStatus) {
+          postDataLength =
+              SettingsController.to.obsWhatICommentPostDatas.length;
+        }
+        //
+        else {
+          postDataLength =
+              SettingsController.to.inqWhatICommentPostDatas.length;
+        }
+        return isShowPager == true
+            // Pager를 보여준다.
+            ? Container(
+                padding: EdgeInsets.all(5.0.w),
+                margin: EdgeInsets.only(bottom: 10.h),
+                width: ScreenUtil().screenWidth,
+                height: 50.h,
+                child: NumberPaginator(
+                  numberPages: postDataLength % 5 == 0
+                      ? pagerLastPage = (postDataLength / 5).floor()
+                      : pagerLastPage = (postDataLength / 5).floor() + 1,
+                  initialPage: pagerCurrentPage,
+                  onPageChange: (int pagerUpdatePage) async {
+                    pagerCurrentPage = pagerUpdatePage;
+
+                    SettingsController.to.update(['whatICommentPageShowPager']);
+
+                    await Future.delayed(const Duration(milliseconds: 5));
+
+                    SettingsController.to.selectObsOrInq ==
+                            ObsOrInqClassification.obstacleHandlingStatus
+                        ? SettingsController.to
+                            .update(['updateWhatICommentObsPostData'])
+                        : SettingsController.to
+                            .update(['updateWhatICommentnqPostData']);
+                  },
+                ),
+              )
+            // Pager를 보여주지 않는다.
+            : const Visibility(
+                visible: false,
+                child: Text('Pager가 보이지 않습니다.'),
+              );
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    print('WhatICommentPage - initState() 호출');
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    print('WhatICommentPage - dispose() 호출');
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -609,6 +796,17 @@ class WhatICommentPage extends StatelessWidget {
           onPressed: () {
             // 장애 처리현황 또는 문의 처리현황 게시물을 선택해서 보여주는 method를 실행한다.
             SettingsController.to.changePost();
+
+            setState(() {
+              // PostListPage의 Pager의 현재 번호
+              pagerCurrentPage = 0;
+
+              // PostListPage의 Pager 끝 번호
+              pagerLastPage = 0;
+
+              // Pager를 보여줄지 결정하는 변수
+              isShowPager = false;
+            });
           },
           child: const Icon(Icons.change_circle_outlined, size: 40),
         ),
@@ -623,6 +821,11 @@ class WhatICommentPage extends StatelessWidget {
 
             // 내가 쓴 게시물에 대한 목록을 가져온다.
             getObsOrInqWhatICommentThePost(),
+
+            SizedBox(height: 5.h),
+
+            // Pager
+            pager(),
           ],
         ),
       ),

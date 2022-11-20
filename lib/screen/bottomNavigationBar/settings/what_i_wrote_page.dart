@@ -17,93 +17,101 @@ import 'package:help_desk/screen/bottomNavigationBar/controller/settings_control
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_post_page.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart';
+import 'package:number_paginator/number_paginator.dart';
 
 import '../../../const/obsOrInqClassification.dart';
 
-class WhatIWrotePage extends StatelessWidget {
+class WhatIWrotePage extends StatefulWidget {
   const WhatIWrotePage({super.key});
+
+  @override
+  State<WhatIWrotePage> createState() => _WhatIWrotePageState();
+}
+
+class _WhatIWrotePageState extends State<WhatIWrotePage> {
+  // PostListPage의 Pager의 현재 번호
+  int pagerCurrentPage = 0;
+
+  // PostListPage의 Pager 끝 번호
+  int pagerLastPage = 0;
+
+  // Pager를 보여줄지 결정하는 변수
+  bool isShowPager = false;
 
   // 장애 처리현황인지 문의 처리현황인지 Text를 보여준다.
   Widget getObsOrInqText() {
-    return GetBuilder<SettingsController>(
-      id: 'getObsOrInqText',
-      builder: (controller) {
-        print('whatIWrote - getObsOrInqText() 호출');
-        return Container(
-          alignment: Alignment.centerLeft,
-          margin: EdgeInsets.only(left: 20.w),
-          width: ScreenUtil().screenWidth,
-          height: 50.h,
-          child: Text(
-            SettingsController.to.selectObsOrInq ==
-                    ObsOrInqClassification.obstacleHandlingStatus
-                ? '장애 처리현황'
-                : '문의 처리현황',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        );
-      },
+    return Container(
+      alignment: Alignment.centerLeft,
+      margin: EdgeInsets.only(left: 20.w),
+      width: ScreenUtil().screenWidth,
+      height: 50.h,
+      child: Text(
+        SettingsController.to.selectObsOrInq ==
+                ObsOrInqClassification.obstacleHandlingStatus
+            ? '장애 처리현황'
+            : '문의 처리현황',
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 20.sp,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
   // 내가 쓴 게시물에 대한 목록을 가져오는 Widget
   Widget getObsOrInqWhatIWroteThePost() {
-    return GetBuilder<SettingsController>(
-      id: 'getObsOrInqPost',
-      builder: (controller) {
-        // SettingsController의 selectObsOrInq 변수가 'obstacleHandlingStatus'인 경우
-        // 즉 장애 처리현황 버튼을 클릭했으면...
-        if (SettingsController.to.selectObsOrInq ==
-            ObsOrInqClassification.obstacleHandlingStatus) {
-          return FutureBuilder(
-            future: SettingsController.to.getObsWhatIWrotePostData(),
-            builder: (context, snapshot) {
-              // 데이터가 아직 도착하지 않았다면?
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return waitData();
-              }
+    // SettingsController의 selectObsOrInq 변수가 'obstacleHandlingStatus'인 경우
+    // 즉 장애 처리현황 버튼을 클릭했으면...
+    if (SettingsController.to.selectObsOrInq ==
+        ObsOrInqClassification.obstacleHandlingStatus) {
+      print('장애 처리현황 가져오기');
 
-              // 데이터가 도착했다.
-              // 하지만 장애 처리현황과 관련해 내가 쓴 게시물이 없다면??
-              if (SettingsController.to.obsWhatIWrotePostDatas.isEmpty) {
-                return noWhatIWroteThePostData();
-              }
+      return FutureBuilder(
+        future: SettingsController.to.getObsWhatIWrotePostData(),
+        builder: (context, snapshot) {
+          // 데이터가 아직 도착하지 않았다면?
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return waitData();
+          }
 
-              // 데이터가 도착했다.
-              // 장애 처리현황과 관련해 내가 쓴 게시물이 존재한다면?
-              return prepareObsWhatIWroteThePostData();
-            },
-          );
-        }
-        // SettingsController의 selectObsOrInq 변수가 'inqueryHandlingStatus'인 경우
-        // 즉 문의 처리현황 버튼을 클릭했다면...
-        else {
-          return FutureBuilder(
-            future: SettingsController.to.getInqWhatIWrotePostData(),
-            builder: (context, snapshot) {
-              // 데이터가 아직 도착하지 않았다면?
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return waitData();
-              }
+          // 데이터가 도착했다.
+          // 하지만 장애 처리현황과 관련해 내가 쓴 게시물이 없다면??
+          if (SettingsController.to.obsWhatIWrotePostDatas.isEmpty) {
+            return noWhatIWroteThePostData();
+          }
 
-              // 데이터가 도착했다.
-              // 하지만 문의 처리현황과 관련해서 내가 쓴 글이 없다면?
-              if (SettingsController.to.inqWhatIWrotePostDatas.isEmpty) {
-                return noWhatIWroteThePostData();
-              }
+          // 데이터가 도착했다.
+          // 장애 처리현황과 관련해 내가 쓴 게시물이 존재한다면?
+          return prepareObsWhatIWroteThePostData();
+        },
+      );
+    }
+    // SettingsController의 selectObsOrInq 변수가 'inqueryHandlingStatus'인 경우
+    // 즉 문의 처리현황 버튼을 클릭했다면...
+    else {
+      print('문의 처리현황 가져오기');
 
-              // 데이터가 도착했다.
-              // 문의 처리현황과 관련해서 내가 쓴 글이 있다면?
-              return prepareInqWhatIWroteThePostData();
-            },
-          );
-        }
-      },
-    );
+      return FutureBuilder(
+        future: SettingsController.to.getInqWhatIWrotePostData(),
+        builder: (context, snapshot) {
+          // 데이터가 아직 도착하지 않았다면?
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return waitData();
+          }
+
+          // 데이터가 도착했다.
+          // 하지만 문의 처리현황과 관련해서 내가 쓴 글이 없다면?
+          if (SettingsController.to.inqWhatIWrotePostDatas.isEmpty) {
+            return noWhatIWroteThePostData();
+          }
+
+          // 데이터가 도착했다.
+          // 문의 처리현황과 관련해서 내가 쓴 글이 있다면?
+          return prepareInqWhatIWroteThePostData();
+        },
+      );
+    }
   }
 
   // 데이터가 아직 오지 않았을 떄 호출되는 Widget
@@ -113,58 +121,170 @@ class WhatIWrotePage extends StatelessWidget {
     );
   }
 
-  // 장애 처리현황과 관련해서 내가 쓴 글이 없으면 호출되는 Widget
+  // 내가 쓴 게시물이 없으면 호출되는 Widget
   Widget noWhatIWroteThePostData() {
-    return Expanded(
-      flex: 1,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // 금지 아이콘
-            const Icon(
-              Icons.info_outline,
-              size: 60,
-              color: Colors.grey,
-            ),
-
-            SizedBox(height: 10.h),
-
-            // 검색 결과가 없다는 Text
-            Text(
-              '검색 결과가 없습니다.',
-              style: TextStyle(color: Colors.grey, fontSize: 20.sp),
-            ),
-          ],
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(height: 200.h),
+        // 금지 아이콘
+        const Icon(
+          Icons.info_outline,
+          size: 60,
+          color: Colors.grey,
         ),
-      ),
+
+        SizedBox(height: 10.h),
+
+        // 검색 결과가 없다는 Text
+        Text(
+          '검색 결과가 없습니다.',
+          style: TextStyle(color: Colors.grey, fontSize: 20.sp),
+        ),
+      ],
     );
   }
 
   // 장애 처리현황과 관련해 내가 쓴 글을 ListView로 보여주기 위해 준비하는 Widget
   Widget prepareObsWhatIWroteThePostData() {
-    return Expanded(
-      flex: 1,
-      child: ListView.builder(
-        itemCount: SettingsController.to.obsWhatIWrotePostDatas.length,
-        itemBuilder: (BuildContext context, int index) {
-          return showObsWhatIWrotePostData(index);
+    // 장애 처리현황과 관련해 내가 작성한 게시물이 5개 이상이면? -> Pager를 보여준다.
+    if (SettingsController.to.obsWhatIWrotePostDatas.length >= 5) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) {
+          isShowPager = true;
+          SettingsController.to.update(['whatIWrotePageShowPager']);
         },
-      ),
-    );
+      );
+      // 한 페이지당 5개 게시물을 가져온다.
+      return GetBuilder<SettingsController>(
+        id: 'updateWhatIWroteObsPostData',
+        builder: (controller) {
+          print('whatIWrotePage - updateWhatIWroteObsPostData 호출');
+
+          // 처음 페이지를 보여줄 떄
+          if (pagerCurrentPage == 0) {
+            return Column(
+              children: SettingsController.to.obsWhatIWrotePostDatas
+                  .asMap()
+                  .keys
+                  .toList()
+                  .getRange(pagerCurrentPage, pagerCurrentPage + 5)
+                  .map((index) => showObsWhatIWrotePostData(index))
+                  .toList(),
+            );
+          }
+
+          // 중간 중간 페이지를 보여줄 떄
+          else if (pagerCurrentPage + 1 != pagerLastPage) {
+            return Column(
+              children: SettingsController.to.obsWhatIWrotePostDatas
+                  .asMap()
+                  .keys
+                  .toList()
+                  .getRange(pagerCurrentPage * 5, pagerCurrentPage * 5 + 5)
+                  .map((index) => showObsWhatIWrotePostData(index))
+                  .toList(),
+            );
+          }
+
+          // 마지막 페이지를 보여줄 떄
+          else {
+            return Column(
+              children: SettingsController.to.obsWhatIWrotePostDatas
+                  .asMap()
+                  .keys
+                  .toList()
+                  .getRange(pagerCurrentPage * 5,
+                      SettingsController.to.obsWhatIWrotePostDatas.length)
+                  .map((index) => showObsWhatIWrotePostData(index))
+                  .toList(),
+            );
+          }
+        },
+      );
+    }
+    // 장애 처리현황 게시물이 5개 미만이면? -> Pager를 보여주지 않는다.
+    else {
+      return Column(
+        children: SettingsController.to.obsWhatIWrotePostDatas
+            .asMap()
+            .keys
+            .toList()
+            .map((index) => showObsWhatIWrotePostData(index))
+            .toList(),
+      );
+    }
   }
 
   // 문의 처리현황과 관련해 내가 쓴 글을 ListView로 보여주기 위해 준비하는 Widget
   Widget prepareInqWhatIWroteThePostData() {
-    return Expanded(
-      flex: 1,
-      child: ListView.builder(
-        itemCount: SettingsController.to.inqWhatIWrotePostDatas.length,
-        itemBuilder: (BuildContext context, int index) {
-          return showInqWhatIWrotePostData(index);
+    // 문의 처리현황과 관련해 내가 작성한 게시물이 5개 이상이면? -> Pager를 보여준다.
+    if (SettingsController.to.inqWhatIWrotePostDatas.length >= 5) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) {
+          isShowPager = true;
+          SettingsController.to.update(['whatIWrotePageShowPager']);
         },
-      ),
-    );
+      );
+      // 한 페이지당 5개 게시물을 가져온다.
+      return GetBuilder<SettingsController>(
+        id: 'updateWhatIWroteInqPostData',
+        builder: (controller) {
+          print('whatIWrotePage - updateWhatIWroteInqPostData 호출');
+
+          // 처음 페이지를 보여줄 떄
+          if (pagerCurrentPage == 0) {
+            return Column(
+              children: SettingsController.to.inqWhatIWrotePostDatas
+                  .asMap()
+                  .keys
+                  .toList()
+                  .getRange(pagerCurrentPage, pagerCurrentPage + 5)
+                  .map((index) => showInqWhatIWrotePostData(index))
+                  .toList(),
+            );
+          }
+
+          // 중간 중간 페이지를 보여줄 떄
+          else if (pagerCurrentPage + 1 != pagerLastPage) {
+            return Column(
+              children: SettingsController.to.inqWhatIWrotePostDatas
+                  .asMap()
+                  .keys
+                  .toList()
+                  .getRange(pagerCurrentPage * 5, pagerCurrentPage * 5 + 5)
+                  .map((index) => showInqWhatIWrotePostData(index))
+                  .toList(),
+            );
+          }
+
+          // 마지막 페이지를 보여줄 떄
+          else {
+            return Column(
+              children: SettingsController.to.inqWhatIWrotePostDatas
+                  .asMap()
+                  .keys
+                  .toList()
+                  .getRange(pagerCurrentPage * 5,
+                      SettingsController.to.inqWhatIWrotePostDatas.length)
+                  .map((index) => showInqWhatIWrotePostData(index))
+                  .toList(),
+            );
+          }
+        },
+      );
+    }
+    // 장애 처리현황 게시물이 5개 미만이면? -> Pager를 보여주지 않는다.
+    else {
+      return Column(
+        children: SettingsController.to.inqWhatIWrotePostDatas
+            .asMap()
+            .keys
+            .toList()
+            .map((index) => showInqWhatIWrotePostData(index))
+            .toList(),
+      );
+    }
   }
 
   // 장애 처리현황과 관련해 내가 쓴 글을 각각 보여주는 Widget
@@ -576,8 +696,65 @@ class WhatIWrotePage extends StatelessWidget {
     );
   }
 
+  // Pager
+  Widget pager() {
+    return GetBuilder<SettingsController>(
+      id: 'whatIWrotePageShowPager',
+      builder: (controller) {
+        print('WhatIWrotePage - showPager 호출');
+
+        int postDataLength = 0;
+
+        // 장애 처리현황, 문의 처리현황 마다 다르게 Pager의 numberPages를 결정한다.
+        if (SettingsController.to.selectObsOrInq ==
+            ObsOrInqClassification.obstacleHandlingStatus) {
+          postDataLength = SettingsController.to.obsWhatIWrotePostDatas.length;
+        }
+        //
+        else {
+          postDataLength = SettingsController.to.inqWhatIWrotePostDatas.length;
+        }
+        return isShowPager == true
+            // Pager를 보여준다.
+            ? Container(
+                padding: EdgeInsets.all(5.0.w),
+                margin: EdgeInsets.only(bottom: 10.h),
+                width: ScreenUtil().screenWidth,
+                height: 50.h,
+                child: NumberPaginator(
+                  numberPages: postDataLength % 5 == 0
+                      ? pagerLastPage = (postDataLength / 5).floor()
+                      : pagerLastPage = (postDataLength / 5).floor() + 1,
+                  initialPage: pagerCurrentPage,
+                  onPageChange: (int pagerUpdatePage) async {
+                    pagerCurrentPage = pagerUpdatePage;
+
+                    SettingsController.to.update(['whatIWrotePageShowPager']);
+
+                    await Future.delayed(const Duration(milliseconds: 5));
+
+                    SettingsController.to.selectObsOrInq ==
+                            ObsOrInqClassification.obstacleHandlingStatus
+                        ? SettingsController.to
+                            .update(['updateWhatIWroteObsPostData'])
+                        : SettingsController.to
+                            .update(['updateWhatIWroteInqPostData']);
+                  },
+                ),
+              )
+            // Pager를 보여주지 않는다.
+            : const Visibility(
+                visible: false,
+                child: Text('Pager가 보이지 않습니다.'),
+              );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    print('whatIWrotePage - build() 호출');
+
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -608,26 +785,48 @@ class WhatIWrotePage extends StatelessWidget {
           ),
           elevation: 0.5,
         ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: Colors.grey,
-          onPressed: () {
-            // 장애 처리현황 또는 문의 처리현황 게시물을 선택해서 보여주는 method를 실행한다.
-            SettingsController.to.changePost();
-          },
-          child: const Icon(Icons.change_circle_outlined, size: 40),
+        floatingActionButton: Align(
+          alignment:
+              Alignment(Alignment.bottomRight.x, Alignment.bottomRight.y - 0.2),
+          child: FloatingActionButton(
+            backgroundColor: Colors.grey,
+            onPressed: () {
+              // 장애 처리현황 또는 문의 처리현황 게시물을 선택해서 보여주는 method를 실행한다.
+              SettingsController.to.changePost();
+
+              setState(() {
+                // PostListPage의 Pager의 현재 번호
+                pagerCurrentPage = 0;
+
+                // PostListPage의 Pager 끝 번호
+                pagerLastPage = 0;
+
+                // Pager를 보여줄지 결정하는 변수
+                isShowPager = false;
+              });
+            },
+            child: const Icon(Icons.change_circle_outlined, size: 40),
+          ),
         ),
-        body: Column(
-          children: [
-            SizedBox(height: 10.h),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              SizedBox(height: 10.h),
 
-            // 장애 처리현황인지 문의 처리현황인지 Text를 보여준다.
-            getObsOrInqText(),
+              // 장애 처리현황인지 문의 처리현황인지 Text를 보여준다.
+              getObsOrInqText(),
 
-            SizedBox(height: 5.h),
+              SizedBox(height: 5.h),
 
-            // 내가 쓴 게시물에 대한 목록을 가져온다.
-            getObsOrInqWhatIWroteThePost(),
-          ],
+              // 내가 쓴 게시물에 대한 목록을 가져온다.
+              getObsOrInqWhatIWroteThePost(),
+
+              SizedBox(height: 5.h),
+
+              // Pager
+              pager(),
+            ],
+          ),
         ),
       ),
     );

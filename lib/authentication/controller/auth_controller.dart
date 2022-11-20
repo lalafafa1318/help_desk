@@ -42,8 +42,7 @@ class AuthController extends GetxController {
   static AuthController get to => Get.find();
 
   // MainPage로 가기 전에 해야 하는 작업을 수행하는 method
-  void taskPriorMainPage(
-      AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> innerSnapshot) {
+  void taskPriorMainPage(AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> innerSnapshot) {
     // innerSnapshot에서 Database에 저장된 Map 형식 User를 가져온다.
     Map<String, dynamic> mapUser = innerSnapshot.data!.docs.first.data();
 
