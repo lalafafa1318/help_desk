@@ -2047,8 +2047,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // comment의 whoCommentLike 속성에 사용자 Uid가 있는지 없는지에 따라 다른 로직을 구현하는 method
-  Future<void> isUserUidInWhoCommentLikeFromCommentData(
-      bool isResult, CommentModel comment) async {
+  Future<void> isUserUidInWhoCommentLikeFromCommentData(bool isResult, CommentModel comment) async {
     // comment의 whoCommentLike 속성에 사용자 Uid가 있었다.
     if (isResult) {
       // 하단 snackBar로 "이미 공감한 comment 입니다 :)" 표시한다.

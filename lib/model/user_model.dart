@@ -1,7 +1,10 @@
 // User 계정의 토대가 되는 Model class 입니다.
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:help_desk/const/userClassification.dart';
 
 class UserModel {
+  // 일반 사용자인가? IT 담당자인가? 
+  UserClassification 
   // 이름
   String userName;
   // 설명

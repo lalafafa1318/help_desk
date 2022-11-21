@@ -309,7 +309,7 @@ class _WhatIWrotePageState extends State<WhatIWrotePage> {
         );
       },
       child: Padding(
-        padding: EdgeInsets.all(18.0.r),
+        padding: EdgeInsets.all(16.0.r),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

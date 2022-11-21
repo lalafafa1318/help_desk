@@ -127,7 +127,7 @@ class NotificationController extends GetxController {
     );
   }
 
-  // Database에서 게시물(post)의 변동 사항을 listen한다.
+  // Database에서 장애 처리현황 또는 문의 처리현황 게시물에 대한 댓글 변동 사항을 listen한다.
   Future<void> setListen() async {
     // 오직 하나의 Instnace만 쓰도록 하기 위해 설정했다.
     FirebaseFirestore firebaseFirestore =
@@ -237,7 +237,7 @@ class NotificationController extends GetxController {
     }
   }
 
-  // Database에서 게시물(post)의 변동 사항을 추가로 listen 한다.
+  // Database에서 장애 처리현황 또는 문의 처리현황 게시물에 대한 댓글 변동 사항을 listen한다.
   Future<void> addListen(int index) async {
     // 오직 하나의 Instnace만 쓰도록 하기 위해 설정했다.
     FirebaseFirestore firebaseFirestore =
@@ -352,7 +352,7 @@ class NotificationController extends GetxController {
 
     // Database에서 user의 notiPost 속성에 값을 가져와 notiPost Array에 값을 대입한다.
     getNotiPostFromUser().then(
-      (value) async {
+      (_) async {
         print('notiPostLength : ${notiPost.length}');
 
         // Database에 장애 처리현황 또는 문의 처리현황 게시물에 대한 댓글(comment)의 개수를 찾아
@@ -366,7 +366,7 @@ class NotificationController extends GetxController {
 
         print('Flutter Local Notification Setting 완료');
 
-        // Database에서 게시물(post)의 변동사항을 listen한다.
+        // Database에서 장애 처리현황 또는 문의 처리현황 게시물에 대한 댓글 변동사항을 listen한다.
         await setListen();
 
         await Future.delayed(const Duration(seconds: 5));

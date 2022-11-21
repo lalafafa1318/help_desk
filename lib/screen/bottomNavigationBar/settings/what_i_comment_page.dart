@@ -301,7 +301,7 @@ class _WhatICommentPageState extends State<WhatICommentPage> {
         );
       },
       child: Padding(
-        padding: EdgeInsets.all(18.0.r),
+        padding: EdgeInsets.all(16.0.r),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -505,7 +505,7 @@ class _WhatICommentPageState extends State<WhatICommentPage> {
         );
       },
       child: Padding(
-        padding: EdgeInsets.all(18.0.r),
+        padding: EdgeInsets.all(16.0.r),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -810,23 +810,25 @@ class _WhatICommentPageState extends State<WhatICommentPage> {
           },
           child: const Icon(Icons.change_circle_outlined, size: 40),
         ),
-        body: Column(
-          children: [
-            SizedBox(height: 10.h),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              SizedBox(height: 10.h),
 
-            // 장애 처리현황인지 문의 처리현황인지 Text를 보여준다.
-            getObsOrInqText(),
+              // 장애 처리현황인지 문의 처리현황인지 Text를 보여준다.
+              getObsOrInqText(),
 
-            SizedBox(height: 5.h),
+              SizedBox(height: 5.h),
 
-            // 내가 쓴 게시물에 대한 목록을 가져온다.
-            getObsOrInqWhatICommentThePost(),
+              // 내가 쓴 게시물에 대한 목록을 가져온다.
+              getObsOrInqWhatICommentThePost(),
 
-            SizedBox(height: 5.h),
+              SizedBox(height: 5.h),
 
-            // Pager
-            pager(),
-          ],
+              // Pager
+              pager(),
+            ],
+          ),
         ),
       ),
     );

@@ -411,8 +411,7 @@ class CommunicateFirebase {
   }
 
   // Database에서 게시물(post)에 대한 여러 comment를 가져오는 method
-  static Future<Map<String, dynamic>> getCommentAndUser(
-      PostModel postData) async {
+  static Future<Map<String, dynamic>> getCommentAndUser(PostModel postData) async {
     // Database에서 게시물(post)에 해당하는 여러 comment을 가져온다.
     QuerySnapshot<Map<String, dynamic>> comments =
         (postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus

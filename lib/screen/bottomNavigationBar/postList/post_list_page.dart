@@ -47,15 +47,20 @@ class _PostListPageState extends State<PostListPage> {
 
   // 장애/문의, 시스템 분류 코드 그리고 처리상태 분류 코드 Dropdown을 담는다. (제 1책)
   Widget dropdownClassification() {
-    return Row(
-      children: [
-        SizedBox(width: 20.w),
-        obsOrInqDropdown(),
-        SizedBox(width: 10.w),
-        sysDropdown(),
-        SizedBox(width: 10.w),
-        proDropdown(),
-      ],
+    return Container(
+      margin: EdgeInsets.only(top: 5.h),
+      width: ScreenUtil().screenWidth,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(width: 10.w),
+          obsOrInqDropdown(),
+          SizedBox(width: 10.w),
+          sysDropdown(),
+          SizedBox(width: 10.w),
+          proDropdown(),
+        ],
+      ),
     );
   }
 
@@ -116,8 +121,7 @@ class _PostListPageState extends State<PostListPage> {
                 .firstWhere((enumValue) => enumValue.name == element);
 
             // 시스템 분류 코드를 결정하는 Dropdown만 재랜더링 한다.
-            PostListController.to
-                .update(['sysClassificationDropdown']);
+            PostListController.to.update(['sysClassificationDropdown']);
           },
         );
       },
@@ -148,8 +152,7 @@ class _PostListPageState extends State<PostListPage> {
                 .firstWhere((enumValue) => enumValue.name == element);
 
             // 처리 상태 분류 코드를 결정하는 Dropdown만 재랜더링 한다.
-            PostListController.to
-                .update(['proClassficationDropdown']);
+            PostListController.to.update(['proClassficationDropdown']);
           },
         );
       },
@@ -158,15 +161,18 @@ class _PostListPageState extends State<PostListPage> {
 
   // 사용자가 검색, 정렬할 수 있도록 하는 Widget
   Widget topView() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // 검색창 입니다.
-        searchText(),
+    return SizedBox(
+      width: ScreenUtil().screenWidth,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // 검색창 입니다.
+          searchText(),
 
-        // 글쓰기 페이지로 이동하는 Widget 입니다.
-        writeIcon(),
-      ],
+          // 글쓰기 페이지로 이동하는 Widget 입니다.
+          writeIcon(),
+        ],
+      ),
     );
   }
 
@@ -305,8 +311,7 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 장애 처리현황 게시물을 obsPostData에 추가하는 method
-  Widget prepareShowObsPostData(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowObsPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocObsPostDataInArray(allData),
       builder: (context, snapshot) {
@@ -493,7 +498,7 @@ class _PostListPageState extends State<PostListPage> {
         );
       },
       child: Padding(
-        padding: EdgeInsets.all(18.0.r),
+        padding: EdgeInsets.all(16.0.w),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -972,12 +977,13 @@ class _PostListPageState extends State<PostListPage> {
             pinned: false,
             expandedHeight: 100.h,
             // 장애/문의 Dropdown, 시스템 Dropdown, 처리상태 Dropdown를 보여준다.
-            title: dropdownClassification(),
+            actions: [dropdownClassification()],
             // 키워드를 검색하는 입력창을 보여준다.
             bottom: AppBar(
               backgroundColor: Colors.white,
               elevation: 0.0,
-              title: topView(),
+              // title: topView(),
+              actions: [topView()],
             ),
           ),
 

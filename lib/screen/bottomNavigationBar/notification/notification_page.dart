@@ -144,7 +144,7 @@ class NotificationPage extends StatelessWidget {
     NotificationModel notificationModel =
         NotificationController.to.notificationModelList[index];
 
-    // NotifcationModel이 장애 처리현황과 관련이 있다.
+    // NotifcationModel이 장애 처리현황 게시물과 관련이 있다.
     if (notificationModel.belongNotiObsOrInq ==
         ObsOrInqClassification.obstacleHandlingStatus) {
       // PostListController.to.obsPostData를 간단하게 명명한다.
@@ -158,7 +158,7 @@ class NotificationPage extends StatelessWidget {
         }
       }
     }
-    // NotificationModel이 문의 처리현황과 관련이 있다.
+    // NotificationModel이 문의 처리현황 게시물과 관련이 있다.
     else {
       List<PostModel> inqPostDatas = PostListController.to.inqPostData;
 
@@ -173,7 +173,7 @@ class NotificationPage extends StatelessWidget {
 
     return Column(
       children: [
-        // 알림을 삭제하는 Slidable
+        // 알림을 삭제하는 Slidable + 알림 내용
         Slidable(
           endActionPane: ActionPane(
             motion: const ScrollMotion(),
@@ -193,6 +193,7 @@ class NotificationPage extends StatelessWidget {
                   );
 
                   // Notification과 관련된 장애 처리현황 또는 문의 처리현황 게시물이 삭제되었다면?
+                  // -> 더이상 알림 받을 필요성이 없다. -> 알림 받기 위해 설정했던 모든 것을 해제한다.
                   if (isDeletePostResult) {
                     // Notification과 관련된 게시물 Uid가 notiPost Array의 몇번째 index에 있는지 확인한다.
                     int index = NotificationController.to.notiPost
@@ -200,31 +201,32 @@ class NotificationPage extends StatelessWidget {
 
                     // 왜 index != -1인 코드를 배치했는가?
                     // case 1: A는 B가 올린 게시물의 알림을 받았다. -> B는 게시물을 삭제했다. -> A는 알림을 삭제한다.
-                    // -> 첫번쨰 알림을 지울 때는 문제가 없지만 두번쨰 알림부터 지우려면 문제가 발생한다. 따라서 위 코드를 배치했다.
+                    // case 2: A는 B가 올린 게시물의 알림을 받았다. -> B는 게시물을 삭제했다. -> A는 앱을 재부팅하거나 PostListPage를 거치고 알림을 삭제한다.
+                    // 즉 2가지 상황에 대비해 if(index != -1) 이하 코드가 수행되도록 한다.
 
-                    // case2 : A는 B가 올린 게시물의 알림을 받았다. -> B는 게시물을 삭제했다. -> A는 앱을 재부팅하거나 PostListPage를 거쳤다.
-                    // -> 첫번쨰 알림을 지울 떄는 문제가 없지만 두번쨰 알림부터 지우려면 문제가 발생한다. 따라서 위 코드를 배치했다.
-                    if (index != -1) {
-                      // 실시간으로 Listen 하는 것을 중지하는 것을 넘어서 삭제한다.
-                      NotificationController.to.listenList[index].cancel();
+                    // 지금 테스트 상황으로는 if(index != -1)을 굳이 넣지 않아도 된다.
+                    // 또 혹시 모른다. 넣어야 될지도... 지금은 객관적인 판단이 서지 않는다.
+                    // if (index != -1) {
+                    // 실시간으로 Listen 하는 것을 중지하는 것을 넘어서 삭제한다.
+                    NotificationController.to.listenList[index].cancel();
 
-                      // NotificationController의 notifPost Array에 게시물 uid를 삭제한다.
-                      NotificationController.to.notiPost.removeAt(index);
+                    // NotificationController의 listenList Array에 element을 remove한다.
+                    NotificationController.to.listenList.removeAt(index);
 
-                      // NotificationController의 commentCount Array에 element를 remove한다.
-                      NotificationController.to.commentCount.removeAt(index);
+                    // NotificationController의 notifPost Array에 게시물 uid를 삭제한다.
+                    NotificationController.to.notiPost.removeAt(index);
 
-                      // NotificationController의 listenList Array에 element을 remove한다.
-                      NotificationController.to.listenList.removeAt(index);
+                    // NotificationController의 commentCount Array에 element를 remove한다.
+                    NotificationController.to.commentCount.removeAt(index);
 
-                      // Database의 장애 처리현황 또는 문의 처리현황 게시물이 삭제되어 없을 떄
-                      // Database의 user - notiPost 속성
-                      // 알림과 관련된 게시물 Uid를 삭제한다.
-                      await NotificationController.to.deleteNotiPostFromUser(
-                        notificationModel.belongNotiPostUid,
-                        SettingsController.to.settingUser!.userUid,
-                      );
-                    }
+                    // Database의 장애 처리현황 또는 문의 처리현황 게시물이 삭제되어 없을 떄
+                    // Database의 user - notiPost 속성
+                    // 알림과 관련된 게시물 Uid를 삭제한다.
+                    await NotificationController.to.deleteNotiPostFromUser(
+                      notificationModel.belongNotiPostUid,
+                      SettingsController.to.settingUser!.userUid,
+                    );
+                    // }
                   }
 
                   // Database의 notification을 삭제하는 코드
@@ -286,7 +288,16 @@ class NotificationPage extends StatelessWidget {
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Notification Title
+                // Notificaiton과 관련된 게시물이 장애 처리현황인지 문의 처리현황인지 표시한다.
+                Text(
+                  notificationModel.belongNotiObsOrInq.asText,
+                  style:
+                      TextStyle(fontSize: 12.5.sp, fontWeight: FontWeight.bold),
+                ),
+
+                SizedBox(height: 10.h),
+
+                // Notification과 관련된 게시물 작성자 이름, 제목을 표시한다.
                 Text(
                   notificationModel.title,
                   style: TextStyle(color: Colors.grey[500], fontSize: 20.sp),
@@ -294,7 +305,7 @@ class NotificationPage extends StatelessWidget {
 
                 SizedBox(height: 5.h),
 
-                // Notification Body
+                // 게시물에 대한 최신 댓글 내용을 표시한다.
                 Text(notificationModel.body),
 
                 SizedBox(height: 5.h),

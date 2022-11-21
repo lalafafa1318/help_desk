@@ -101,7 +101,7 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
           ),
 
-          const SizedBox(height: 20),
+          SizedBox(height: 20.h),
 
           // 이미지 변경하는 Button 입니다.
           ElevatedButton(
@@ -184,8 +184,18 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget signUpButton() {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 48.0.w, vertical: 8.0.h),
-      child:
-          ElevatedButton(onPressed: signButton, child: const Text('회원가입 하기')),
+      child: ElevatedButton(
+        onPressed: (){
+          // 키보드 내리기
+          FocusManager.instance.primaryFocus?.unfocus();
+
+          // 회원 가입 하는 method
+          signButton();
+
+        },
+        
+        child: const Text('회원가입 하기'),
+      ),
     );
   }
 
@@ -268,8 +278,8 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
           body: SingleChildScrollView(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              // mainAxisAlignment: MainAxisAlignment.center,
+              // crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 imageBox(),
                 SizedBox(height: 80.h),

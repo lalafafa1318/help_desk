@@ -44,9 +44,11 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
   Widget dropdownClassification() {
     return Container(
       margin: EdgeInsets.only(top: 5.h),
+      width: ScreenUtil().screenWidth,
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(width: 30.w),
+          SizedBox(width: 10.w),
           obsOrInqDropdown(),
           SizedBox(width: 10.w),
           sysDropdown(),
@@ -152,6 +154,25 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
     );
   }
 
+  // 이전 페이지 아이콘과 검색창를 나타내는 Widget 입니다.
+  Widget topView() {
+    return SizedBox(
+      width: ScreenUtil().screenWidth,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // 이전 페이지 아이콘 입니다.
+          backIcon(),
+
+          SizedBox(width: 5.w),
+
+          // 검색창 입니다.
+          searchText(),
+        ],
+      ),
+    );
+  }
+
   // 이전 페이지 아이콘 Widget 입니다.
   Widget backIcon() {
     return Container(
@@ -252,7 +273,7 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
     // PostListController의 oSelectedValue 값이 '문의 처리현황'인 경우...
     else {
       print('문의 처리현황 가져오기');
-      
+
       return FutureBuilder<List<PostModel>>(
         future: PostListController.to.getConditionInqPostData(),
         builder: (context, snapshot) {
@@ -471,7 +492,7 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
         );
       },
       child: Padding(
-        padding: EdgeInsets.all(16.0.r),
+        padding: EdgeInsets.all(16.0.w),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -932,14 +953,14 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
               pinned: false,
               expandedHeight: 100.h,
               // 장애/문의 Dropdown, 시스템 Dropdown, 처리상태 Dropdown를 보여준다.
-              flexibleSpace: dropdownClassification(),
+              // flexibleSpace: dropdownClassification(),
+              actions: [dropdownClassification()],
 
               // 키워드를 검색하는 입력창을 보여준다.
               bottom: AppBar(
                 backgroundColor: Colors.white,
                 elevation: 0.0,
-                leading: backIcon(),
-                title: searchText(),
+                actions: [topView()],
               ),
             ),
 

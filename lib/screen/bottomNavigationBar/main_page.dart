@@ -36,6 +36,8 @@ class MainPage extends GetView<BottomNavigationBarController> {
         },
         child: Obx(
           () => Scaffold(
+            // 키보드가 위로 올라왔을 떄 Overhead가 되는 것을 방지한다.
+            resizeToAvoidBottomInset: false,
             bottomNavigationBar: BottomNavyBar(
               selectedIndex: controller.selectedIndex.value,
               showElevation: true, // use this to remove appBar's elevation

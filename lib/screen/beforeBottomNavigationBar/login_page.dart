@@ -92,8 +92,8 @@ class LoginPage extends StatelessWidget {
         },
         icon: Image.asset(
             'assets/images/twitter.png'), //icon data for elevated button
-        label: const Text('TwitterLogin',
-            style: const TextStyle(color: Colors.black)),
+        label:
+            const Text('TwitterLogin', style: TextStyle(color: Colors.black)),
         style: ElevatedButton.styleFrom(
           primary: const Color(0xFF50BCDF), //elevated btton background color
         ),
@@ -110,7 +110,7 @@ class LoginPage extends StatelessWidget {
           ToastUtil.showToastMessage('이전가기가 불가능합니다.');
           return false;
         },
-    
+
         child: Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
