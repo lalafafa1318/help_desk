@@ -9,6 +9,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:help_desk/authentication/kakaoAuthentication/main_view_model.dart';
 import 'package:help_desk/bindingController/binding_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
+import 'package:help_desk/const/userClassification.dart';
 import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/notification_controller.dart';
@@ -27,6 +28,7 @@ class AuthController extends GetxController {
   // Field
   // User 정보를 관리하는 Field
   Rx<UserModel> user = UserModel(
+    userType: UserClassification.GENERALUSER,
     userName: '',
     description: '',
     image: '',

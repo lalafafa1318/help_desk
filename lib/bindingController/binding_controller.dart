@@ -24,10 +24,5 @@ class BindingController implements Bindings {
     Get.put(PostingController());
     Get.put(NotificationController());
     Get.put(SettingsController());
-
-    // Get.lazyPut(() => BottomNavigationBarController(), fenix: true);
-    // Get.lazyPut(() => PostListController(), fenix: true);
-    // Get.lazyPut(() => PostingController(), fenix: true);
-    // Get.lazyPut(() => SettingsController());
   }
 }

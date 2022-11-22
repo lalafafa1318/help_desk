@@ -7,6 +7,7 @@ import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/const/obsOrInqClassification.dart';
+import 'package:help_desk/const/userClassification.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
@@ -92,7 +93,7 @@ class SettingsController extends GetxController {
     print('SettingsController - allocateEditImage() : 프로필 사진이 수정되었습니다.');
 
     // 반응형 변수를 쓰고 있지 않아서 별도로 update() 불러야 한다.
-    update();
+    update(['editImage']);
   }
 
   // 프로필이 수정되면 호출되는 method
@@ -159,6 +160,10 @@ class SettingsController extends GetxController {
 
     // Firebase Database에 업데이트 칠 UserModel 객체
     UserModel updateUser = UserModel(
+      // 사용자가 일반 사용자인지 IT 담당자인지에 따라 userType을 다르게 설정한다.
+      userType: settingUser!.userType == UserClassification.GENERALUSER
+          ? UserClassification.GENERALUSER
+          : UserClassification.ITUSER,
       userName: editName == '' ? settingUser!.userName : editName,
       description:
           editDescription == '' ? settingUser!.description : editDescription,
@@ -184,11 +189,11 @@ class SettingsController extends GetxController {
     // 로딩 중지
     EasyLoading.dismiss();
 
-    // 이전 가기로 가기
+    // settings_page로 돌아간다.
     Get.back();
 
-    // Settings Page - GetBuilder을 호출하기 위해 update()를 부른다.
-    update();
+    // settings_page를 재랜더링 한다.
+    update(['showProfile']);
 
     return true;
   }
@@ -256,8 +261,7 @@ class SettingsController extends GetxController {
 
     return inqWhatIWrotePostDatas;
   }
- 
-  
+
   // 장애 처리현황 게시물과 관련해서 내가 댓글 작성한 글을 가져오는 method
   Future<List<PostModel>> getObsWhatICommentPostData() async {
     // PostData들과 UserData들을 담고 있는 배열을 clear한다.
@@ -272,7 +276,9 @@ class SettingsController extends GetxController {
 
     // 장애 처리현황 게시물과 관련해서 내가 댓글 작성한 글을 찾는다.
     for (int i = 0; i < obsPostDatas.length; i++) {
-      if (obsPostDatas[i].whoWriteCommentThePost.contains(settingUser!.userUid)) {
+      if (obsPostDatas[i]
+          .whoWriteCommentThePost
+          .contains(settingUser!.userUid)) {
         obsWhatICommentPostDatas.add(obsPostDatas[i]);
         obsWhatICommentUserDatas.add(obsUserDatas[i]);
       }
@@ -282,7 +288,7 @@ class SettingsController extends GetxController {
   }
 
   // 문의 처리현황 게시물과 관련해서 내가 댓글 작성한 글을 가져오는 method
-   Future<List<PostModel>> getInqWhatICommentPostData() async {
+  Future<List<PostModel>> getInqWhatICommentPostData() async {
     // PostData들과 UserData들을 담고 있는 배열을 clear한다.
     inqWhatICommentPostDatas.clear();
     inqWhatICommentUserDatas.clear();
@@ -295,7 +301,9 @@ class SettingsController extends GetxController {
 
     // 장애 처리현황 게시물과 관련해서 내가 작성한 글을 찾는다.
     for (int i = 0; i < inqPostDatas.length; i++) {
-      if (inqPostDatas[i].whoWriteCommentThePost.contains(settingUser!.userUid)) {
+      if (inqPostDatas[i]
+          .whoWriteCommentThePost
+          .contains(settingUser!.userUid)) {
         inqWhatICommentPostDatas.add(inqPostDatas[i]);
         inqWhatICommentUserDatas.add(inqUserDatas[i]);
       }
@@ -303,7 +311,6 @@ class SettingsController extends GetxController {
 
     return inqWhatICommentPostDatas;
   }
-
 
   // SettingsController가 메모리에 처음 올라갔을 떄 호출되는 method
   @override

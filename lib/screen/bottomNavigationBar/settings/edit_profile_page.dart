@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/components/border/gf_border.dart';
 import 'package:getwidget/types/gf_border_type.dart';
@@ -19,33 +20,34 @@ class EditProfilePage extends StatelessWidget {
   // Image + 프로필 사진 변경하는 Button을 관리하는 Widget
   Widget imageBox() {
     return Container(
-      margin: const EdgeInsets.only(top: 40),
+      margin: EdgeInsets.only(top: 40.h),
       child: Column(
         children: [
           // Image를 보여준다.
           GetBuilder<SettingsController>(
+            id: 'editImage',
             builder: (controller) {
               return SizedBox(
-                width: 125.0,
-                height: 125.0,
+                width: 125.w,
+                height: 125.h,
                 child: DottedBorder(
                   strokeWidth: 2,
                   color: Colors.grey,
                   dashPattern: const [5, 3],
                   borderType: BorderType.RRect,
-                  radius: const Radius.circular(10),
+                  radius: Radius.circular(10.r),
 
                   // 첫번쨰는 Network를 통해 이미지를 보여주고
                   // 다음부터는 스마트폰 갤러리를 통해 이미지를 보여준다.
                   child: controller.editImage == null
                       ? getNetworkImage()
-                      : getGalleryImage(150.0, 150.0),
+                      : getGalleryImage(150.w, 150.h),
                 ),
               );
             },
           ),
 
-          const SizedBox(height: 20),
+          SizedBox(height: 20.h),
 
           // 프로필 사진 변경하는 Button 입니다.
           ElevatedButton(
@@ -77,7 +79,7 @@ class EditProfilePage extends StatelessWidget {
       imageUrl: SettingsController.to.settingUser!.image.toString(),
       imageBuilder: (context, imageProvider) => Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(10.r),
           image: DecorationImage(
             image: imageProvider,
             fit: BoxFit.cover,
@@ -94,7 +96,7 @@ class EditProfilePage extends StatelessWidget {
   Widget getGalleryImage(double width, double height) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
         image: DecorationImage(
           fit: BoxFit.cover,
           image: Image.file(
@@ -114,8 +116,8 @@ class EditProfilePage extends StatelessWidget {
       children: [
         // Edit Name TextField
         Container(
-          width: Get.width,
-          margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+          width: ScreenUtil().screenWidth,
+          margin: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
           child: GFBorder(
             color: Colors.black12,
             dashedLine: const [2, 0],
@@ -123,15 +125,16 @@ class EditProfilePage extends StatelessWidget {
 
             // 단순형 상태 관리 GetBuilder
             child: GetBuilder<SettingsController>(
+              id: 'editName',
               builder: (controller) {
                 return SizedBox(
-                  height: 60,
+                  height: 60.h,
                   child: TextField(
                     onChanged: (value) {
                       SettingsController.to.editName = value;
 
                       // update를 쳐서 GetBuilder를 부른다.
-                      SettingsController.to.update();
+                      SettingsController.to.update(['editName']);
                     },
                     maxLength: 30,
                     decoration: InputDecoration(
@@ -150,13 +153,13 @@ class EditProfilePage extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 16),
+        SizedBox(height: 16.h),
 
         // Edit Description TextField
         Container(
-          width: Get.width,
-          height: 100,
-          margin: const EdgeInsets.symmetric(horizontal: 15),
+          width: ScreenUtil().screenWidth,
+          height: 100.h,
+          margin: EdgeInsets.symmetric(horizontal: 15.w),
           child: GFBorder(
             color: Colors.black12,
             dashedLine: const [2, 0],
@@ -164,13 +167,14 @@ class EditProfilePage extends StatelessWidget {
 
             // 단순형 상태관리 GetBuilder
             child: GetBuilder<SettingsController>(
+              id: 'editDescription',
               builder: (controller) {
                 return TextField(
                   onChanged: (value) {
                     SettingsController.to.editDescription = value;
 
                     // update를 쳐서 GetBuilder를 실행한다.
-                    SettingsController.to.update();
+                    SettingsController.to.update(['editDescription']);
                   },
                   maxLines: 3,
                   maxLength: 50,
@@ -189,15 +193,19 @@ class EditProfilePage extends StatelessWidget {
     );
   }
 
-  // 프로필 수정하기 Widget 입니다.
-  Widget signUpButton() {
+  // 프로필을 수정하는 버튼
+  Widget editProfileButton() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 48.0, vertical: 8.0),
+      padding: EdgeInsets.symmetric(horizontal: 48.w, vertical: 8.h),
       child: ElevatedButton(
         onPressed: () {
           // 프로필을 수정하는 코드를 진행한다.
           print('프로필 수정하기 버튼 누르기');
 
+          // 키보드 내리기
+          FocusManager.instance.primaryFocus?.unfocus();
+
+          // 프로필 수정하는 method를 호출한다.
           SettingsController.to.changeUserInfo();
         },
         child: const Text('프로필 수정하기'),
@@ -216,6 +224,7 @@ class EditProfilePage extends StatelessWidget {
           leading: IconButton(
             onPressed: () {
               // 이전 페이지로 가는 메소드
+              // 이미지, 이름 또는 설명 중에 바뀐 부분이 있으면 값을 초기화 한다.
               SettingsController.to.getBackEditProfilePage();
             },
             icon: const Padding(
@@ -236,15 +245,14 @@ class EditProfilePage extends StatelessWidget {
               // Image와 프로필 사진을 변경하는 Button이 있는 Widget
               imageBox(),
 
-              const SizedBox(height: 40),
+              SizedBox(height: 40.h),
 
               // name, description이 있는 Widget
               editTwoTextField(),
 
-              const SizedBox(height: 40),
+              SizedBox(height: 40.h),
 
-              // 수정하기 Button이 있는 Widget
-              signUpButton(),
+              editProfileButton(),
             ],
           ),
         ),

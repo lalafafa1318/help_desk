@@ -14,6 +14,7 @@ import 'package:help_desk/authentication/auth.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/bindingController/binding_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
+import 'package:help_desk/const/userClassification.dart';
 import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/main_page.dart';
@@ -230,6 +231,8 @@ class _SignUpPageState extends State<SignUpPage> {
 
     // Firebase Database에 저장될 UserModel 객체
     UserModel user = UserModel(
+      // 회원가입을 하면 userType을 GENERALUSER (일반 사용자)로 설정한다.
+      userType: UserClassification.GENERALUSER,
       userName: nameTextController!.text,
       description: descriptionTextController!.text,
       image: imageUrl,
@@ -278,14 +281,20 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
           body: SingleChildScrollView(
             child: Column(
-              // mainAxisAlignment: MainAxisAlignment.center,
-              // crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // 활동사진을 입력하는 부분
                 imageBox(),
+
                 SizedBox(height: 80.h),
+
+                // 이름과 설명을 입력하는 부분 
                 twoTextFormField(),
+
                 SizedBox(height: 80.h),
+
+                // 회원가입 하기 버튼을 입력하는 부분
                 signUpButton(),
+                
                 SizedBox(height: 80.h),
               ],
             ),

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
@@ -8,6 +9,7 @@ import 'package:help_desk/const/minuteClassification.dart';
 import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/proClassification.dart';
 import 'package:help_desk/const/sysClassification.dart';
+import 'package:help_desk/const/userClassification.dart';
 import 'package:help_desk/model/comment_model.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
@@ -63,7 +65,6 @@ class PostListController extends GetxController {
   // 사용자가 입력한 댓글과 대댓글을 control 하는 Field
   TextEditingController commentController = TextEditingController();
 
-  
   // SpecificPostPage의 comment 처리상태를 관리하는 변수
   ProClassification commentPSelectedValue = ProClassification.INPROGRESS;
 
@@ -82,13 +83,15 @@ class PostListController extends GetxController {
   static PostListController get to => Get.find();
 
   // 장애 처리현황 게시물을 postTime 내림차순 기준으로 가져오는 method
-  Future<QuerySnapshot<Map<String, dynamic>>> getObsPostData() async {
-    return await CommunicateFirebase.getObsPostData();
+  Future<QuerySnapshot<Map<String, dynamic>>> getObsPostData(
+      UserClassification userType) async {
+    return await CommunicateFirebase.getObsPostData(userType);
   }
 
   // 문의 처리현황 게시물을 postTime 내림차순 기준으로 가져오는 method
-  Future<QuerySnapshot<Map<String, dynamic>>> getInqPostData() async {
-    return await CommunicateFirebase.getInqPostData();
+  Future<QuerySnapshot<Map<String, dynamic>>> getInqPostData(
+      UserClassification userType) async {
+    return await CommunicateFirebase.getInqPostData(userType);
   }
 
   // Database에서 받은 장애 처리현황 게시물을 obsPostData에 추가하는 method
@@ -98,6 +101,13 @@ class PostListController extends GetxController {
     // 게시물에 대한 사용자 정보를 담고 있는 obsUserData를 clear 한다.
     obsPostData.clear();
     obsUserData.clear();
+
+    // 일반 사용자 경우
+    // 자기가 작성한 게시물에 대해서 postTime 속성을 내림차순 정렬한다.
+    if (SettingsController.to.settingUser!.userType ==
+        UserClassification.GENERALUSER) {
+      allData = allData.reversed.toList();
+    }
 
     for (var doc in allData) {
       // QueryDocumentSnapshot -> Json -> Model class로 변환한다.
@@ -113,7 +123,6 @@ class PostListController extends GetxController {
       // 장애 처리현황 게시물에 대한 사용자 정보를 담고 있는 obsUserData에 element를 추가한다.
       obsUserData.add(UserModel.fromMap(userData));
     }
-
     return obsPostData;
   }
 
@@ -122,9 +131,16 @@ class PostListController extends GetxController {
   Future<List<PostModel>> allocInqPostDataInArray(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
     // 문의 처리현황 게시물을 담고 있는 inqPostData
     // 게시물에 대한 사용자 정보를 담고 있는 inqUserData를 clear 한다.
-
     inqPostData.clear();
     inqUserData.clear();
+
+    // 일반 사용자 경우
+    // 자기가 작성한 게시물에 대해서 postTime 속성이 오름차순 정렬 상태이다.
+    // 따라서 postTime 속성을 내림차순 정렬한다.
+    if (SettingsController.to.settingUser!.userType ==
+        UserClassification.GENERALUSER) {
+      allData = allData.reversed.toList();
+    }
 
     await Future.delayed(const Duration(milliseconds: 5));
 

@@ -10,6 +10,7 @@ import 'package:flutter_pagination/widgets/button_styles.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/getwidget.dart';
+import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/proClassification.dart';
@@ -20,6 +21,7 @@ import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
+import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/keyword_post_list_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_post_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
@@ -232,7 +234,8 @@ class _PostListPageState extends State<PostListPage> {
         ObsOrInqClassification.obstacleHandlingStatus) {
       print('장애 처리현황 게시물 가져오기');
       return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        future: PostListController.to.getObsPostData(),
+        future: PostListController.to
+            .getObsPostData(SettingsController.to.settingUser!.userType),
         builder: (context, snapshot) {
           // 데이터가 아직 오지 않았을 때
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -255,7 +258,7 @@ class _PostListPageState extends State<PostListPage> {
     else {
       print('문의 처리현황 게시물 가져오기');
       return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        future: PostListController.to.getInqPostData(),
+        future: PostListController.to.getInqPostData(SettingsController.to.settingUser!.userType),
         builder: (context, snapshot) {
           // 데이터가 아직 오지 않았을 때
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -311,7 +314,8 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 장애 처리현황 게시물을 obsPostData에 추가하는 method
-  Widget prepareShowObsPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowObsPostData(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocObsPostDataInArray(allData),
       builder: (context, snapshot) {
@@ -939,6 +943,7 @@ class _PostListPageState extends State<PostListPage> {
   @override
   Widget build(BuildContext context) {
     print('PostListPage - build() 실행');
+    print('PostListPage userType : ${AuthController.to.user.value.userType}');
 
     return Scaffold(
       floatingActionButton: Align(

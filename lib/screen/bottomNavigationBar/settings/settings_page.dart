@@ -110,7 +110,7 @@ class SettingsPage extends StatelessWidget {
     return GFButton(
       onPressed: () {
         // 프로필 수정 코드
-        Get.to(() => EditProfilePage());
+        Get.to(() => const EditProfilePage());
       },
       text: "Edit",
       type: GFButtonType.transparent,
@@ -267,6 +267,7 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<SettingsController>(
+      id: 'showProfile',
       builder: (controller) {
         return Scaffold(
           backgroundColor: const Color(0xFFf2eeed),
