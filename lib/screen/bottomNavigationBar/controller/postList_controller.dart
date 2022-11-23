@@ -96,7 +96,8 @@ class PostListController extends GetxController {
 
   // Database에서 받은 장애 처리현황 게시물을 obsPostData에 추가하는 method
   // 그리고 게시물에 대한 사용자 정보를 파악하여 obsUserData에 추가하는 method
-  Future<List<PostModel>> allocObsPostDataInArray(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
+  Future<List<PostModel>> allocObsPostDataInArray(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
     // 장애 처리현황 게시물을 담고 있는 obsPostData
     // 게시물에 대한 사용자 정보를 담고 있는 obsUserData를 clear 한다.
     obsPostData.clear();
@@ -128,7 +129,8 @@ class PostListController extends GetxController {
 
   // Database에서 받은 문의 처리현황 게시물을 inqPostData에 추가하는 method
   // 그리고 게시물에 대한 사용자 정보를 파악하여 inqUserData에 추가하는 method
-  Future<List<PostModel>> allocInqPostDataInArray(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
+  Future<List<PostModel>> allocInqPostDataInArray(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
     // 문의 처리현황 게시물을 담고 있는 inqPostData
     // 게시물에 대한 사용자 정보를 담고 있는 inqUserData를 clear 한다.
     inqPostData.clear();
@@ -399,22 +401,31 @@ class PostListController extends GetxController {
       commentUid: UUidUtil.getUUid(),
       whoWriteUserUid: SettingsController.to.settingUser!.userUid,
       // 처리상태
-      proStatus: commentPSelectedValue,
-      // 장애원인 (장애 처리현황 게시물에 한함)
-      causeOfDisability:
-          postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus
+      proStatus: SettingsController.to.settingUser!.userType ==
+              UserClassification.GENERALUSER
+          ? ProClassification.NONE
+          : commentPSelectedValue,
+      // 장애원인
+      causeOfDisability: SettingsController.to.settingUser!.userType ==
+              UserClassification.GENERALUSER
+          ? CauseObsClassification.NONE
+          : postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus
               ? commentCSelectedValue
               : CauseObsClassification.NONE,
-      // 실제 처리일자 (장애 처리현황 게시물에 한함)
-      actualProcessDate:
-          postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus
+      // 실제 처리일자
+      actualProcessDate: SettingsController.to.settingUser!.userType ==
+              UserClassification.GENERALUSER
+          ? null
+          : postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus
               ? processDate
               : null,
-      // 실제 처리시간 (장애 처리현황 게시물에 한함)
-      actualProcessTime: postData.obsOrInq ==
-              ObsOrInqClassification.obstacleHandlingStatus
-          ? '${commentHSelectedValue.asText.substring(0, 2)}:${commentMSelectedValue.asText.substring(0, 2)}'
-          : null,
+      // 실제 처리시간
+      actualProcessTime: SettingsController.to.settingUser!.userType ==
+              UserClassification.GENERALUSER
+          ? null
+          : postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus
+              ? '${commentHSelectedValue.asText.substring(0, 2)}:${commentMSelectedValue.asText.substring(0, 2)}'
+              : null,
     );
 
     // Database에 comment(댓글)을 추가한다.

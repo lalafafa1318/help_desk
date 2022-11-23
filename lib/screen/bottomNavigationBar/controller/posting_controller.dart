@@ -148,7 +148,8 @@ class PostingController extends GetxController {
         postTitle: titleString.toString(),
         postContent: contentString.toString(),
         phoneNumber: phoneNumber,
-        proStatus: ProClassification.INPROGRESS,
+        // 사용자가 게시물을 올릴 떄 처리상태는 RECEIPT(접수)이다.
+        proStatus: ProClassification.RECEIPT,
         userUid: AuthController.to.user.value.userUid,
         postUid: postMap['postUUid'],
         postTime: formatDate,

@@ -25,7 +25,7 @@ class CommentModel {
   ProClassification proStatus;
 
   // 장애원인 (장애 처리현황 게시물인 경우에만 값이 들어간다.)
-  CauseObsClassification? causeOfDisability;
+  CauseObsClassification causeOfDisability;
 
   // 실제 처리일자 (장애 처리현황 게시물인 경우에만 값이 들어간다.)
   String? actualProcessDate;
@@ -88,8 +88,12 @@ class CommentModel {
               element.toString() == comment['causeOfDisability'].toString(),
         ),
         // 실제 처리일자 (장애 처리현황 게시물에 한함)
-        actualProcessDate: comment['actualProcessDate'].toString(),
+        actualProcessDate: comment['actualProcessDate'].toString() == 'null'
+            ? null
+            : comment['actualProcessDate'].toString(),
         // 실제 처리시간 (장애 처리현황 게시물에 한함)
-        actualProcessTime: comment['actualProcessTime'].toString(),
+        actualProcessTime: comment['actualProcessTime'].toString() == 'null'
+            ? null
+            : comment['actualProcessTime'].toString(),
       );
 }

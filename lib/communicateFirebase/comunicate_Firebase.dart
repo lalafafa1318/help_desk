@@ -215,7 +215,8 @@ class CommunicateFirebase {
   }
 
   // 장애 처리현황 게시물을 postTime 내림차순 기준으로 가져오는 method
-  static Future<QuerySnapshot<Map<String, dynamic>>> getObsPostData(UserClassification userType) async {
+  static Future<QuerySnapshot<Map<String, dynamic>>> getObsPostData(
+      UserClassification userType) async {
     // 사용자가 일반 사용자이면?
     //-> 사용자가 작성한 장애 처리현황 게시물만 가져온다.
     if (userType == UserClassification.GENERALUSER) {
@@ -247,8 +248,9 @@ class CommunicateFirebase {
   }
 
   // 문서 처리현황 게시물을 postTime 내림차순 기준으로 가져오는 method
-  static Future<QuerySnapshot<Map<String, dynamic>>> getInqPostData(UserClassification userType) async {
-     // 사용자가 일반 사용자이면?
+  static Future<QuerySnapshot<Map<String, dynamic>>> getInqPostData(
+      UserClassification userType) async {
+    // 사용자가 일반 사용자이면?
     //-> 사용자가 작성한 장애 처리현황 게시물만 가져온다.
     if (userType == UserClassification.GENERALUSER) {
       // 자신이 작성한 게시물을 찾는다.

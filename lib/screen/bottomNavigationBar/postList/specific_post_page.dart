@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cr_calendar/cr_calendar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -18,6 +19,7 @@ import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/proClassification.dart';
 import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/const/sysClassification.dart';
+import 'package:help_desk/const/userClassification.dart';
 import 'package:help_desk/model/comment_model.dart';
 import 'package:help_desk/model/notification_model.dart';
 import 'package:help_desk/model/post_model.dart';
@@ -56,11 +58,14 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // 댓글 데이터에 대한 사용자 정보를 저장하는 배열
   List<UserModel> commentUserArray = [];
 
-  // Server에 Comment 데이터를 호출하는 것을 허락할지, 불허할지 판별하는 변수
+  // Database에 Comment 데이터를 호출하는 것을 허락할지, 불허할지 판별하는 변수
   bool isCallServerAboutCommentData = false;
 
-  // 실제 처리일자를 표현하는 변수 (장애 처리현황 게시물에 한함)
+  // 답변 정보 입력의 처리일자를 표현하는 변수 (IT 담당자 - 장애 처리현황 게시물에 한함)
   String processDate = '';
+
+  // 일반 사용자인지 IT 담당자인지 구별하는 변수
+  UserClassification userType = SettingsController.to.settingUser!.userType;
 
   // 이전 가기, 알림, 새로 고침, 삭제 버튼을 제공하는 Widget이다.
   Widget topView() {
@@ -835,37 +840,19 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
               SizedBox(width: 20.w),
 
-              // 처리상태를 제공하는 Widget 입니다.
-              Container(
-                margin: EdgeInsets.only(bottom: 4.h),
-                child: Text(
-                  commentArray[index].proStatus.asText,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
+              // 처리상태를 제공하는 Widget 입니다. (IT 담당자가 댓글을 쓴 경우에만 보여준다.)
+              commentProclassification(index),
             ],
           ),
 
           // CommentContent을 제공하는 Widget 입니다.
           commentContent(index),
 
-          // 장애 처리현황 게시물에 해당하는 댓글인 경우
           // 장애원인을 보여주는 Widget 입니다.
-          postData!.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus
-              ? commentCauseOfDisability(index)
-              : const Visibility(
-                  visible: false,
-                  child: Text('장애 원인 text를 보여주지 않습니다.'),
-                ),
+          commentCauseOfDisability(index),
 
-          // 장애 처리현황 게시물에 해당하는 댓글인 경우
           // 실제 장애처리일시를 보여주는 Widget 입니다.
-          postData!.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus
-              ? commentFailureProcessingdDateAndTime(index)
-              : const Visibility(
-                  visible: false,
-                  child: Text('장애 원인 text를 보여주지 않습니다.'),
-                ),
+          commentFailureProcessingdDateAndTime(index),
 
           SizedBox(height: 5.h),
 
@@ -936,6 +923,120 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
               ),
             ),
     );
+  }
+
+  // comment 처리상태를 제공하는 Widget 입니다. (IT 담당자가 작성한 댓글인 경우에만 보여진다.)
+  Widget commentProclassification(int index) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 4.h),
+      // IT 담당자가 작성한 댓글에서 처리상태가 보이도록 한다.
+      child: Text(
+        commentArray[index].proStatus != ProClassification.NONE
+            ? commentArray[index].proStatus.asText
+            : '',
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  // CommentContent을 제공하는 Widget 입니다.
+  Widget commentContent(int index) {
+    return Container(
+      margin: EdgeInsets.only(left: 20.w),
+      child: Text(commentArray[index].content),
+    );
+  }
+
+  // 장애 처리현황 게시물에 해당하는 댓글인 경우
+  // 장애원인을 보여주는 Widget 입니다.
+  Widget commentCauseOfDisability(int index) {
+    String text = CauseObsClassification.values
+        .firstWhere(
+          (element) =>
+              element.toString() ==
+              commentArray[index].causeOfDisability.toString(),
+        )
+        .asText;
+    return Container(
+      margin: EdgeInsets.only(top: 10.h, left: 20.w),
+      // IT 담당자가 장애 처리현황 댓글을 작성했을 떄 장애 원인을 표시한다.
+      child: text != 'NONE'
+          ? Text('* 장애원인 : $text', style: TextStyle(fontSize: 12.sp))
+          : const Visibility(
+              visible: false,
+              child: Text('일반 사용자는 장애 원인을 표시하지 않습니다.'),
+            ),
+    );
+  }
+
+  // 장애 처리현황 게시물에 해당하는 댓글인 경우
+  // 실제 장애처리일시를 보여주는 Widget 입니다.
+  Widget commentFailureProcessingdDateAndTime(int index) {
+    return Container(
+      margin: EdgeInsets.only(top: 10.h, left: 20.w, bottom: 10.h),
+      child: commentArray[index].actualProcessDate == null &&
+              commentArray[index].actualProcessTime == null
+          ? const Visibility(
+              visible: false,
+              child: Text('일반 사용자는 실제 장애처리일시를 표시하지 않습니다.'),
+            )
+          : Text(
+              '* 실제 장애처리일시 : ${commentArray[index].actualProcessDate}  ${commentArray[index].actualProcessTime}',
+              style: TextStyle(fontSize: 12.sp),
+            ),
+    );
+  }
+
+  // CommentPostTime과 좋아요 수를 제공하는 Widget 입니다.
+  Widget commentUploadTimeAndLikeNum(int index) {
+    // commentArray[index].uploadTime, commentArray[index].whoCommnetLike.length를 간단하게 명명한다.
+    String uploadTime = commentArray[index].uploadTime;
+    int whoCommentLikeNum = commentArray[index].whoCommentLike.length;
+
+    return Container(
+      margin: EdgeInsets.only(left: 20.w),
+      child: Row(
+        children: [
+          // CommentPostTime을 제공하는 Widget 입니다.
+          commentUploadTime(uploadTime),
+
+          SizedBox(width: 15.w),
+
+          // Comment에 대한 좋아요 수를 제공하는 Widget 입니다.
+          commentLikeNum(whoCommentLikeNum),
+        ],
+      ),
+    );
+  }
+
+  // CommentPostTime을 제공하는 Widget 입니다.
+  Widget commentUploadTime(String uploadTime) {
+    return Text(
+      // uploadTime은 원래 초(Second)까지 존재하나
+      // 화면에서는 분(Minute)까지 표시한다.
+      uploadTime.substring(0, 16),
+      style: TextStyle(color: Colors.grey[600], fontSize: 10.sp),
+    );
+  }
+
+  // Comment에 대한 좋아요 수를 제공하는 Widget 입니다.
+  Widget commentLikeNum(int whoCommentLikeNum) {
+    return whoCommentLikeNum != 0
+        ? Row(
+            children: [
+              // 좋아요 아이콘
+              Icon(Icons.thumb_up_sharp, size: 15.sp, color: Colors.red),
+
+              SizedBox(width: 5.w),
+
+              // 좋아요 수
+              Text(
+                whoCommentLikeNum.toString(),
+                style: const TextStyle(color: Colors.red),
+              ),
+            ],
+          )
+        : const Visibility(visible: false, child: Text('테스트'));
   }
 
   // Comment에 대한 좋아요 버튼, Comment에 대한 삭제 버튼을 제공하는 Widget 입니다.
@@ -1050,97 +1151,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           );
   }
 
-  // CommentContent을 제공하는 Widget 입니다.
-  Widget commentContent(int index) {
-    return Container(
-      margin: EdgeInsets.only(left: 20.w),
-      child: Text(commentArray[index].content),
-    );
-  }
-
-  // 장애 처리현황 게시물에 해당하는 댓글인 경우
-  // 장애원인을 보여주는 Widget 입니다.
-  Widget commentCauseOfDisability(int index) {
-    String text = CauseObsClassification.values
-        .firstWhere(
-          (element) =>
-              element.toString() ==
-              commentArray[index].causeOfDisability.toString(),
-        )
-        .asText;
-    return Container(
-      margin: EdgeInsets.only(top: 10.h, left: 20.w),
-      child: Text(
-        '* 장애원인 : $text',
-        style: TextStyle(fontSize: 12.sp),
-      ),
-    );
-  }
-
-  // 장애 처리현황 게시물에 해당하는 댓글인 경우
-  // 실제 장애처리일시를 보여주는 Widget 입니다.
-  Widget commentFailureProcessingdDateAndTime(int index) {
-    return Container(
-      margin: EdgeInsets.only(top: 10.h, left: 20.w, bottom: 10.h),
-      child: Text(
-        '* 실제 장애처리일시 : ${commentArray[index].actualProcessDate}  ${commentArray[index].actualProcessTime}',
-        style: TextStyle(fontSize: 12.sp),
-      ),
-    );
-  }
-
-  // CommentPostTime과 좋아요 수를 제공하는 Widget 입니다.
-  Widget commentUploadTimeAndLikeNum(int index) {
-    // commentArray[index].uploadTime, commentArray[index].whoCommnetLike.length를 간단하게 명명한다.
-    String uploadTime = commentArray[index].uploadTime;
-    int whoCommentLikeNum = commentArray[index].whoCommentLike.length;
-
-    return Container(
-      margin: EdgeInsets.only(left: 20.w),
-      child: Row(
-        children: [
-          // CommentPostTime을 제공하는 Widget 입니다.
-          commentUploadTime(uploadTime),
-
-          SizedBox(width: 15.w),
-
-          // Comment에 대한 좋아요 수를 제공하는 Widget 입니다.
-          commentLikeNum(whoCommentLikeNum),
-        ],
-      ),
-    );
-  }
-
-  // CommentPostTime을 제공하는 Widget 입니다.
-  Widget commentUploadTime(String uploadTime) {
-    return Text(
-      // uploadTime은 원래 초(Second)까지 존재하나
-      // 화면에서는 분(Minute)까지 표시한다.
-      uploadTime.substring(0, 16),
-      style: TextStyle(color: Colors.grey[600], fontSize: 10.sp),
-    );
-  }
-
-  // Comment에 대한 좋아요 수를 제공하는 Widget 입니다.
-  Widget commentLikeNum(int whoCommentLikeNum) {
-    return whoCommentLikeNum != 0
-        ? Row(
-            children: [
-              // 좋아요 아이콘
-              Icon(Icons.thumb_up_sharp, size: 15.sp, color: Colors.red),
-
-              SizedBox(width: 5.w),
-
-              // 좋아요 수
-              Text(
-                whoCommentLikeNum.toString(),
-                style: const TextStyle(color: Colors.red),
-              ),
-            ],
-          )
-        : const Visibility(visible: false, child: Text('테스트'));
-  }
-
   // 답변 정보 입력을 제공하는 Widget 입니다.
   Widget answerInformationInput() {
     return GetBuilder<PostListController>(
@@ -1149,34 +1159,51 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         print('answerInformationInput - 재랜더링 호출');
         return TapToExpand(
           color: Colors.grey[400],
-          title: const Text(
+          title: Text(
             '답변 정보 입력',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: 20.sp,
             ),
           ),
           content: Column(
             children: [
-              // 처리상태
-              commentProClassification(),
-
-              // 장애원인, 실제 처리일자, 실제 처리시간을 보여주는 Widget (장애 처리현황에만 보여준다.)
-              postData!.obsOrInq ==
-                      ObsOrInqClassification.obstacleHandlingStatus
-                  ? obsCommentOption()
-                  : const Visibility(
+              // 처리상태를 보여준다.
+              // 일반 사용자는 보여주지 않는다.
+              // IT 담당자만 보여줄 것...
+              userType == UserClassification.GENERALUSER
+                  ? const Visibility(
                       visible: false,
-                      child: Text('obsCommentOption이 보이지 않습니다.'),
-                    ),
+                      child: Text('일반 사용자의 경우 처리상태 칸을 보여주지 않습니다.'))
+                  : commentProClassification(),
 
-              // 높이 간격을 달리 설정한다.
-              postData!.obsOrInq ==
-                      ObsOrInqClassification.obstacleHandlingStatus
-                  ? SizedBox(height: 0.h)
-                  : SizedBox(height: 25.h),
+              // 장애원인, 실제 처리일자, 실제 처리시간을 보여준다.
+              // 일반 사용자는 당연히 보여주지 않는다.
+              // IT 담당자의 경우, 장애 처리현황 게시물이면 보여준다. 문의 처리현황 게시물은 보여주지 않는다.
+              userType == UserClassification.GENERALUSER
+                  ? const Visibility(
+                      visible: false,
+                      child:
+                          Text('일반 사용자의 경우 장애원인, 실제 처리일자, 실제 처리시간을 보여주지 않습니다.'))
+                  : postData!.obsOrInq ==
+                          ObsOrInqClassification.obstacleHandlingStatus
+                      ? obsCommentOption()
+                      : const Visibility(
+                          visible: false,
+                          child: Text(
+                              '문의 처리현황 게시물인 경우 장애 원인, 실제 처리일자, 실제 처리시간을 보여주지 않습니다.'),
+                        ),
+
+              // 높이 빈칸을 설정한다.
+              userType == UserClassification.GENERALUSER
+                  ? SizedBox(height: 20.h)
+                  : postData!.obsOrInq ==
+                          ObsOrInqClassification.obstacleHandlingStatus
+                      ? SizedBox(height: 0.h)
+                      : SizedBox(height: 20.h),
 
               // 내용
+              // 일반 사용자와 IT 담당자 모두 보여진다.
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1195,7 +1222,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             Icons.ads_click_outlined,
             color: Colors.white,
           ),
-          openedHeight: 200.h,
+          openedHeight:
+              userType == UserClassification.GENERALUSER ? 150.h : 200.h,
           closedHeight: 70.h,
           onTapPadding: 20.w,
           scrollable: true,
@@ -1205,7 +1233,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // comment에 대한 처리상태를 setting 하는 Widget
+  // comment에 대한 처리상태를 setting 한다. (IT 담당자 - 장애 처리현황, 문의 처리현황 게시글에 모두 적용)
   Widget commentProClassification() {
     return Row(
       children: [
@@ -1225,8 +1253,12 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             return DropdownButton(
               value: PostListController.to.commentPSelectedValue.name,
               style: TextStyle(color: Colors.black, fontSize: 13.sp),
+              // 처리상태 Dropodown은 처리중, 처리완료, 보류 3가지만 나타낸다.
+              // 결국 IT 담당자가 선택할 것은 3가지 -> 처리중, 처리완료, 보류 중에 1가지를 선택할 것이다.
               items: ProClassification.values
-                  .where((element) => element != ProClassification.ALL)
+                  .where((element) =>
+                      element != ProClassification.ALL &&
+                      element != ProClassification.RECEIPT)
                   .map((element) {
                 // enum의 값을 화면에 표시할 값으로 변환한다.
                 String realText = element.asText;
@@ -1253,7 +1285,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 장애원인, 실제 처리일자, 실제 처리시간을 보여주는 Widget (장애 처리현황에만 적용)
+  // 장애원인, 실제 처리일자, 실제 처리시간을 보여주는 Widget (IT 담당자 - 장애 처리현황 게시글에만 적용)
   Widget obsCommentOption() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -1277,7 +1309,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // comment에 대한 장애원인을 setting 하는 Widget (장애 처리현황에만 적용)
+  // comment에 대한 장애원인을 setting 하는 Widget (IT 담당자 - 장애 처리현황 게시글에만 적용)
   Widget causeOfDisability() {
     return Row(
       children: [
@@ -1324,7 +1356,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // comment에 대한 실제 처리일자를 setting하는 Widget (장애 처리현황에만 적용)
+  // comment에 대한 실제 처리일자를 setting하는 Widget (IT 담당자 - 장애 처리현황 게시글에만 적용)
   Widget actualProcessDate() {
     return Row(
       children: [
@@ -1388,7 +1420,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // comment에 대한 실제 처리 시간을 setting 하는 Widget (장애 처리현황에만 적용)
+  // comment에 대한 실제 처리 시간을 setting 하는 Widget (IT 담당자 - 장애 처리현황 게시글에만 적용)
   Widget actualProcessTime() {
     return Row(
       children: [
@@ -1509,40 +1541,57 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         }
         // 게시글이 삭제되지 않으면?
         else {
-          // 답변 정보 입력과 관련된 장애 처리현황과 문의 처리현황을 구분한다.
-          if (postData!.obsOrInq ==
-              ObsOrInqClassification.obstacleHandlingStatus) {
-            // 댓글이 빈 값이거나 실제 처리일자가 빈 값인 경우
-            if (comment.isEmpty || processDate == '') {
-              // 하단 SnackBar를 보여준다.
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  duration: Duration(milliseconds: 500),
-                  content: Text('내용을 입력하거나 실제 처리일자를 입력해야 합니다 :)'),
-                  backgroundColor: Colors.black87,
-                ),
-              );
-              return;
-            }
-          }
-          //
-          else {
+          // 댓글을 작성하는 사용자 자격이 GENERALUSER(일반 사용자)인 경우
+          // 댓글 내용이 빈칸인지 확인한다.
+          // 내용이 빈칸이면 검증에 실패한 것이다. -> 댓글 작성이 되지 않는다.
+          if (userType == UserClassification.GENERALUSER) {
             if (comment.isEmpty) {
-              // 하단 SnackBar 알림
+              // 검증 실패 snackBar를 띄운다.
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   duration: Duration(milliseconds: 500),
-                  content: Text('내용을 입력하거나 실제 처리일자를 입력해야 합니다 :)'),
+                  content: Text('내용을 입력해야 합니다.'),
                   backgroundColor: Colors.black87,
                 ),
               );
-
+              return;
+            }
+          }
+          // 댓글을 작성하는 사용자 자격이 ITUSER(IT 담당자)인 경우
+          else {
+            // 장애 현황 게시물에 관련 댓글
+            // 댓글 내용이 빈칸이고, 실제 처리일자 내용이 비어있을 떄
+            // 검증에 실패한 것이다. -> 댓글 작성이 되지 않는다.
+            if (postData!.obsOrInq ==
+                    ObsOrInqClassification.obstacleHandlingStatus &&
+                (comment.isEmpty || processDate == '')) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  duration: Duration(milliseconds: 500),
+                  content: Text('내용을 입력하거나 실제 처리일자를 입력해야 합니다.'),
+                  backgroundColor: Colors.black87,
+                ),
+              );
+              return;
+            }
+            // 문의 현황 게시물에 관련 댓글
+            // 댓글 내용이 빈칸일 떄
+            // 검증에 실패한 것이다. -> 댓글 작성이 되지 않는다.
+            else if (postData!.obsOrInq ==
+                    ObsOrInqClassification.inqueryHandlingStatus &&
+                comment.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  duration: Duration(milliseconds: 500),
+                  content: Text('내용을 입력해야 합니다.'),
+                  backgroundColor: Colors.black87,
+                ),
+              );
               return;
             }
           }
 
-          // 답변 정보 입력 할 수 있는 모든 조건을 충족한다.
-          // 즉 검증 완료이다.
+          // 일반 사용자, IT 담당자가 답변 정보 입력 할 수 있는 모든 조건을 충족한다. -> 검증 완료
 
           // Database에 comment(댓글)을 추가한다.
           await PostListController.to
@@ -2047,7 +2096,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // comment의 whoCommentLike 속성에 사용자 Uid가 있는지 없는지에 따라 다른 로직을 구현하는 method
-  Future<void> isUserUidInWhoCommentLikeFromCommentData(bool isResult, CommentModel comment) async {
+  Future<void> isUserUidInWhoCommentLikeFromCommentData(
+      bool isResult, CommentModel comment) async {
     // comment의 whoCommentLike 속성에 사용자 Uid가 있었다.
     if (isResult) {
       // 하단 snackBar로 "이미 공감한 comment 입니다 :)" 표시한다.
@@ -2296,7 +2346,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       PostListController.to.commentController.text = '';
     }
 
-    // 답변 정보 입력에 따른 처리상태, 장애원인, 실제 처리일자,  실제 처리시간 변수를 초기화 한다.
+    // 답변 정보 입력에 따른 처리상태, 장애원인, 실제 처리일자, 실제 처리시간 변수를 초기화 한다.
     PostListController.to.commentPSelectedValue = ProClassification.INPROGRESS;
     PostListController.to.commentCSelectedValue = CauseObsClassification.USER;
     processDate = '';
