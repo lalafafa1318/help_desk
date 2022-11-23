@@ -49,7 +49,9 @@ class PostingController extends GetxController {
 
   // Gallery에서 image를 가져와 추가하는 method
   Future<void> getImage() async {
-    XFile? xFile = await imagePicker.pickImage(source: ImageSource.gallery);
+    // XFile? xFile = await imagePicker.pickImage(source: ImageSource.gallery);
+
+    XFile? xFile = await imagePicker.pickImage(source: ImageSource.camera);
 
     // 이미지를 정상적으로 가져올 떄 처리
     if (xFile != null) {
