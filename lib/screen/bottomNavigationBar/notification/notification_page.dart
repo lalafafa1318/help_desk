@@ -6,14 +6,12 @@ import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/model/notification_model.dart';
 import 'package:help_desk/model/post_model.dart';
-import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/notification_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_post_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
-import 'package:http/http.dart';
 
 // 알림 목록 Page 입니다.
 class NotificationPage extends StatelessWidget {

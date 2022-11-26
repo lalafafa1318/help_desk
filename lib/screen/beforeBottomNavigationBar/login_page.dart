@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/utils/toast_util.dart';
 
@@ -26,23 +25,6 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  // Kakao Login Button
-  Widget kakaoLoginButton() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 80.0.w),
-      child: ElevatedButton.icon(
-        onPressed: () async {
-          await AuthController.to.viewModel.login();
-        },
-        icon: Image.asset(
-            'assets/images/kakao-talk.png'), //icon data for elevated button
-        label: const Text('KaKao Login', style: TextStyle(color: Colors.black)),
-        style: ElevatedButton.styleFrom(
-          primary: Colors.yellow, //elevated btton background color
-        ),
-      ),
-    );
-  }
 
   // Facebook Login Button
   Widget facebookLoginButton() {
@@ -64,23 +46,23 @@ class LoginPage extends StatelessWidget {
   }
 
   // Apple Login Button
-  Widget appleLoginButton() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 80.0.w),
-      child: ElevatedButton.icon(
-        onPressed: () {
-          print("You pressed Icon Elevated Button");
-        },
-        icon: Image.asset(
-            'assets/images/apple.png'), //icon data for elevated button
-        label: const Text('Apple Login',
-            style: const TextStyle(color: Colors.white)),
-        style: ElevatedButton.styleFrom(
-          primary: Colors.black, //elevated btton background color
-        ),
-      ),
-    );
-  }
+  // Widget appleLoginButton() {
+  //   return Padding(
+  //     padding: EdgeInsets.symmetric(horizontal: 80.0.w),
+  //     child: ElevatedButton.icon(
+  //       onPressed: () {
+  //         print("You pressed Icon Elevated Button");
+  //       },
+  //       icon: Image.asset(
+  //           'assets/images/apple.png'), //icon data for elevated button
+  //       label: const Text('Apple Login',
+  //           style: const TextStyle(color: Colors.white)),
+  //       style: ElevatedButton.styleFrom(
+  //         primary: Colors.black, //elevated btton background color
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // Twitter Login Button
   Widget twitterLoginButton() {
@@ -126,12 +108,10 @@ class LoginPage extends StatelessWidget {
             children: [
               googleLoginButton(),
               SizedBox(height: 50.0.h),
-              kakaoLoginButton(),
-              SizedBox(height: 50.0.h),
               facebookLoginButton(),
               SizedBox(height: 50.0.h),
-              appleLoginButton(),
-              SizedBox(height: 50.0.h),
+              // appleLoginButton(),
+              // SizedBox(height: 50.0.h),
               twitterLoginButton(),
             ],
           ),

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,7 +10,6 @@ import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/sysClassification.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
-import 'package:help_desk/screen/bottomNavigationBar/main_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/posting/posting_photo_view_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/posting/posting_upload_page.dart';
 

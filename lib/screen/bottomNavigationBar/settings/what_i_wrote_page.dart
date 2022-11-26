@@ -1,7 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/components/avatar/gf_avatar.dart';
 import 'package:getwidget/components/card/gf_card.dart';
@@ -12,11 +10,9 @@ import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/const/sysClassification.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
-import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_post_page.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:http/http.dart';
 import 'package:number_paginator/number_paginator.dart';
 
 import '../../../const/obsOrInqClassification.dart';
@@ -401,22 +397,6 @@ class _WhatIWrotePageState extends State<WhatIWrotePage> {
 
                         SizedBox(width: 20.w),
 
-                        // 좋아요 수
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Icon(
-                              Icons.favorite,
-                              color: Colors.red,
-                              size: 15.sp,
-                            ),
-                            SizedBox(width: 5.w),
-                            Text(postData.whoLikeThePost.length.toString()),
-                          ],
-                        ),
-
-                        SizedBox(width: 20.w),
-
                         // 댓글 수
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
@@ -603,22 +583,6 @@ class _WhatIWrotePageState extends State<WhatIWrotePage> {
                                 child: Text('Visibility 테스트'),
                                 visible: false,
                               ),
-
-                        SizedBox(width: 20.w),
-
-                        // 좋아요 수
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Icon(
-                              Icons.favorite,
-                              color: Colors.red,
-                              size: 15.sp,
-                            ),
-                            SizedBox(width: 5.w),
-                            Text(postData.whoLikeThePost.length.toString()),
-                          ],
-                        ),
 
                         SizedBox(width: 20.w),
 

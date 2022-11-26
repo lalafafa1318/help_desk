@@ -73,10 +73,8 @@ dependencies:
   http: ^0.13.5
 
   # Toast
-  
   oktoast: ^3.3.1
 
-  
   # uuid
   uuid: ^3.0.6
   
@@ -118,31 +116,26 @@ dependencies:
 
 
   # 반응형 sizer
-  responsive_sizer: ^3.1.1
-  sizer: ^2.0.15
+  #responsive_sizer: ^3.1.1
+  #sizer: ^2.0.15
   flutter_screenutil: ^5.5.4
-  flutter_keyboard_size: ^1.0.1
+  #flutter_keyboard_size: ^1.0.1
 
   # 로컬 알림
   flutter_local_notifications: ^12.0.2
-  flutter_native_timezone: ^2.0.0
-  flutter_app_badger: ^1.5.0
+  #flutter_native_timezone: ^2.0.0
+  #flutter_app_badger: ^1.5.0
 
   # 연결
   connectivity_plus: ^3.0.2
 
   # Paging
   number_paginator: ^0.2.2
-  flutter_pagination: ^0.0.8
+  #flutter_pagination: ^0.0.8
 
   # tap_to_expand
   tap_to_expand: ^0.6.1
 
-  # cr_calendar
-  cr_calendar: ^1.0.0+1
-
-  
-  
 
 dev_dependencies:
   flutter_test:

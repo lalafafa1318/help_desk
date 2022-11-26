@@ -1,15 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cr_calendar/cr_calendar.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:flutter_keyboard_size/flutter_keyboard_size.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:get/get_state_manager/src/simple/get_widget_cache.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/const/causeObsClassification.dart';
@@ -21,16 +15,13 @@ import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/const/sysClassification.dart';
 import 'package:help_desk/const/userClassification.dart';
 import 'package:help_desk/model/comment_model.dart';
-import 'package:help_desk/model/notification_model.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/notification_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
-import 'package:help_desk/screen/bottomNavigationBar/postList/post_list_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_photo_view_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
-import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:tap_to_expand/tap_to_expand.dart';
 
@@ -273,21 +264,40 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           // userData에 업데이트 한다.
           await updateImageAndUserNameToUserData();
 
+          // Database에 있는 게시물 처리상태(proStatus)를 업데이트 한다.
+          QueryDocumentSnapshot<Map<String, dynamic>>? recentITUserComment =
+              await updatePostProClassification(postData!);
+
+          // 화면에 보이는 게시물에 대한 처리상태를 업데이트 한다.
+          // IT 담당자가 올린 댓글이 없었다면, 게시물에 대한 처리상태는 WAITING(대기)가 된다.
+          // 만약 IT 담당자가 올린 댓글이 있었다면, 가장 최근에 올린 댓글에 대한 처리상태를 바탕으로 게시물에 대한 처리상태가 결정된다.
+          recentITUserComment == null
+              ? postData!.proStatus = ProClassification.WAITING
+              : postData!.proStatus = ProClassification.values.firstWhere(
+                  (element) =>
+                      element.toString() ==
+                      recentITUserComment.data()['proStatus'].toString(),
+                );
+
           // DataBase에서
           // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
           // postData에 업데이트 하는 method
-          await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
+          await updateWhoWriteCommentThePostToPostData();
 
           // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
           // 부분적으로 재랜더링 한다.
           // 1. 업데이트된 사용자 Avatar와 이름을 화면에 보여주기 위해 재랜더링 한다.
-          // 2. 업데이트 된 댓글 수와 공감 수를 화면에 보여주기 위해 재랜더링 한다.
+          // 2. 업데이트 된 댓글 수를 화면에 보여주기 위해 재랜더링 한다.
           // 3. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
+          // 4. 답변 정보 입력을 재랜더링 한다.
+          // 5. 게시물에 대한 처리상태를 재랜더링 한다.
           PostListController.to.update([
             'showAvatar',
             'showUserName',
-            'showLikeNumAndCommentNum',
-            'showCommentListView'
+            'showCommentNum',
+            'showCommentListView',
+            'answerInformationInput',
+            'showProclassification',
           ]);
 
           // Toast Message로 게시물이 새로고침 됐다는 것을 알린다.
@@ -419,18 +429,25 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         SizedBox(width: 10.w),
 
         // 시스템 분류 코드
-        Container(
-          width: 100.w,
-          height: 20.h,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5.r),
-            color: Colors.grey[300],
-          ),
-          child: Align(
-            alignment: Alignment.center,
-            child: Text(postData!.proStatus.asText),
-            // child: Text(),
-          ),
+        GetBuilder<PostListController>(
+          id: 'showProclassification',
+          builder: (controller) {
+            print('showProclssification - 재랜더링 호출');
+
+            return Container(
+              width: 100.w,
+              height: 20.h,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5.r),
+                color: Colors.grey[300],
+              ),
+              child: Align(
+                alignment: Alignment.center,
+                child: Text(postData!.proStatus.asText),
+                // child: Text(),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -542,7 +559,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // PostTitle, PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostLikeNum, PostCommentNum를 보여주는 Widget 입니다.
-  Widget showTitleAndContnetAndPhotoAndLikeNumAndCommentNum() {
+  Widget showTitleAndContentAndPhotoAndCommentNum() {
     return Container(
       margin: EdgeInsets.only(left: 5.w),
       width: ScreenUtil().screenWidth,
@@ -566,7 +583,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           SizedBox(height: 10.h),
 
           //PostLikeNum, PostCommentNum을 제공하는 Widget 입니다.
-          showLikeNumAndCommentNum(),
+          showCommentNum(),
         ],
       ),
     );
@@ -650,104 +667,33 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // PostLikeNum, PostCommentNum을 제공하는 Widget 입니다.
-  Widget showLikeNumAndCommentNum() {
-    return GetBuilder<PostListController>(
-      id: 'showLikeNumAndCommentNum',
-      builder: (controller) {
-        print('showLikeNumAndCommentNum - 재랜더링 호출');
-
-        return Padding(
-          padding: EdgeInsets.all(5.r),
-          child: Row(
-            children: [
-              // PostLikeNum을 제공하는 Widget 입니다.
-              showLikeNum(),
-
-              SizedBox(width: 10.w),
-
-              // PostCommentNum을 제공하는 Widget 입니다.
-              showCommentNum(),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // PostLikeNum을 제공하는 Widget 입니다.
-  Widget showLikeNum() {
-    return Row(
-      children: [
-        const Icon(
-          Icons.favorite,
-          color: Colors.red,
-          size: 20,
-        ),
-        SizedBox(width: 3.w),
-        Text(
-          postData!.whoLikeThePost.length.toString(),
-          style: TextStyle(
-              color: Colors.red, fontSize: 15.sp, fontWeight: FontWeight.bold),
-        ),
-      ],
-    );
-  }
-
   // PostCommentNum을 제공하는 Widget 입니다.
   Widget showCommentNum() {
-    return Row(
-      children: [
-        Icon(
-          Icons.comment_outlined,
-          color: Colors.blue[300],
-          size: 20,
-        ),
-        SizedBox(width: 3.w),
-        Text(
-          postData!.whoWriteCommentThePost.length.toString(),
-          style: TextStyle(
-              color: Colors.blue, fontSize: 15.sp, fontWeight: FontWeight.bold),
-        ),
-      ],
-    );
-  }
+    return GetBuilder<PostListController>(
+      id: 'showCommentNum',
+      builder: (controller) {
+        print('showCommentNum - 재랜더링 호출');
 
-  // 게시물에 대한 공감을 누를 수 있는 Widget 입니다.
-  Widget sympathy() {
-    return Container(
-      margin: EdgeInsets.only(left: 25.w),
-      child: ElevatedButton.icon(
-        onPressed: () async {
-          // 키보드 내리기
-          FocusManager.instance.primaryFocus!.unfocus();
-
-          // 게시글이 삭제됐는지 확인한다.
-          bool isDeletePostResult = await isDeletePost(
-            postData!.obsOrInq,
-            postData!.postUid,
-          );
-
-          // 게시글이 삭제됐으면?
-          if (isDeletePostResult == true) {
-            // 게시글이 사라졌다는 AlertDailog를 표시한다.
-            await deletePostDialog();
-
-            // 이전 페이지로 돌아가기
-            Get.back();
-          }
-          // 게시글이 삭제되지 않으면?
-          else {
-            // 공감 관련 AlertDialog을 띠운다.
-            await clickSympathyDialog();
-          }
-        },
-        style: const ButtonStyle(
-          backgroundColor: MaterialStatePropertyAll(Colors.grey),
-        ),
-        icon: const Icon(Icons.favorite),
-        label: const Text('공감'),
-      ),
+        return Padding(
+            padding: EdgeInsets.all(5.r),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.comment_outlined,
+                  color: Colors.blue[300],
+                  size: 20,
+                ),
+                SizedBox(width: 5.w),
+                Text(
+                  postData!.whoWriteCommentThePost.length.toString(),
+                  style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.bold),
+                ),
+              ],
+            ));
+      },
     );
   }
 
@@ -856,13 +802,13 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
           SizedBox(height: 5.h),
 
-          // CommentPostTime과 좋아요 수를 제공하는 Widget 입니다.
-          commentUploadTimeAndLikeNum(index),
+          // CommentPostTime를 제공하는 Widget 입니다.
+          commentUploadTime(index),
 
           SizedBox(height: 5.h),
 
-          // Comment에 대한 좋아요 버튼, 삭제 버튼을 제공하는 Widget 입니다.
-          commentLikeAndDeleteButton(index),
+          // Comment에 대한 삭제 버튼을 제공하는 Widget 입니다.
+          commentDeleteButton(index),
 
           SizedBox(height: 10.h),
 
@@ -957,6 +903,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
               commentArray[index].causeOfDisability.toString(),
         )
         .asText;
+
     return Container(
       margin: EdgeInsets.only(top: 10.h, left: 20.w),
       // IT 담당자가 장애 처리현황 댓글을 작성했을 떄 장애 원인을 표시한다.
@@ -987,113 +934,18 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // CommentPostTime과 좋아요 수를 제공하는 Widget 입니다.
-  Widget commentUploadTimeAndLikeNum(int index) {
-    // commentArray[index].uploadTime, commentArray[index].whoCommnetLike.length를 간단하게 명명한다.
+  // CommentPostTime를 제공하는 Widget 입니다.
+  Widget commentUploadTime(int index) {
+    // commentArray[index].uploadTime를  간단하게 명명한다.
     String uploadTime = commentArray[index].uploadTime;
-    int whoCommentLikeNum = commentArray[index].whoCommentLike.length;
 
     return Container(
       margin: EdgeInsets.only(left: 20.w),
-      child: Row(
-        children: [
-          // CommentPostTime을 제공하는 Widget 입니다.
-          commentUploadTime(uploadTime),
-
-          SizedBox(width: 15.w),
-
-          // Comment에 대한 좋아요 수를 제공하는 Widget 입니다.
-          commentLikeNum(whoCommentLikeNum),
-        ],
-      ),
-    );
-  }
-
-  // CommentPostTime을 제공하는 Widget 입니다.
-  Widget commentUploadTime(String uploadTime) {
-    return Text(
-      // uploadTime은 원래 초(Second)까지 존재하나
-      // 화면에서는 분(Minute)까지 표시한다.
-      uploadTime.substring(0, 16),
-      style: TextStyle(color: Colors.grey[600], fontSize: 10.sp),
-    );
-  }
-
-  // Comment에 대한 좋아요 수를 제공하는 Widget 입니다.
-  Widget commentLikeNum(int whoCommentLikeNum) {
-    return whoCommentLikeNum != 0
-        ? Row(
-            children: [
-              // 좋아요 아이콘
-              Icon(Icons.thumb_up_sharp, size: 15.sp, color: Colors.red),
-
-              SizedBox(width: 5.w),
-
-              // 좋아요 수
-              Text(
-                whoCommentLikeNum.toString(),
-                style: const TextStyle(color: Colors.red),
-              ),
-            ],
-          )
-        : const Visibility(visible: false, child: Text('테스트'));
-  }
-
-  // Comment에 대한 좋아요 버튼, Comment에 대한 삭제 버튼을 제공하는 Widget 입니다.
-  Widget commentLikeAndDeleteButton(int index) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        // Comment에 대한 좋아요 버튼을 제공하는 Widget 입니다.
-        commentLikeButton(index),
-
-        // Comment에 대한 삭제 버튼을 제공하는 Widget 입니다.
-        commentDeleteButton(index),
-      ],
-    );
-  }
-
-  // Comment에 대한 좋아요 버튼을 제공하는 Widget 입니다.
-  Widget commentLikeButton(int index) {
-    return Container(
-      margin: EdgeInsets.only(right: 10.w),
-      width: 30.w,
-      height: 25.h,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(5.r)),
-        color: Colors.grey,
-      ),
-      child: IconButton(
-        padding: EdgeInsets.only(top: 1.h),
-        onPressed: () async {
-          // 키보드 내리기
-          FocusManager.instance.primaryFocus!.unfocus();
-
-          // 게시글이 삭제됐는지 확인한다.
-          bool isDeletePostResult = await isDeletePost(
-            postData!.obsOrInq,
-            postData!.postUid,
-          );
-
-          // 게시글이 삭제됐으면?
-          if (isDeletePostResult == true) {
-            // 게시글이 사라졌다는 AlertDailog를 표시한다.
-            await deletePostDialog();
-
-            // 이전 페이지로 돌아가기
-            Get.back();
-          }
-          // 게시글이 삭제되지 않으면
-          else {
-            // 이 comment을 공감하겠습니까? AlertDialog 표시하기
-            await clickCommentLikeButtonDialog(index);
-          }
-        },
-        icon: Icon(
-          Icons.thumb_up_sharp,
-          color: Colors.grey[200]!.withOpacity(1),
-          size: 15,
-        ),
+      child: Text(
+        // uploadTime은 원래 초(Second)까지 존재하나
+        // 화면에서는 분(Minute)까지 표시한다.
+        uploadTime.substring(0, 16),
+        style: TextStyle(color: Colors.grey[600], fontSize: 10.sp),
       ),
     );
   }
@@ -1104,44 +956,47 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     // 일치하면 삭제 버튼을 표시한다.
     return commentArray[index].whoWriteUserUid ==
             SettingsController.to.settingUser!.userUid
-        ? Container(
-            margin: EdgeInsets.only(right: 10.w),
-            width: 30.w,
-            height: 25.h,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(5.r)),
-              color: Colors.grey,
-            ),
-            child: IconButton(
-              padding: EdgeInsets.only(top: 1.h),
-              onPressed: () async {
-                // 키보드 내리기
-                FocusManager.instance.primaryFocus!.unfocus();
+        ? Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              margin: EdgeInsets.only(right: 10.w),
+              width: 30.w,
+              height: 25.h,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(5.r)),
+                color: Colors.grey,
+              ),
+              child: IconButton(
+                padding: EdgeInsets.only(top: 1.h),
+                onPressed: () async {
+                  // 키보드 내리기
+                  FocusManager.instance.primaryFocus!.unfocus();
 
-                // 게시글이 삭제됐는지 확인한다.
-                bool isDeletePostResult = await isDeletePost(
-                  postData!.obsOrInq,
-                  postData!.postUid,
-                );
+                  // 게시글이 삭제됐는지 확인한다.
+                  bool isDeletePostResult = await isDeletePost(
+                    postData!.obsOrInq,
+                    postData!.postUid,
+                  );
 
-                // 게시글이 삭제됐으면?
-                if (isDeletePostResult == true) {
-                  // 게시글이 사라졌다는 AlertDailog를 표시한다.
-                  await deletePostDialog();
+                  // 게시글이 삭제됐으면?
+                  if (isDeletePostResult == true) {
+                    // 게시글이 사라졌다는 AlertDailog를 표시한다.
+                    await deletePostDialog();
 
-                  // 이전 페이지로 돌아가기
-                  Get.back();
-                }
-                // 게시글이 삭제되지 않으면
-                else {
-                  // 이 comment을 삭제하시겠습니까? AlertDialog 표시하기
-                  await clickCommentDeleteButtonDialog(index);
-                }
-              },
-              icon: Icon(
-                Icons.delete_outline,
-                color: Colors.grey[200]!.withOpacity(1),
-                size: 20,
+                    // 이전 페이지로 돌아가기
+                    Get.back();
+                  }
+                  // 게시글이 삭제되지 않으면
+                  else {
+                    // 이 comment을 삭제하시겠습니까? AlertDialog 표시하기
+                    await clickCommentDeleteButtonDialog(index);
+                  }
+                },
+                icon: Icon(
+                  Icons.delete_outline,
+                  color: Colors.grey[200]!.withOpacity(1),
+                  size: 20,
+                ),
               ),
             ),
           )
@@ -1239,48 +1094,45 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       children: [
         // 처리상태 Text
         Container(
-          margin: EdgeInsets.only(top: 1.h),
+          margin: EdgeInsets.only(top: 0.5.h),
           child: Text('처리상태', style: TextStyle(fontSize: 13.sp)),
         ),
 
         SizedBox(width: 10.w),
 
         // comment에 대한 처리상태를 setting하는 Dropdown
-        GetBuilder<PostListController>(
-          id: 'commentProClassficationDropdown',
-          builder: (controller) {
-            print('commentProClassification - 재랜더링 호출');
-            return DropdownButton(
-              value: PostListController.to.commentPSelectedValue.name,
-              style: TextStyle(color: Colors.black, fontSize: 13.sp),
-              // 처리상태 Dropodown은 처리중, 처리완료, 보류 3가지만 나타낸다.
-              // 결국 IT 담당자가 선택할 것은 3가지 -> 처리중, 처리완료, 보류 중에 1가지를 선택할 것이다.
-              items: ProClassification.values
-                  .where((element) =>
-                      element != ProClassification.ALL &&
-                      element != ProClassification.RECEIPT)
-                  .map((element) {
-                // enum의 값을 화면에 표시할 값으로 변환한다.
-                String realText = element.asText;
+        Builder(
+          builder: (context) {
+            // comment에 대한 처리상태의 어떤 값을 default로 보여줄지 가져오는 method
+            PostListController.to.commentPSelectedValue = bringCommentValue();
 
-                return DropdownMenuItem(
-                  value: element.name,
-                  child: Text(realText),
+            // comment에 대한 처리상태 Dropdown에는 어떤 것을 보여줄지 가져오는 method
+            List<DropdownMenuItem<String>> commentPdropdownItem =
+                bringCommentDropdown();
+
+            // comment에 대한 처리상태 Dropdown
+            return GetBuilder<PostListController>(
+              id: 'commentProClassficationDropdown',
+              builder: (controller) {
+                return DropdownButton(
+                  value: PostListController.to.commentPSelectedValue.name,
+                  style: TextStyle(color: Colors.black, fontSize: 13.sp),
+                  items: commentPdropdownItem,
+                  onChanged: (element) {
+                    // PostListController의 commentPSelectedValue 값을 바꾼다.
+                    PostListController.to.commentPSelectedValue =
+                        ProClassification.values.firstWhere(
+                            (enumValue) => enumValue.name == element);
+
+                    // 해당 GetBuilder만 재랜더링 한다.
+                    PostListController.to
+                        .update(['commentProClassficationDropdown']);
+                  },
                 );
-              }).toList(),
-              onChanged: (element) {
-                // PostListController의 commentPSelectedValue 값을 바꾼다.
-                PostListController.to.commentPSelectedValue = ProClassification
-                    .values
-                    .firstWhere((enumValue) => enumValue.name == element);
-
-                // 해당 GetBuilder만 재랜더링 한다.
-                PostListController.to
-                    .update(['commentProClassficationDropdown']);
               },
             );
           },
-        ),
+        )
       ],
     );
   }
@@ -1606,30 +1458,49 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           // userData에 업데이트 한다.
           await updateImageAndUserNameToUserData();
 
+          // Database에 있는 게시물 처리상태(proStatus)를 업데이트 한다.
+          QueryDocumentSnapshot<Map<String, dynamic>>? recentITUserComment =
+              await updatePostProClassification(postData!);
+
+          // 화면에 보이는 게시물에 대한 처리상태를 업데이트 한다.
+          // IT 담당자가 올린 댓글이 없었다면, 게시물에 대한 처리상태는 WAITING(대기)가 된다.
+          // 만약 IT 담당자가 올린 댓글이 있었다면, 가장 최근에 올린 댓글에 대한 처리상태를 바탕으로 게시물에 대한 처리상태가 결정된다.
+          recentITUserComment == null
+              ? postData!.proStatus = ProClassification.WAITING
+              : postData!.proStatus = ProClassification.values.firstWhere(
+                  (element) =>
+                      element.toString() ==
+                      recentITUserComment.data()['proStatus'].toString(),
+                );
+
           // DataBase에서
           // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
           // postData에 업데이트 하는 method
-          await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
+          await updateWhoWriteCommentThePostToPostData();
 
           // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
           // 부분적으로 재랜더링 한다.
           // 1. 업데이트된 사용자 Avatar와 이름을 화면에 보여주기 위해 재랜더링 한다.
-          // 2. 업데이트 된 댓글 수와 공감 수를 화면에 보여주기 위해 재랜더링 한다.
+          // 2. 업데이트 된 댓글 수와 를 화면에 보여주기 위해 재랜더링 한다.
           // 3. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
+          // 4. 답변 정보 입력을 재랜더링 한다.
+          // 5. 게시물에 대한 처리상태를 재랜더링 한다.
           PostListController.to.update([
             'showAvatar',
             'showUserName',
-            'showLikeNumAndCommentNum',
+            'showCommentNum',
             'showCommentListView',
             'answerInformationInput',
+            'showProclassification'
           ]);
 
-          // 정리 작업22
+          // 초기화 작업
           // comment Text를 관리하는 controller의 값을 빈 값으로 다시 만든다.
           PostListController.to.commentController.text = '';
+
+          // 답변 정보 입력에 따른 처리상태는 값이 업데이트되므로 굳이 여기서 초기화할 필요가 없다.
+
           // 답변 정보 입력에 따른 처리상태, 장애원인, 실제 처리일자, 실제 처리시간 변수를 초기화 한다.
-          PostListController.to.commentPSelectedValue =
-              ProClassification.INPROGRESS;
           PostListController.to.commentCSelectedValue =
               CauseObsClassification.USER;
           processDate = '';
@@ -1915,236 +1786,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-// 게시물에 대한 공감을 클릭했을 떄 나타나는 AlertDialog 입니다.
-  Future<Widget?> clickSympathyDialog() async {
-    return showDialog(
-      context: context,
-      //barrierDismissible - Dialog를 제외한 다른 화면 터치 x
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return WillPopScope(
-          onWillPop: () async => false,
-          child: AlertDialog(
-            // RoundedRectangleBorder - Dialog 화면 모서리 둥글게 조절
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0.r)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text('이 글을 공감하시겠습니까?'),
-              ],
-            ),
-            actions: [
-              // 취소 버튼
-              TextButton(
-                child: const Text(
-                  '취소',
-                  style: TextStyle(color: Colors.red),
-                ),
-                onPressed: () {
-                  // 이전 페이지로 돌아가기
-                  Get.back();
-                },
-              ),
-              // 확인 버튼
-              TextButton(
-                child: const Text(
-                  '확인',
-                  style: TextStyle(color: Colors.red),
-                ),
-                onPressed: () async {
-                  // PostData의 whoLikeThePost 속성에 사용자 uid가 있는지 확인한다.
-                  bool result = postData!.whoLikeThePost
-                      .contains(SettingsController.to.settingUser!.userUid);
-
-                  // PostData의 whoLikeThePost에
-                  // 사용자 Uid가 있는 경우, 없는 경우에 따라
-                  // 다른 로직을 구현하는 method
-                  await isUserUidInWhoLikeThePostFromPostData(result);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-// PostData의 whoLikeThePost에
-// 사용자 Uid가 있는 경우, 없는 경우에 따라
-// 다른 로직을 구현하는 method
-  Future<void> isUserUidInWhoLikeThePostFromPostData(bool isResult) async {
-    // PostData의 whoLikeThePost 속성에 사용자 Uid가 있다.
-    if (isResult) {
-      Get.back();
-
-      // 하단 snackBar로 "이미 공감한 글 입니다 :)" 표시한다.
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('이미 공감했습니다 :)'),
-          backgroundColor: Colors.black87,
-        ),
-      );
-    }
-
-    // PostData의 whoLikeThePost 속성에 사용자 Uid가 없다.
-    else {
-      Get.back();
-
-      // Database에 저장된 게시물의 whoLikeThePost 속성에 사용자 uid을 추가한다.
-      await PostListController.to.addWhoLikeThePost(
-          postData!, SettingsController.to.settingUser!.userUid);
-
-      // DataBase에서
-      // 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서
-      // userData에 업데이트 한다.
-      await updateImageAndUserNameToUserData();
-
-      // DataBase에서
-      // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
-      // postData에 업데이트 하는 method
-      await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
-
-      // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
-      // 부분적으로 재랜더링 한다.
-      // 1. 업데이트된 사용자 Avatar와 이름을 화면에 보여주기 위해 재랜더링 한다.
-      // 2. 업데이트 된 댓글 수와 공감 수를 화면에 보여주기 위해 재랜더링 한다.
-      // 3. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
-      PostListController.to.update([
-        'showAvatar',
-        'showUserName',
-        'showLikeNumAndCommentNum',
-        'showCommentListView',
-      ]);
-
-      // 하단 snackBar로 "공감을 했습니다." 표시한다.
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('이 글을 공감했습니다 :)'),
-          backgroundColor: Colors.black87,
-        ),
-      );
-    }
-  }
-
-// comment에 대한 좋아요 아이콘을 클릭했을 떄 나타나는 AlertDialog 입니다.
-  Future<bool?> clickCommentLikeButtonDialog(int index) async {
-    return showDialog<bool?>(
-      context: context,
-      //barrierDismissible - Dialog를 제외한 다른 화면 터치 x
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          // RoundedRectangleBorder - Dialog 화면 모서리 둥글게 조절
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0.r)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text('이 comment을 공감하시겠습니까?'),
-            ],
-          ),
-          actions: [
-            // 취소 버튼
-            TextButton(
-              child: const Text(
-                '취소',
-                style: TextStyle(color: Colors.red),
-              ),
-              onPressed: () {
-                // 이전 페이지로 돌아가기
-                Get.back();
-              },
-            ),
-            // 확인 버튼
-            TextButton(
-              child: const Text(
-                '확인',
-                style: TextStyle(color: Colors.red),
-              ),
-              onPressed: () async {
-                // 로딩바 시작
-                EasyLoading.show(
-                  status: 'comment 좋아요를\n 기록합니다 :)',
-                  maskType: EasyLoadingMaskType.black,
-                );
-
-                // comment의 whoCommentLike 속성에 사용자 uid가 있는지 확인한다.
-                bool isResult = commentArray[index]
-                    .whoCommentLike
-                    .contains(SettingsController.to.settingUser!.userUid);
-
-                // comment의 whoCommentLike 속성에 사용자 Uid가 있는지 없는지에 따라 다른 로직을 구현한다.
-                await isUserUidInWhoCommentLikeFromCommentData(
-                  isResult,
-                  commentArray[index],
-                );
-
-                // 로딩바 끝
-                EasyLoading.dismiss();
-
-                // 이전 페이지로 돌아가기
-                Get.back();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // comment의 whoCommentLike 속성에 사용자 Uid가 있는지 없는지에 따라 다른 로직을 구현하는 method
-  Future<void> isUserUidInWhoCommentLikeFromCommentData(
-      bool isResult, CommentModel comment) async {
-    // comment의 whoCommentLike 속성에 사용자 Uid가 있었다.
-    if (isResult) {
-      // 하단 snackBar로 "이미 공감한 comment 입니다 :)" 표시한다.
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('이미 공감한 comment 입니다 :)'),
-          backgroundColor: Colors.black87,
-        ),
-      );
-    }
-
-    // comment의 whoCommentLike 속성에 사용자 Uid가 없었다.
-    else {
-      // Database에 저장된 comment(댓글)의 whoCommentLike 속성에 사용자 uid를 추가한다.
-      await PostListController.to.addWhoCommentLike(comment, postData!);
-
-      // DataBase에서
-      // 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서
-      // userData에 업데이트 한다.
-      await updateImageAndUserNameToUserData();
-
-      // DataBase에서
-      // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
-      // postData에 업데이트 하는 method
-      await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
-
-      // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
-      // 부분적으로 재랜더링 한다.
-      // 1. 업데이트된 사용자 Avatar와 이름을 화면에 보여주기 위해 재랜더링 한다.
-      // 2. 업데이트 된 댓글 수와 공감 수를 화면에 보여주기 위해 재랜더링 한다.
-      // 3. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
-      PostListController.to.update([
-        'showAvatar',
-        'showUserName',
-        'showLikeNumAndCommentNum',
-        'showCommentListView'
-      ]);
-      // 하단 snackBar로 "공감을 했습니다." 표시한다.
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('이 comment을 공감했습니다 :)'),
-          backgroundColor: Colors.black87,
-        ),
-      );
-    }
-  }
-
   // comment에 대한 삭제 버튼을 클릭했을 떄 나타나는 AlertDialog 입니다.
   Future<bool?> clickCommentDeleteButtonDialog(int index) async {
     return showDialog<bool?>(
@@ -2199,21 +1840,44 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   // userData에 업데이트 한다.
                   await updateImageAndUserNameToUserData();
 
+                  // Database에 있는 게시물 처리상태(proStatus)를 업데이트 한다.
+                  QueryDocumentSnapshot<Map<String, dynamic>>?
+                      recentITUserComment =
+                      await updatePostProClassification(postData!);
+
+                  // 화면에 보이는 게시물에 대한 처리상태를 업데이트 한다.
+                  // IT 담당자가 올린 댓글이 없었다면, 게시물에 대한 처리상태는 WAITING(대기)가 된다.
+                  // 만약 IT 담당자가 올린 댓글이 있었다면, 가장 최근에 올린 댓글에 대한 처리상태를 바탕으로 게시물에 대한 처리상태가 결정된다.
+                  recentITUserComment == null
+                      ? postData!.proStatus = ProClassification.WAITING
+                      : postData!.proStatus =
+                          ProClassification.values.firstWhere(
+                          (element) =>
+                              element.toString() ==
+                              recentITUserComment
+                                  .data()['proStatus']
+                                  .toString(),
+                        );
+
                   // DataBase에서
                   // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
                   // postData에 업데이트 하는 method
-                  await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
+                  await updateWhoWriteCommentThePostToPostData();
 
                   // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
                   // 부분적으로 재랜더링 한다.
                   // 1. 업데이트된 사용자 Avatar와 이름을 화면에 보여주기 위해 재랜더링 한다.
-                  // 2. 업데이트 된 댓글 수와 공감 수를 화면에 보여주기 위해 재랜더링 한다.
+                  // 2. 업데이트 된 댓글 수와 를 화면에 보여주기 위해 재랜더링 한다.
                   // 3. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
+                  // 4. 답변 정보입력을 재랜더링 한다.
+                  // 5. 게시물에 대한 처리상태를 재랜더링 한다.
                   PostListController.to.update([
                     'showAvatar',
                     'showUserName',
-                    'showLikeNumAndCommentNum',
-                    'showCommentListView'
+                    'showCommentNum',
+                    'showCommentListView',
+                    'answerInformationInput',
+                    'showProclassification',
                   ]);
 
                   // 로딩바 끝(필요하면 추가하기로)
@@ -2229,6 +1893,20 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
+  // Database에 있는 게시물 처리상태(proStatus)를 업데이트하고
+  // 화면에 보이는 게시물에 대한 처리상태도 업데이트하는 method
+  Future<QueryDocumentSnapshot<Map<String, dynamic>>?>
+      updatePostProClassification(PostModel postData) async {
+    print('SpecificPostPage - updatePostProclassification() 호출');
+
+    // IT 담당자가 가장 최근 올린 댓글을 가져온다.
+    // 다만, null값일 수 있다. 즉 IT 담당자가 올린 댓글이 없을 수 있다.
+    QueryDocumentSnapshot<Map<String, dynamic>>? recentITUserComment =
+        await PostListController.to.getITUserLastComment(postData);
+
+    return recentITUserComment;
+  }
+
   // DataBase에서
   // 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서
   // userData에 업데이트 한다.
@@ -2240,7 +1918,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
     // DataBase에 게시글 작성한 사람(User)의 image 속성과 userName 속성을 확인하여 가져온다.
     Map<String, String> imageAndUserName = await PostListController.to
-        .checkImageAndUserNameToUser(userData!.userUid);
+        .updateImageAndUserNameToUser(userData!.userUid);
 
     // UserData의 image, userName 속성에 값을 업데이트 한다.
     userData!.image = imageAndUserName['image']!;
@@ -2248,30 +1926,115 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // DataBase에서
-  // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
+  // obsPosts 또는 inqPosts에 대한 whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
   // postData에 업데이트 하는 method
-  Future<void> updateWhoLikeThePostAndWhoWriteCommentThePostToPostData() async {
-    // Server에 존재하는 Post에 대한 공감수 또는 댓글수가 변동이 있는지 확인한다.
+  Future<void> updateWhoWriteCommentThePostToPostData() async {
+    // Database에 존재하는 Post에 대한 댓글수가 변동이 있는지 확인한다.
     // 이 작업을 왜 하는가?
-    // 혹여나 공감 수나 댓글 수가 변동사항이 있을 수 있기 떄문에 일일히 확인하는 작업이 필요하다.
+    // 혹여나 댓글 수가 변동사항이 있을 수 있기 떄문에 일일히 확인하는 작업이 필요하다.
 
-    print('SpecificPostPage - updateSympathyNumAndCommnetNum() 호출');
+    print('SpecificPostPage - updateWhoWriteCommentThePostData() 호출');
 
-    // DataBase에 저장된 obsPosts 또는 inqPosts의 whoLikeThePost 속성과 whoWriteTheCommentThePost 속성을 확인하여 가져온다.
-    Map<String, List<String>> sympathyNumOrCommentNum = await PostListController
-        .to
-        .checkWhoLikeThePostAndWhoWriteCommentThePost(
+    // DataBase에 저장된 obsPosts 또는 inqPosts의 whoWriteTheCommentThePost 속성을 확인하여 가져온다.
+    List<String> whoWriteTheCommentThePost =
+        await PostListController.to.updateWhoWriteCommentThePost(
       postData!.obsOrInq,
       postData!.postUid,
     );
 
-    // PostData의 whoLikeThePost, whoWriteCommentThePost 속성에 값을 업데이트 한다.
-    postData!.whoLikeThePost.clear();
-    postData!.whoLikeThePost.addAll(sympathyNumOrCommentNum['sympathyData']!);
-
+    // PostData의 whoWriteCommentThePost 속성에 값을 업데이트 한다.
     postData!.whoWriteCommentThePost.clear();
-    postData!.whoWriteCommentThePost
-        .addAll(sympathyNumOrCommentNum['commentData']!);
+    postData!.whoWriteCommentThePost.addAll(whoWriteTheCommentThePost);
+  }
+
+  // comment에 대한 처리상태의 어떤 값을 default로 보여줄지 가져오는 method
+  ProClassification bringCommentValue() {
+    // 게시물 처리상태가 대기(WAITING)인 경우
+    if (postData!.proStatus == ProClassification.WAITING) {
+      return ProClassification.INPROGRESS;
+    }
+
+    // 게시물 처리상태가 처리중(INPROGRESS)인 경우
+    else if (postData!.proStatus == ProClassification.INPROGRESS) {
+      return ProClassification.PROCESSCOMPLETED;
+    }
+
+    // 게시물 처리상태가 보류(HOLD)인 경우
+    else if (postData!.proStatus == ProClassification.HOLD) {
+      return ProClassification.INPROGRESS;
+    }
+
+    // 게시물 처리상태가 처리완료(PROGRESSCOMPLETED)인 경우
+    else {
+      return ProClassification.PROCESSCOMPLETED;
+    }
+  }
+
+  // comment에 대한 처리상태 Dropdown에는 어떤 것을 보여줄지 가져오는 method
+  List<DropdownMenuItem<String>> bringCommentDropdown() {
+    // 게시물 처리상태가 대기(WAITING)인 경우
+    // 또는 게시물 처리상태가 보류(HOLD)인 경우
+    // 처리상태 Dropdown에는 처리중(PROCESSCOMPLETED)만 나타낸다.
+    if (postData!.proStatus == ProClassification.WAITING ||
+        postData!.proStatus == ProClassification.HOLD) {
+      return ProClassification.values
+          .where((element) =>
+              element != ProClassification.ALL &&
+              element != ProClassification.WAITING &&
+              element != ProClassification.PROCESSCOMPLETED &&
+              element != ProClassification.HOLD &&
+              element != ProClassification.NONE)
+          .map((element) {
+        // enum의 값을 화면에 표시할 값으로 변환한다.
+        String realText = element.asText;
+
+        return DropdownMenuItem(
+          value: element.name,
+          child: Text(realText),
+        );
+      }).toList();
+    }
+
+    // 게시물 처리상태가 처리중(INPROGRESS)인 경우
+    // 처리상태 Dropdown에는 처리완료(PROCESSCOMPLETED)와 보류(HOLD)만 나타낸다.
+    else if (postData!.proStatus == ProClassification.INPROGRESS) {
+      return ProClassification.values
+          .where((element) =>
+              element != ProClassification.ALL &&
+              element != ProClassification.WAITING &&
+              element != ProClassification.INPROGRESS &&
+              element != ProClassification.NONE)
+          .map((element) {
+        // enum의 값을 화면에 표시할 값으로 변환한다.
+        String realText = element.asText;
+
+        return DropdownMenuItem(
+          value: element.name,
+          child: Text(realText),
+        );
+      }).toList();
+    }
+
+    // 게시물 처리상태가 처리완료(PROGRESSCOMPLETED)인 경우
+    // 처리상태 Dropdown에는 처리완료(PROCESSCOMPLETED)만 나타낸다.
+    else {
+      return ProClassification.values
+          .where((element) =>
+              element != ProClassification.ALL &&
+              element != ProClassification.WAITING &&
+              element != ProClassification.INPROGRESS &&
+              element != ProClassification.HOLD &&
+              element != ProClassification.NONE)
+          .map((element) {
+        // enum의 값을 화면에 표시할 값으로 변환한다.
+        String realText = element.asText;
+
+        return DropdownMenuItem(
+          value: element.name,
+          child: Text(realText),
+        );
+      }).toList();
+    }
   }
 
   // specificPostPage가 처음 불릴 떄 호출되는 method
@@ -2310,24 +2073,41 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           // userData에 업데이트 한다.
           await updateImageAndUserNameToUserData();
 
+          // Database에 있는 게시물 처리상태(proStatus)를 업데이트 한다.
+          QueryDocumentSnapshot<Map<String, dynamic>>? recentITUserComment =
+              await updatePostProClassification(postData!);
+
+          // 화면에 보이는 게시물에 대한 처리상태를 업데이트 한다.
+          // IT 담당자가 올린 댓글이 없었다면, 게시물에 대한 처리상태는 WAITING(대기)가 된다.
+          // 만약 IT 담당자가 올린 댓글이 있었다면, 가장 최근에 올린 댓글에 대한 처리상태를 바탕으로 게시물에 대한 처리상태가 결정된다.
+          recentITUserComment == null
+              ? postData!.proStatus = ProClassification.WAITING
+              : postData!.proStatus = ProClassification.values.firstWhere(
+                  (element) =>
+                      element.toString() ==
+                      recentITUserComment.data()['proStatus'].toString(),
+                );
+
           // DataBase에서
           // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
           // postData에 업데이트 한다.
-          await updateWhoLikeThePostAndWhoWriteCommentThePostToPostData();
+          await updateWhoWriteCommentThePostToPostData();
 
-          // Server에 Comment 데이터를 호출하는 것을 허락한다.
+          // Database에 Comment 데이터를 호출하는 것을 허락한다.
           isCallServerAboutCommentData = true;
 
           // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
           // 부분적으로 재랜더링 한다.
           // 1. 업데이트된 사용자 Avatar와 이름을 화면에 보여주기 위해 재랜더링 한다.
-          // 2. 업데이트 된 댓글 수와 공감 수를 화면에 보여주기 위해 재랜더링 한다.
+          // 2. 업데이트 된 댓글 수와 를 화면에 보여주기 위해 재랜더링 한다.
           // 3. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
+          // 4. 게시물에 대한 처리상태를 재랜더링 한다.
           PostListController.to.update([
             'showAvatar',
             'showUserName',
-            'showLikeNumAndCommentNum',
-            'showCommentListView'
+            'showCommentNum',
+            'showCommentListView',
+            'showProclassification'
           ]);
         }
       },
@@ -2398,15 +2178,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
               // Avatar와 UserName, PostTime을 표시하는 Widget이다.
               showAvatarAndUserNameAndPostTime(),
 
-              // PostTitle, PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostLikeNum, PostCommentNum를 보여주는 Widget 입니다.
-              showTitleAndContnetAndPhotoAndLikeNumAndCommentNum(),
+              // PostTitle, PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostCommentNum를 보여주는 Widget 입니다.
+              showTitleAndContentAndPhotoAndCommentNum(),
 
-              SizedBox(height: 5.h),
-
-              // 공감을 클릭할 수 있는 버튼
-              sympathy(),
-
-              SizedBox(height: 30.h),
+              SizedBox(height: 20.h),
 
               // comment를 보여주는 ListView (단, comment가 없으면 invisible)
               showCommentListView(),

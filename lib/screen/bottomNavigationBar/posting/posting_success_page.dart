@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:getwidget/components/button/gf_button.dart';
 import 'package:getwidget/types/gf_button_type.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
-import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
 import 'package:help_desk/utils/toast_util.dart';
 
 // Posting 업로드 성공 시 보여주는 widget 입니다.

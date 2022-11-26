@@ -1,19 +1,15 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/userClassification.dart';
 import 'package:help_desk/model/comment_model.dart';
 import 'package:help_desk/model/notification_model.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
-import 'package:help_desk/screen/bottomNavigationBar/controller/notification_controller.dart';
-import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/utils/uuid_util.dart';
 
@@ -186,11 +182,74 @@ class CommunicateFirebase {
         .update(UserModel.toMap(updateUser));
   }
 
+  // IT 담당자가 가장 최근 올린 댓글을 가져오는 method
+  static Future<QueryDocumentSnapshot<Map<String, dynamic>>?>
+      getITUserLastComment(PostModel postData) async {
+    QuerySnapshot<Map<String, dynamic>> data;
+
+    // 관련된 게시물이 장애 처리현황 게시물인 경우
+    if (postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus) {
+      // 일단 일반 사용자든, IT 담당자든 uploadTime 속성을 바탕으로 내림차순으로 댓글을 가져온다.
+      data = await _firebaseFirestore
+          .collection('obsPosts')
+          .doc(postData.postUid)
+          .collection('comments')
+          .orderBy('uploadTime', descending: true)
+          .get();
+    }
+
+    // 관련된 게시물이 문의 처리현황 게시물인 경우
+    else {
+      // 일단 일반 사용자든, IT 담당자든 uploadTime 속성을 바탕으로 내림차순으로 댓글을 가져온다.
+      data = await _firebaseFirestore
+          .collection('inqPosts')
+          .doc(postData.postUid)
+          .collection('comments')
+          .orderBy('uploadTime', descending: true)
+          .get();
+    }
+
+    // List로 변환한다.
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> comment = data.docs;
+
+    // 일반 사용자가 올린 댓글은 삭제한다.
+    // IT 담당자가 올린 댓글만 저장한다.
+    comment.removeWhere((QueryDocumentSnapshot<Map<String, dynamic>> element) =>
+        element.data()['proStatus'].toString() == 'ProClassification.NONE');
+
+    // IT 담당자가 올린 댓글이 있는지 없는지 판단한다.
+    // -> IT 담당자가 올린 댓글이 없으면 게시물에 대한 처리상태를 WAITING(대기)로 결정한다.
+    // -> IT 담당자가 올린 댓글이 있으면, 가장 최신 댓글에 대한 처리상태를 게시물에 대한 처리상태로 결정한다.
+    comment.isEmpty
+        ? postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus
+            ? await _firebaseFirestore
+                .collection('obsPosts')
+                .doc(postData.postUid)
+                .update({'proStatus': 'ProClassification.WAITING'})
+            : await _firebaseFirestore
+                .collection('inqPosts')
+                .doc(postData.postUid)
+                .update({'proStatus': 'ProClassification.WAITING'})
+        : postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus
+            ? await _firebaseFirestore
+                .collection('obsPosts')
+                .doc(postData.postUid)
+                .update(
+                    {'proStatus': comment.first.data()['proStatus'].toString()})
+            : await _firebaseFirestore
+                .collection('inqPosts')
+                .doc(postData.postUid)
+                .update({
+                'proStatus': comment.first.data()['proStatus'].toString()
+              });
+
+    return comment.isEmpty ? null : comment.first;
+  }
+
   // DataBase에 저장된 obsPosts 또는 inqPosts의
-  // whoLikeThePost 속성과 whoWriteTheCommentThePost 속성을 확인하여 가져오는 method
-  static Future<Map<String, List<String>>>
-      checkWhoLikeThePostAndWhoWriteCommentThePost(
-          ObsOrInqClassification obsOrInq, String postUid) async {
+  // whoWriteTheCommentThePost 속성을 확인하여 가져오는 method
+  static Future<List<String>> updateWhoWriteCommentThePost(
+      ObsOrInqClassification obsOrInq, String postUid) async {
     DocumentSnapshot<Map<String, dynamic>> postData;
 
     // 해당 게시물이 장애 처리현황 게시물인 경우...
@@ -204,79 +263,76 @@ class CommunicateFirebase {
           await _firebaseFirestore.collection('inqPosts').doc(postUid).get();
     }
 
-    return {
-      // 공감 데이터
-      'sympathyData':
-          List<String>.from(postData.data()!['whoLikeThePost'] as List),
-      // 댓글 데이터
-      'commentData':
-          List<String>.from(postData.data()!['whoWriteCommentThePost'] as List),
-    };
+    return List<String>.from(postData.data()!['whoWriteCommentThePost'] as List);
   }
 
   // 장애 처리현황 게시물을 postTime 내림차순 기준으로 가져오는 method
-  static Future<QuerySnapshot<Map<String, dynamic>>> getObsPostData(
-      UserClassification userType) async {
+  static Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
+      getObsPostData(UserClassification userType) async {
     // 사용자가 일반 사용자이면?
-    //-> 사용자가 작성한 장애 처리현황 게시물만 가져온다.
+    // -> 사용자가 작성한 장애 처리현황 게시물만 가져온다.
     if (userType == UserClassification.GENERALUSER) {
-      // 자신이 작성한 게시물을 찾는다.
+      // postTime 속성을 내림차순으로 정렬한다.
       QuerySnapshot<Map<String, dynamic>> data = await _firebaseFirestore
           .collection('obsPosts')
-          .where('userUid',
-              isEqualTo: SettingsController.to.settingUser!.userUid)
+          .orderBy('postTime', descending: true)
           .get();
 
-      // postTime 속성을 토대로 오름차순 정렬한다.
-      // 최종 목표는 postTime 속성을 가지고 내림차순 정렬하는 것이다.
-      data.docs.sort(
-        (prior, next) => prior.data()['postTime'].toString().compareTo(
-              next.data()['postTime'].toString(),
-            ),
-      );
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData =
+          data.docs;
 
-      return data;
+      // 자신이 쓴 게시물만 가져온다.
+      ultimateData.removeWhere(
+          (QueryDocumentSnapshot<Map<String, dynamic>> element) =>
+              element.data()['userUid'].toString() !=
+              SettingsController.to.settingUser!.userUid);
+
+      return ultimateData;
     }
     // 사용자가 IT 담당자이면?
     // 모든 사용자가 작성한 장애 처리현황 게시물을 가져온다.
     else {
-      return await _firebaseFirestore
+      QuerySnapshot<Map<String, dynamic>> data = await _firebaseFirestore
           .collection('obsPosts')
           .orderBy('postTime', descending: true)
           .get();
+
+      return data.docs;
     }
   }
 
   // 문서 처리현황 게시물을 postTime 내림차순 기준으로 가져오는 method
-  static Future<QuerySnapshot<Map<String, dynamic>>> getInqPostData(
-      UserClassification userType) async {
+  static Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
+      getInqPostData(UserClassification userType) async {
     // 사용자가 일반 사용자이면?
     //-> 사용자가 작성한 장애 처리현황 게시물만 가져온다.
     if (userType == UserClassification.GENERALUSER) {
-      // 자신이 작성한 게시물을 찾는다.
+      // postTime 속성을 내림차순으로 정렬한다.
       QuerySnapshot<Map<String, dynamic>> data = await _firebaseFirestore
           .collection('inqPosts')
-          .where('userUid',
-              isEqualTo: SettingsController.to.settingUser!.userUid)
+          .orderBy('postTime', descending: true)
           .get();
 
-      // postTime 속성을 토대로 오름차순 정렬한다.
-      // 최종 목표는 postTime 속성을 가지고 내림차순 정렬하는 것이다.
-      data.docs.sort(
-        (prior, next) => prior.data()['postTime'].toString().compareTo(
-              next.data()['postTime'].toString(),
-            ),
-      );
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData =
+          data.docs;
 
-      return data;
+      // 자신이 쓴 게시물만 가져온다.
+      ultimateData.removeWhere(
+          (QueryDocumentSnapshot<Map<String, dynamic>> element) =>
+              element.data()['userUid'].toString() !=
+              SettingsController.to.settingUser!.userUid);
+
+      return ultimateData;
     }
     // 사용자가 IT 담당자이면?
     // 모든 사용자가 작성한 장애 처리현황 게시물을 가져온다.
     else {
-      return await _firebaseFirestore
+      QuerySnapshot<Map<String, dynamic>> data = await _firebaseFirestore
           .collection('inqPosts')
           .orderBy('postTime', descending: true)
           .get();
+
+      return data.docs;
     }
   }
 
@@ -343,34 +399,7 @@ class CommunicateFirebase {
     }
   }
 
-  // DataBase에 저장된 게시물의 whoLikeThePost 속성에 사용자 uid을 추가하는 method
-  static Future<void> addWhoLikeThePost(
-      PostModel postData, String userUid) async {
-    // Database에 저장된 게시물을 가져온다.
-    DocumentReference<Map<String, dynamic>> documentReference =
-        getPostData(postData.obsOrInq, postData.postUid);
 
-    // 여러 사용자가 공감 버튼을 동시에 클릭하여 대량의 트래픽이 발생할 경우를 대비해 transaction을 이용한다.
-    await _firebaseFirestore.runTransaction(
-      maxAttempts: 5,
-      (transaction) async {
-        DocumentSnapshot<Map<String, dynamic>> snapshot =
-            await transaction.get<Map<String, dynamic>>(documentReference);
-
-        if (!snapshot.exists) {
-          throw Exception('Does not exists');
-        }
-
-        List<String> whoLikeThePost =
-            List<String>.from(snapshot.data()!['whoLikeThePost'] as List);
-
-        whoLikeThePost.add(userUid);
-
-        transaction
-            .update(documentReference, {'whoLikeThePost': whoLikeThePost});
-      },
-    );
-  }
 
   // 게시물이 삭제되었는지 확인하는 method
   static Future<bool> isDeletePost(
@@ -508,7 +537,7 @@ class CommunicateFirebase {
     List<UserModel> commentUserArray = [];
 
     // comment의 whoWriteUserUid 속성을 참고하여
-    //  Server에서 User를 가져온다.
+    // Database에서 User를 가져온다.
     for (CommentModel comment in commentArray) {
       DocumentSnapshot<Map<String, dynamic>> user = await _firebaseFirestore
           .collection('users')
@@ -525,61 +554,7 @@ class CommunicateFirebase {
     return commentAndUser;
   }
 
-  // // Firebase DataBase comment 정보의 whoLikeThePost 속성에 접근하여
-  // // 사용자가 comment에 대해서 클릭한 적이 있는지 판별하는 method
-  // static Future<bool> checkLikeUsersFromTheComment(
-  //     CommentModel comment, String userUid) async {
-  //   // post - postUid - comments - commentUid에 접근하여 해당 comment에 접근한다.
-  //   DocumentSnapshot<Map<String, dynamic>> commentData =
-  //       await _firebaseFirestore
-  //           .collection('posts')
-  //           .doc(comment.belongCommentPostUid)
-  //           .collection('comments')
-  //           .doc(comment.commentUid)
-  //           .get();
 
-  //   // comment - whoCommentLike Property에 userUid가 있는지 확인한다.
-  //   for (String uid in commentData.data()!['whoCommentLike']) {
-  //     if (uid == userUid) {
-  //       // 해당 comment에 대해서 좋아요를 이미 눌렀다는 뜻이다. 따라서 true를 반환한다.
-  //       return true;
-  //     }
-  //   }
-
-  //   // 해당 comment에 대해서 좋아요를 누르지 않았다는 뜻이다. 따라서 false를 반환한다.
-  //   return false;
-  // }
-
-  // Server에 저장된 comment(댓글)의 whoCommentLike 속성에 사용자 uid를 추가하는 method
-  static Future<void> addWhoCommentLike(
-      CommentModel comment, PostModel postData) async {
-    // Database에 저장된 게시물을 가져온다.
-    DocumentReference<Map<String, dynamic>> documentReference =
-        getCommentData(comment, postData);
-
-    // 여러 사용자가 동시에 접근하여 대량의 트래픽이 발생할 경우를 대비해 transaction을 이용한다.
-    await _firebaseFirestore.runTransaction(
-      maxAttempts: 5,
-      (transaction) async {
-        DocumentSnapshot<Map<String, dynamic>> snapshot =
-            await transaction.get<Map<String, dynamic>>(documentReference);
-
-        if (!snapshot.exists) {
-          throw Exception('Does not exists');
-        }
-
-        List<String> whoCommentLike =
-            List<String>.from(snapshot.data()!['whoCommentLike'] as List);
-
-        whoCommentLike.add(SettingsController.to.settingUser!.userUid);
-
-        transaction.update(
-          documentReference,
-          {'whoCommentLike': whoCommentLike},
-        );
-      },
-    );
-  }
 
   // Database에 comment을 삭제한다.
   static Future<void> deleteComment(
@@ -622,7 +597,7 @@ class CommunicateFirebase {
   }
 
   // Database에 게시글 작성한 사람(User)의 image 속성과 userName 속성을 확인하여 가져오는 method
-  static Future<Map<String, String>> checkImageAndUserNameToUser(
+  static Future<Map<String, String>> updateImageAndUserNameToUser(
       String userUid) async {
     DocumentSnapshot<Map<String, dynamic>> user =
         await _firebaseFirestore.collection('users').doc(userUid).get();

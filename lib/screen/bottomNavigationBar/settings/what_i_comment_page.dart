@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -393,22 +392,6 @@ class _WhatICommentPageState extends State<WhatICommentPage> {
 
                         SizedBox(width: 20.w),
 
-                        // 좋아요 수
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Icon(
-                              Icons.favorite,
-                              color: Colors.red,
-                              size: 15.sp,
-                            ),
-                            SizedBox(width: 5.w),
-                            Text(postData.whoLikeThePost.length.toString()),
-                          ],
-                        ),
-
-                        SizedBox(width: 20.w),
-
                         // 댓글 수
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
@@ -594,22 +577,6 @@ class _WhatICommentPageState extends State<WhatICommentPage> {
                                 child: Text('Visibility 테스트'),
                                 visible: false,
                               ),
-
-                        SizedBox(width: 20.w),
-
-                        // 좋아요 수
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Icon(
-                              Icons.favorite,
-                              color: Colors.red,
-                              size: 15.sp,
-                            ),
-                            SizedBox(width: 5.w),
-                            Text(postData.whoLikeThePost.length.toString()),
-                          ],
-                        ),
 
                         SizedBox(width: 20.w),
 

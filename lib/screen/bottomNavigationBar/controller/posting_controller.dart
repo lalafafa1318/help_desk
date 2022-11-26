@@ -1,8 +1,6 @@
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
-
 import 'package:get/get.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
@@ -10,7 +8,6 @@ import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/proClassification.dart';
 import 'package:help_desk/const/sysClassification.dart';
 import 'package:help_desk/model/post_model.dart';
-import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/utils/toast_util.dart';
 import 'package:help_desk/utils/uuid_util.dart';
 import 'package:image_picker/image_picker.dart';
@@ -150,12 +147,11 @@ class PostingController extends GetxController {
         postTitle: titleString.toString(),
         postContent: contentString.toString(),
         phoneNumber: phoneNumber,
-        // 사용자가 게시물을 올릴 떄 처리상태는 RECEIPT(접수)이다.
-        proStatus: ProClassification.RECEIPT,
+        // 사용자가 게시물을 올릴 떄 처리상태는 WAITING(대기)이다.
+        proStatus: ProClassification.WAITING,
         userUid: AuthController.to.user.value.userUid,
         postUid: postMap['postUUid'],
         postTime: formatDate,
-        whoLikeThePost: [],
         whoWriteCommentThePost: [],
       );
 

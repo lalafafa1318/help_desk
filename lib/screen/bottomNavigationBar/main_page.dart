@@ -6,7 +6,6 @@ import 'package:help_desk/screen/bottomNavigationBar/notification/notification_p
 import 'package:help_desk/screen/bottomNavigationBar/postList/post_list_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/posting/posting_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/settings/settings_page.dart';
-import 'package:help_desk/utils/showDialog_util.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class MainPage extends GetView<BottomNavigationBarController> {

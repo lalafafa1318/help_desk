@@ -6,8 +6,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
-import 'package:help_desk/bindingController/binding_controller.dart';
-import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/beforeBottomNavigationBar/login_page.dart';
 import 'package:help_desk/screen/beforeBottomNavigationBar/sign_up_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/main_page.dart';

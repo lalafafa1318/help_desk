@@ -47,6 +47,5 @@ app.*.map.json
 /android/app/release
 
 
-# git에 올릴 떄 올리지 않는 파일
 
 

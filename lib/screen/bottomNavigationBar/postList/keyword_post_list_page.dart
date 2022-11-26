@@ -1,15 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/components/avatar/gf_avatar.dart';
 import 'package:getwidget/components/card/gf_card.dart';
 import 'package:getwidget/components/list_tile/gf_list_tile.dart';
 import 'package:getwidget/position/gf_position.dart';
-import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/proClassification.dart';
 import 'package:help_desk/const/sysClassification.dart';
@@ -17,9 +13,7 @@ import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
-import 'package:help_desk/screen/bottomNavigationBar/postList/post_list_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_post_page.dart';
-import 'package:help_desk/utils/toast_util.dart';
 import 'package:number_paginator/number_paginator.dart';
 
 // 검색창에서 키워드를 입력해 게시판 목록을 보여주는 Page 입니다
@@ -572,25 +566,9 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
                                 ],
                               )
                             : const Visibility(
-                                child: Text('Visibility 테스트'),
                                 visible: false,
+                                child: Text('이미지가 없어서 표시하지 않습니다.'),
                               ),
-
-                        SizedBox(width: 20.w),
-
-                        // 좋아요 수
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Icon(
-                              Icons.favorite,
-                              color: Colors.red,
-                              size: 15.sp,
-                            ),
-                            SizedBox(width: 5.w),
-                            Text(postModel.whoLikeThePost.length.toString()),
-                          ],
-                        ),
 
                         SizedBox(width: 20.w),
 
@@ -658,34 +636,6 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
                         ),
                       ],
                     ),
-
-                    // 시스템 분류 코드와 처리 상태 분류 코드 (차선책)
-                    // Column(
-                    //   crossAxisAlignment: CrossAxisAlignment.start,
-                    //   children: [
-                    //     // 시스템 분류 코드
-                    //     GFListTile(
-                    //       color: Colors.black12,
-                    //       title: const Text(
-                    //         '시스템',
-                    //         style: TextStyle(fontWeight: FontWeight.bold),
-                    //       ),
-                    //       subTitle: Text(postData.sysClassficationCode.asText),
-                    //     ),
-
-                    //     SizedBox(height: 20.h),
-
-                    //     // 처리 상태 분류 코드
-                    //     GFListTile(
-                    //       color: Colors.black12,
-                    //       title: const Text(
-                    //         '처리상태',
-                    //         style: TextStyle(fontWeight: FontWeight.bold),
-                    //       ),
-                    //       subTitle: Text(postData.proStatus.asText),
-                    //     ),
-                    //   ],
-                    // ),
                   ],
                 ),
               ),
@@ -798,25 +748,9 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
                                 ],
                               )
                             : const Visibility(
-                                child: Text('Visibility 테스트'),
                                 visible: false,
+                                child: Text('이미지 개수가 없어서 표시하지 않습니다.'),
                               ),
-
-                        SizedBox(width: 20.w),
-
-                        // 좋아요 수
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Icon(
-                              Icons.favorite,
-                              color: Colors.red,
-                              size: 15.sp,
-                            ),
-                            SizedBox(width: 5.w),
-                            Text(postModel.whoLikeThePost.length.toString()),
-                          ],
-                        ),
 
                         SizedBox(width: 20.w),
 
@@ -884,34 +818,6 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
                         ),
                       ],
                     ),
-
-                    // 시스템 분류 코드와 처리 상태 분류 코드 (차선책)
-                    // Column(
-                    //   crossAxisAlignment: CrossAxisAlignment.start,
-                    //   children: [
-                    //     // 시스템 분류 코드
-                    //     GFListTile(
-                    //       color: Colors.black12,
-                    //       title: const Text(
-                    //         '시스템',
-                    //         style: TextStyle(fontWeight: FontWeight.bold),
-                    //       ),
-                    //       subTitle: Text(postData.sysClassficationCode.asText),
-                    //     ),
-
-                    //     SizedBox(height: 20.h),
-
-                    //     // 처리 상태 분류 코드
-                    //     GFListTile(
-                    //       color: Colors.black12,
-                    //       title: const Text(
-                    //         '처리상태',
-                    //         style: TextStyle(fontWeight: FontWeight.bold),
-                    //       ),
-                    //       subTitle: Text(postData.proStatus.asText),
-                    //     ),
-                    //   ],
-                    // ),
                   ],
                 ),
               ),

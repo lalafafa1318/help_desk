@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:get/get.dart';
-import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/posting/posting_failure_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/posting/posting_success_page.dart';

@@ -9,9 +9,6 @@ class CommentModel {
   // 댓글 업로드 시간
   String uploadTime;
 
-  // 댓글 좋아요 클릭한 사람들
-  List<String> whoCommentLike;
-
   // 댓글이 소속된 게시글 Uid
   String belongCommentPostUid;
 
@@ -37,7 +34,6 @@ class CommentModel {
   CommentModel({
     required this.content,
     required this.uploadTime,
-    required this.whoCommentLike,
     required this.belongCommentPostUid,
     required this.commentUid,
     required this.whoWriteUserUid,
@@ -52,10 +48,6 @@ class CommentModel {
     return {
       'content': commentModel.content,
       'uploadTime': commentModel.uploadTime,
-      // whoCommentLike는 처음에 무조건 배열이 비어있다. 따라서 무조건 []으로 들어간다.
-      'whoCommentLike': commentModel.whoCommentLike.isEmpty
-          ? []
-          : commentModel.whoCommentLike,
       'belongCommentPostUid': commentModel.belongCommentPostUid,
       'commentUid': commentModel.commentUid,
       'whoWriteUserUid': commentModel.whoWriteUserUid,
@@ -74,7 +66,6 @@ class CommentModel {
   factory CommentModel.fromMap(Map<String, dynamic> comment) => CommentModel(
         content: comment['content'].toString(),
         uploadTime: comment['uploadTime'].toString(),
-        whoCommentLike: List<String>.from(comment['whoCommentLike'] as List),
         belongCommentPostUid: comment['belongCommentPostUid'].toString(),
         commentUid: comment['commentUid'].toString(),
         whoWriteUserUid: comment['whoWriteUserUid'].toString(),

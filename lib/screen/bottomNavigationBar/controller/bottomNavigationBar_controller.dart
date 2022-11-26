@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 
 import 'package:get/get.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';

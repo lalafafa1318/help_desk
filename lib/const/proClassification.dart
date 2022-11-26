@@ -2,8 +2,8 @@
 enum ProClassification {
   // 처리상태 전체 (검색 용도)
   ALL,
-  // 접수
-  RECEIPT,
+  // 대기
+  WAITING,
   // 처리중
   INPROGRESS,
   // 처리완료
@@ -20,8 +20,8 @@ extension ProclassificationExtension on ProClassification {
     switch (this) {
       case ProClassification.ALL:
         return '처리상태 전체';
-      case ProClassification.RECEIPT:
-        return '접수';
+      case ProClassification.WAITING:
+        return '대기';
       case ProClassification.INPROGRESS:
         return '처리중';
       case ProClassification.PROCESSCOMPLETED:

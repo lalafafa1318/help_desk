@@ -1,4 +1,4 @@
-import 'dart:ui';
+
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
@@ -9,7 +9,7 @@ import 'package:get/get.dart';
 import 'package:getwidget/components/button/gf_button.dart';
 import 'package:getwidget/types/gf_button_type.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
-import 'package:help_desk/main.dart';
+
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/settings/edit_profile_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/settings/what_i_comment_page.dart';
@@ -242,7 +242,7 @@ class SettingsPage extends StatelessWidget {
       height: 50.h,
       child: InkWell(
         onTap: () {
-          AuthController.to.notKakaoLogout();
+          AuthController.to.logout();
         },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

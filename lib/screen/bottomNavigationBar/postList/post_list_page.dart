@@ -1,17 +1,10 @@
-import 'dart:io';
-
-import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter_pagination/flutter_pagination.dart';
-import 'package:flutter_pagination/widgets/button_styles.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
-import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/proClassification.dart';
 import 'package:help_desk/const/sysClassification.dart';
@@ -20,13 +13,9 @@ import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
-import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
-import 'package:help_desk/screen/bottomNavigationBar/postList/keyword_post_list_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_post_page.dart';
-import 'package:help_desk/utils/toast_util.dart';
 import 'package:number_paginator/number_paginator.dart';
-import 'package:oktoast/oktoast.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 // 게시판 목록 class 입니다.
@@ -140,7 +129,9 @@ class _PostListPageState extends State<PostListPage> {
         return DropdownButton(
           value: PostListController.to.pSelectedValue.name,
           style: TextStyle(color: Colors.black, fontSize: 13.sp),
-          items: ProClassification.values.map((element) {
+          items: ProClassification.values
+              .where((element) => element != ProClassification.NONE)
+              .map((element) {
             // enum의 값을 화면에 표시될 값으로 변환한다.
             String realText = element.asText;
             return DropdownMenuItem(
@@ -233,7 +224,7 @@ class _PostListPageState extends State<PostListPage> {
     if (PostListController.to.selectObsOrInq ==
         ObsOrInqClassification.obstacleHandlingStatus) {
       print('장애 처리현황 게시물 가져오기');
-      return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      return FutureBuilder<List<QueryDocumentSnapshot<Map<String, dynamic>>>>(
         future: PostListController.to
             .getObsPostData(SettingsController.to.settingUser!.userType),
         builder: (context, snapshot) {
@@ -243,12 +234,12 @@ class _PostListPageState extends State<PostListPage> {
           }
 
           // 데이터가 왔는데 사이즈가 0이면..
-          if (snapshot.data!.size == 0) {
+          if (snapshot.data!.isEmpty) {
             return noPostData();
           }
           // 사이즈가 1 이상이면...
           else {
-            return prepareShowObsPostData(snapshot.data!.docs);
+            return prepareShowObsPostData(snapshot.data!);
           }
         },
       );
@@ -257,8 +248,9 @@ class _PostListPageState extends State<PostListPage> {
     // 즉 문의 처리현황 버튼을 클릭했다면...
     else {
       print('문의 처리현황 게시물 가져오기');
-      return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        future: PostListController.to.getInqPostData(SettingsController.to.settingUser!.userType),
+      return FutureBuilder<List<QueryDocumentSnapshot<Map<String, dynamic>>>>(
+        future: PostListController.to
+            .getInqPostData(SettingsController.to.settingUser!.userType),
         builder: (context, snapshot) {
           // 데이터가 아직 오지 않았을 때
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -266,12 +258,12 @@ class _PostListPageState extends State<PostListPage> {
           }
 
           // 데이터가 왔는데 사이즈가 0이면..
-          if (snapshot.data!.size == 0) {
+          if (snapshot.data!.isEmpty) {
             return noPostData();
           }
           // 사이즈가 1 이상이면...
           else {
-            return prepareShowInqPostData(snapshot.data!.docs);
+            return prepareShowInqPostData(snapshot.data!);
           }
         },
       );
@@ -314,9 +306,10 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 장애 처리현황 게시물을 obsPostData에 추가하는 method
-  Widget prepareShowObsPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowObsPostData(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
     return FutureBuilder<List<PostModel>>(
-      future: PostListController.to.allocObsPostDataInArray(allData),
+      future: PostListController.to.allocObsPostDataInArray(ultimateData),
       builder: (context, snapshot) {
         // 데이터를 기다리고 있으면 CircularProgressIndicator를 표시한다.
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -395,7 +388,8 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 문의 처리현황 게시물을 inqPostData에 추가하는 method
-  Widget prepareShowInqPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowInqPostData(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocInqPostDataInArray(allData),
       builder: (context, snapshot) {
@@ -586,25 +580,9 @@ class _PostListPageState extends State<PostListPage> {
                                 ],
                               )
                             : const Visibility(
-                                child: Text('Visibility 테스트'),
                                 visible: false,
+                                child: Text('이미지가 없으면 표시하지 않습니다.'),
                               ),
-
-                        SizedBox(width: 20.w),
-
-                        // 좋아요 수
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Icon(
-                              Icons.favorite,
-                              color: Colors.red,
-                              size: 15.sp,
-                            ),
-                            SizedBox(width: 5.w),
-                            Text(postData.whoLikeThePost.length.toString()),
-                          ],
-                        ),
 
                         SizedBox(width: 20.w),
 
@@ -791,22 +769,6 @@ class _PostListPageState extends State<PostListPage> {
                                 child: Text('Visibility 테스트'),
                                 visible: false,
                               ),
-
-                        SizedBox(width: 20.w),
-
-                        // 좋아요 수
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Icon(
-                              Icons.favorite,
-                              color: Colors.red,
-                              size: 15.sp,
-                            ),
-                            SizedBox(width: 5.w),
-                            Text(postData.whoLikeThePost.length.toString()),
-                          ],
-                        ),
 
                         SizedBox(width: 20.w),
 

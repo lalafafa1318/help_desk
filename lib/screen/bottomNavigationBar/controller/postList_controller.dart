@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
@@ -17,7 +16,6 @@ import 'package:help_desk/screen/bottomNavigationBar/controller/settings_control
 import 'package:help_desk/screen/bottomNavigationBar/postList/keyword_post_list_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
 import 'package:help_desk/utils/uuid_util.dart';
-import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 
 // PostList에 관한 상태 변수, 메서드를 관리하는 Controller class 입니다.
@@ -83,13 +81,13 @@ class PostListController extends GetxController {
   static PostListController get to => Get.find();
 
   // 장애 처리현황 게시물을 postTime 내림차순 기준으로 가져오는 method
-  Future<QuerySnapshot<Map<String, dynamic>>> getObsPostData(
+  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> getObsPostData(
       UserClassification userType) async {
     return await CommunicateFirebase.getObsPostData(userType);
   }
 
   // 문의 처리현황 게시물을 postTime 내림차순 기준으로 가져오는 method
-  Future<QuerySnapshot<Map<String, dynamic>>> getInqPostData(
+  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> getInqPostData(
       UserClassification userType) async {
     return await CommunicateFirebase.getInqPostData(userType);
   }
@@ -103,13 +101,6 @@ class PostListController extends GetxController {
     obsPostData.clear();
     obsUserData.clear();
 
-    // 일반 사용자 경우
-    // 자기가 작성한 게시물에 대해서 postTime 속성을 내림차순 정렬한다.
-    if (SettingsController.to.settingUser!.userType ==
-        UserClassification.GENERALUSER) {
-      allData = allData.reversed.toList();
-    }
-
     for (var doc in allData) {
       // QueryDocumentSnapshot -> Json -> Model class로 변환한다.
       PostModel postModel = PostModel.fromQueryDocumentSnapshot(doc);
@@ -117,7 +108,7 @@ class PostListController extends GetxController {
       obsPostData.add(postModel);
 
       // modelData의 userUid 속성을 이용해
-      // Server에서 게시물에 대한 사용자 정보를 가져온다.
+      // Database에서 게시물에 대한 사용자 정보를 가져온다.
       Map<String, dynamic> userData =
           await CommunicateFirebase.getUserData(postModel.userUid);
 
@@ -136,14 +127,6 @@ class PostListController extends GetxController {
     inqPostData.clear();
     inqUserData.clear();
 
-    // 일반 사용자 경우
-    // 자기가 작성한 게시물에 대해서 postTime 속성이 오름차순 정렬 상태이다.
-    // 따라서 postTime 속성을 내림차순 정렬한다.
-    if (SettingsController.to.settingUser!.userType ==
-        UserClassification.GENERALUSER) {
-      allData = allData.reversed.toList();
-    }
-
     await Future.delayed(const Duration(milliseconds: 5));
 
     for (var doc in allData) {
@@ -153,7 +136,7 @@ class PostListController extends GetxController {
       inqPostData.add(postModel);
 
       // modelData의 userUid 속성을 이용해
-      // Server에서 게시물에 대한 사용자 정보를 가져온다.
+      // Database에서 게시물에 대한 사용자 정보를 가져온다.
       Map<String, dynamic> userData =
           await CommunicateFirebase.getUserData(postModel.userUid);
 
@@ -343,20 +326,25 @@ class PostListController extends GetxController {
     }
   }
 
-  // Database에 게시글 작성한 사람(User)의 image 속성과 userName 속성을 확인하여 가져온s는 method
-  Future<Map<String, String>> checkImageAndUserNameToUser(
+  // Database에 게시글 작성한 사람(User)의 image 속성과 userName 속성을 확인하여 가져오는 method
+  Future<Map<String, String>> updateImageAndUserNameToUser(
       String userUid) async {
-    return await CommunicateFirebase.checkImageAndUserNameToUser(userUid);
+    return await CommunicateFirebase.updateImageAndUserNameToUser(userUid);
   }
 
-  // DataBase에 저장된 obsPosts 또는 inqPosts의 whoLikeThePost 속성과 whoWriteTheCommentThePost 속성을 확인하여 가져오는 method
-  Future<Map<String, List<String>>>
-      checkWhoLikeThePostAndWhoWriteCommentThePost(
+  // IT 담당자가 가장 최근 올린 댓글을 가져오는 method
+  Future<QueryDocumentSnapshot<Map<String, dynamic>>?> getITUserLastComment(
+      PostModel postData) async {
+    return await CommunicateFirebase.getITUserLastComment(postData);
+  }
+
+  // DataBase에 저장된 obsPosts 또는 inqPosts의 whoWriteTheCommentThePost 속성을 확인하여 가져오는 method
+  Future<List<String>> updateWhoWriteCommentThePost(
     ObsOrInqClassification obsOrInq,
     String postUid,
   ) async {
-    return await CommunicateFirebase
-        .checkWhoLikeThePostAndWhoWriteCommentThePost(obsOrInq, postUid);
+    return await CommunicateFirebase.updateWhoWriteCommentThePost(
+        obsOrInq, postUid);
   }
 
   // DataBase에 게시물을 delete하는 method
@@ -364,10 +352,6 @@ class PostListController extends GetxController {
     await CommunicateFirebase.deletePostData(postData);
   }
 
-  // DataBase에 저장된 게시물(Post)의 whoLikeThePost 속성에 사용자 uid을 추가하는 method
-  Future<void> addWhoLikeThePost(PostModel postData, String userUid) async {
-    await CommunicateFirebase.addWhoLikeThePost(postData, userUid);
-  }
 
   // Database에서 게시물(post)에 대한 여러 comment를 가져오는 method
   Future<Map<String, dynamic>> getCommentAndUser(PostModel postData) async {
@@ -396,7 +380,6 @@ class PostListController extends GetxController {
     CommentModel commentModel = CommentModel(
       content: comment,
       uploadTime: DateFormat('yy/MM/dd - HH:mm:ss').format(DateTime.now()),
-      whoCommentLike: [],
       belongCommentPostUid: postData.postUid,
       commentUid: UUidUtil.getUUid(),
       whoWriteUserUid: SettingsController.to.settingUser!.userUid,
@@ -430,12 +413,6 @@ class PostListController extends GetxController {
 
     // Database에 comment(댓글)을 추가한다.
     await CommunicateFirebase.setCommentData(commentModel, postData);
-  }
-
-  // Database에 저장된 comment(댓글)의 whoCommentLike 속성에 사용자 uid를 추가한다.
-  Future<void> addWhoCommentLike(
-      CommentModel comment, PostModel postData) async {
-    await CommunicateFirebase.addWhoCommentLike(comment, postData);
   }
 
   // Database에 comment을 삭제한다.

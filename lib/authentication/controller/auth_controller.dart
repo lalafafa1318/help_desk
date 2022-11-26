@@ -1,12 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/src/widgets/async.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:help_desk/authentication/kakaoAuthentication/main_view_model.dart';
 import 'package:help_desk/bindingController/binding_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/const/userClassification.dart';
@@ -19,10 +17,8 @@ import 'package:help_desk/screen/bottomNavigationBar/controller/settings_control
 import 'package:help_desk/utils/connect_util.dart';
 import 'package:help_desk/utils/toast_util.dart';
 import 'package:help_desk/utils/variable_util.dart';
-import 'package:help_desk/utils/variable_util.dart';
 import 'package:twitter_login/entity/auth_result.dart';
 import 'package:twitter_login/twitter_login.dart';
-import '../kakaoAuthentication/kakao_login.dart';
 
 class AuthController extends GetxController {
   // Field
@@ -36,8 +32,6 @@ class AuthController extends GetxController {
     notiPost: [],
   ).obs;
 
-  // Kakao 로고인에 필요한 것입니다.
-  MainViewModel viewModel = MainViewModel(KakaoLogin());
 
   // Method
   // AuthController를 쉽게 사용할 수 있도록 하는 method
@@ -205,7 +199,7 @@ class AuthController extends GetxController {
 
   // Google, Facebook, Twitter, Apple로 로고인했을 떄
   // Logout 진행하는 method
-  Future<void> notKakaoLogout() async {
+  Future<void> logout() async {
     // 이전 페이지가 SignUpPage인 경우
     if (SettingsController.to.didSignUp) {
       // 기존 controller들을 메모리에서 내리고 계정을 Logout하는 method
@@ -241,9 +235,6 @@ class AuthController extends GetxController {
     await CommunicateFirebase.logout();
   }
 
-  // Kakao로 로고인했을 떄
-  // Logout 진행하는 method
-  Future<void> kakaoLogout() async {}
 
   // AuthController가 메모리에 처음 올라갈 떄 호출되는 method
   @override

@@ -1,11 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/model/post_model.dart';
-import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
 import 'package:photo_view/photo_view.dart';
 
 // PhotoView를 보여주는 Page 입니다.

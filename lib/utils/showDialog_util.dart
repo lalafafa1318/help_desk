@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 
 class ShowDialogUtil {
   static void showDialog() {

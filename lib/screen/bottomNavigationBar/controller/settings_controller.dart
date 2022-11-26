@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
-import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/const/obsOrInqClassification.dart';
@@ -11,7 +9,6 @@ import 'package:help_desk/const/userClassification.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
-import 'package:help_desk/screen/bottomNavigationBar/settings/what_i_wrote_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
 import 'package:image_picker/image_picker.dart';
 
