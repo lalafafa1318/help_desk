@@ -695,6 +695,8 @@ PODS:
     - Flutter
   - flutter_local_notifications (0.0.1):
     - Flutter
+  - flutter_phone_direct_caller (0.0.1):
+    - Flutter
   - FMDB (2.7.5):
     - FMDB/standard (= 2.7.5)
   - FMDB/standard (2.7.5)
@@ -818,6 +820,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_facebook_auth (from `.symlinks/plugins/flutter_facebook_auth/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
+  - flutter_phone_direct_caller (from `.symlinks/plugins/flutter_phone_direct_caller/ios`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - kakao_flutter_sdk_common (from `.symlinks/plugins/kakao_flutter_sdk_common/ios`)
@@ -878,6 +881,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_facebook_auth/ios"
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
+  flutter_phone_direct_caller:
+    :path: ".symlinks/plugins/flutter_phone_direct_caller/ios"
   google_sign_in_ios:
     :path: ".symlinks/plugins/google_sign_in_ios/ios"
   image_picker_ios:
@@ -922,6 +927,7 @@ SPEC CHECKSUMS:
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   flutter_facebook_auth: dfd6b2563406c538098e2127512d385c9ffd70ad
   flutter_local_notifications: 0c0b1ae97e741e1521e4c1629a459d04b9aec743
+  flutter_phone_direct_caller: bd2ffd297f371a8a6c7bfbba0196964ffe3c4358
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   google_sign_in_ios: 4f85eb9f937450765c8573bb85fd8cd6a5af675c
   GoogleDataTransport: 1c8145da7117bd68bbbed00cf304edb6a24de00f

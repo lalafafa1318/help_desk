@@ -29,8 +29,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_localizations: # Add this line
+
+  flutter_localizations: 
     sdk: flutter 
+
+  # 전화 걸기
+  flutter_phone_direct_caller:
+    git:
+      url: https://github.com/yanisalfian/flutter-phone-direct-caller.git
 
   cupertino_icons: ^1.0.2
 
@@ -113,7 +119,6 @@ dependencies:
 
   # 새로운 icon을 쓰기 위함
   phosphor_flutter: ^1.4.0
-
 
   # 반응형 sizer
   #responsive_sizer: ^3.1.1

@@ -263,7 +263,7 @@ class NotificationController extends GetxController {
     // 사용자가 알림 신청한 게시물을 실시간으로 Listen 하는 배열에 추가한다.
     listenList.add(
       postPath.collection('comments').snapshots().listen(
-        (event) async {
+        (QuerySnapshot<Map<String, dynamic>> event) async {
           // Database에 있는 댓글(comment) 개수와
           // commentCount의 댓글(comment)개수를 비교한다.
 

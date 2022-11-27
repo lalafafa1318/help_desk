@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/getwidget.dart';
@@ -265,19 +266,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           await updateImageAndUserNameToUserData();
 
           // Database에 있는 게시물 처리상태(proStatus)를 업데이트 한다.
-          QueryDocumentSnapshot<Map<String, dynamic>>? recentITUserComment =
-              await updatePostProClassification(postData!);
-
-          // 화면에 보이는 게시물에 대한 처리상태를 업데이트 한다.
-          // IT 담당자가 올린 댓글이 없었다면, 게시물에 대한 처리상태는 WAITING(대기)가 된다.
-          // 만약 IT 담당자가 올린 댓글이 있었다면, 가장 최근에 올린 댓글에 대한 처리상태를 바탕으로 게시물에 대한 처리상태가 결정된다.
-          recentITUserComment == null
-              ? postData!.proStatus = ProClassification.WAITING
-              : postData!.proStatus = ProClassification.values.firstWhere(
-                  (element) =>
-                      element.toString() ==
-                      recentITUserComment.data()['proStatus'].toString(),
-                );
+          await updatePostProClassification(postData!);
 
           // DataBase에서
           // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
@@ -328,8 +317,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             icon: const Icon(Icons.delete_outline_outlined),
           )
         : const Visibility(
-            child: Text('Visibility 테스트'),
             visible: false,
+            child: Text('업로드한 게시물이 자신의 게시물이 아니기 떄문에 표시하지 않습니다.'),
           );
   }
 
@@ -463,16 +452,22 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         SizedBox(width: 6.w),
 
         // 전화번호를 표시한다.
-        Container(
-          width: 100.w,
-          height: 20.h,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5.r),
-            color: Colors.grey[300],
-          ),
-          child: Align(
-            alignment: Alignment.center,
-            child: Text(postData!.phoneNumber),
+        GestureDetector(
+          onTap: () async {
+            // 전화 걸기
+            await FlutterPhoneDirectCaller.callNumber(postData!.phoneNumber);
+          },
+          child: Container(
+            width: 100.w,
+            height: 20.h,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5.r),
+              color: Colors.grey[300],
+            ),
+            child: Align(
+              alignment: Alignment.center,
+              child: Text(postData!.phoneNumber),
+            ),
           ),
         ),
       ],
@@ -727,7 +722,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   if (List<CommentModel>.from(
                     snapshot.data!['commentArray'] as List,
                   ).isEmpty) {
-                    return const Visibility(visible: false, child: Text('테스트'));
+                    return const Visibility(
+                        visible: false, child: Text('댓글이 없어서 화면에 표시하지 않습니다.'));
                   }
 
                   // 데이터가 왔다.
@@ -760,7 +756,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
               )
             : const Visibility(
                 visible: false,
-                child: Text('댓글 데이터를 가져오지 않습니다.'),
+                child: Text('댓글을 가져오는 설정을 하지 않았으므로 가져오지 않습니다.'),
               );
       },
     );
@@ -780,11 +776,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         children: [
           // Avatar와 UserName 그리고 처리상태를 제공하는 Widget 입니다.
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Avatar와 UserName을 제공하는 Widget 입니다.
               commentAvatarAndName(index),
-
-              SizedBox(width: 20.w),
 
               // 처리상태를 제공하는 Widget 입니다. (IT 담당자가 댓글을 쓴 경우에만 보여준다.)
               commentProclassification(index),
@@ -874,13 +869,13 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // comment 처리상태를 제공하는 Widget 입니다. (IT 담당자가 작성한 댓글인 경우에만 보여진다.)
   Widget commentProclassification(int index) {
     return Container(
-      margin: EdgeInsets.only(bottom: 4.h),
+      margin: EdgeInsets.only(bottom: 5.h, right: 20.w),
       // IT 담당자가 작성한 댓글에서 처리상태가 보이도록 한다.
       child: Text(
         commentArray[index].proStatus != ProClassification.NONE
             ? commentArray[index].proStatus.asText
             : '',
-        style: const TextStyle(fontWeight: FontWeight.bold),
+        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -1459,19 +1454,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           await updateImageAndUserNameToUserData();
 
           // Database에 있는 게시물 처리상태(proStatus)를 업데이트 한다.
-          QueryDocumentSnapshot<Map<String, dynamic>>? recentITUserComment =
-              await updatePostProClassification(postData!);
-
-          // 화면에 보이는 게시물에 대한 처리상태를 업데이트 한다.
-          // IT 담당자가 올린 댓글이 없었다면, 게시물에 대한 처리상태는 WAITING(대기)가 된다.
-          // 만약 IT 담당자가 올린 댓글이 있었다면, 가장 최근에 올린 댓글에 대한 처리상태를 바탕으로 게시물에 대한 처리상태가 결정된다.
-          recentITUserComment == null
-              ? postData!.proStatus = ProClassification.WAITING
-              : postData!.proStatus = ProClassification.values.firstWhere(
-                  (element) =>
-                      element.toString() ==
-                      recentITUserComment.data()['proStatus'].toString(),
-                );
+          await updatePostProClassification(postData!);
 
           // DataBase에서
           // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
@@ -1491,7 +1474,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             'showCommentNum',
             'showCommentListView',
             'answerInformationInput',
-            'showProclassification'
+            'showProclassification',
           ]);
 
           // 초기화 작업
@@ -1635,7 +1618,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       userData =
           SettingsController.to.obsWhatICommentUserDatas[index].copyWith();
     }
-
     // WhatICommentPostPage의 문의 처리현황 게시물을 Tab해서 Routing 되었을 경우
     else if (whereRoute ==
         RouteDistinction.whatICommentPageInqPostToSpecificPostPage) {
@@ -1841,23 +1823,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   await updateImageAndUserNameToUserData();
 
                   // Database에 있는 게시물 처리상태(proStatus)를 업데이트 한다.
-                  QueryDocumentSnapshot<Map<String, dynamic>>?
-                      recentITUserComment =
-                      await updatePostProClassification(postData!);
 
-                  // 화면에 보이는 게시물에 대한 처리상태를 업데이트 한다.
-                  // IT 담당자가 올린 댓글이 없었다면, 게시물에 대한 처리상태는 WAITING(대기)가 된다.
-                  // 만약 IT 담당자가 올린 댓글이 있었다면, 가장 최근에 올린 댓글에 대한 처리상태를 바탕으로 게시물에 대한 처리상태가 결정된다.
-                  recentITUserComment == null
-                      ? postData!.proStatus = ProClassification.WAITING
-                      : postData!.proStatus =
-                          ProClassification.values.firstWhere(
-                          (element) =>
-                              element.toString() ==
-                              recentITUserComment
-                                  .data()['proStatus']
-                                  .toString(),
-                        );
+                  await updatePostProClassification(postData!);
 
                   // DataBase에서
                   // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
@@ -1895,16 +1862,24 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
   // Database에 있는 게시물 처리상태(proStatus)를 업데이트하고
   // 화면에 보이는 게시물에 대한 처리상태도 업데이트하는 method
-  Future<QueryDocumentSnapshot<Map<String, dynamic>>?>
-      updatePostProClassification(PostModel postData) async {
+  Future<void> updatePostProClassification(PostModel postModel) async {
     print('SpecificPostPage - updatePostProclassification() 호출');
 
     // IT 담당자가 가장 최근 올린 댓글을 가져온다.
     // 다만, null값일 수 있다. 즉 IT 담당자가 올린 댓글이 없을 수 있다.
     QueryDocumentSnapshot<Map<String, dynamic>>? recentITUserComment =
-        await PostListController.to.getITUserLastComment(postData);
+        await PostListController.to.getITUserLastComment(postModel);
 
-    return recentITUserComment;
+    // 화면에 보이는 게시물에 대한 처리상태를 업데이트 한다.
+    // IT 담당자가 올린 댓글이 없었다면, 게시물에 대한 처리상태는 WAITING(대기)가 된다.
+    // 만약 IT 담당자가 올린 댓글이 있었다면, 가장 최근에 올린 댓글에 대한 처리상태를 바탕으로 게시물에 대한 처리상태가 결정된다.
+    recentITUserComment == null
+        ? postData!.proStatus = ProClassification.WAITING
+        : postData!.proStatus = ProClassification.values.firstWhere(
+            (element) =>
+                element.toString() ==
+                recentITUserComment.data()['proStatus'].toString(),
+          );
   }
 
   // DataBase에서
@@ -2074,22 +2049,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           await updateImageAndUserNameToUserData();
 
           // Database에 있는 게시물 처리상태(proStatus)를 업데이트 한다.
-          QueryDocumentSnapshot<Map<String, dynamic>>? recentITUserComment =
-              await updatePostProClassification(postData!);
-
-          // 화면에 보이는 게시물에 대한 처리상태를 업데이트 한다.
-          // IT 담당자가 올린 댓글이 없었다면, 게시물에 대한 처리상태는 WAITING(대기)가 된다.
-          // 만약 IT 담당자가 올린 댓글이 있었다면, 가장 최근에 올린 댓글에 대한 처리상태를 바탕으로 게시물에 대한 처리상태가 결정된다.
-          recentITUserComment == null
-              ? postData!.proStatus = ProClassification.WAITING
-              : postData!.proStatus = ProClassification.values.firstWhere(
-                  (element) =>
-                      element.toString() ==
-                      recentITUserComment.data()['proStatus'].toString(),
-                );
+          await updatePostProClassification(postData!);
 
           // DataBase에서
-          // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
+          // obsPosts 또는 inqPosts의 whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
           // postData에 업데이트 한다.
           await updateWhoWriteCommentThePostToPostData();
 
@@ -2101,13 +2064,15 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           // 1. 업데이트된 사용자 Avatar와 이름을 화면에 보여주기 위해 재랜더링 한다.
           // 2. 업데이트 된 댓글 수와 를 화면에 보여주기 위해 재랜더링 한다.
           // 3. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
-          // 4. 게시물에 대한 처리상태를 재랜더링 한다.
+          // 4. 답변 정보 입력을 재랜더링 한다.
+          // 5. 게시물에 대한 처리상태를 재랜더링 한다.
           PostListController.to.update([
             'showAvatar',
             'showUserName',
             'showCommentNum',
             'showCommentListView',
-            'showProclassification'
+            'answerInformationInput',
+            'showProclassification',
           ]);
         }
       },
@@ -2126,8 +2091,9 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       PostListController.to.commentController.text = '';
     }
 
-    // 답변 정보 입력에 따른 처리상태, 장애원인, 실제 처리일자, 실제 처리시간 변수를 초기화 한다.
-    PostListController.to.commentPSelectedValue = ProClassification.INPROGRESS;
+    // 답변 정보 입력에 따른 처리상태는 값이 업데이트되므로 굳이 여기서 초기화할 필요가 없다.
+
+    // 답변 정보 입력에 따른 장애원인, 실제 처리일자, 실제 처리시간 변수를 초기화 한다.
     PostListController.to.commentCSelectedValue = CauseObsClassification.USER;
     processDate = '';
     PostListController.to.commentHSelectedValue =
@@ -2140,6 +2106,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     userData = null;
 
     whereRoute = null;
+
     commentArray.clear();
     commentUserArray.clear();
 

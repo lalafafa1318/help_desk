@@ -194,37 +194,35 @@ class NotificationPage extends StatelessWidget {
                   // -> 더이상 알림 받을 필요성이 없다. -> 알림 받기 위해 설정했던 모든 것을 해제한다.
                   if (isDeletePostResult) {
                     // Notification과 관련된 게시물 Uid가 notiPost Array의 몇번째 index에 있는지 확인한다.
-                    int index = NotificationController.to.notiPost
+                    int notiPostIndex = NotificationController.to.notiPost
                         .indexOf(notificationModel.belongNotiPostUid);
 
-                    // 왜 index != -1인 코드를 배치했는가?
-                    // case 1: A는 B가 올린 게시물의 알림을 받았다. -> B는 게시물을 삭제했다. -> A는 알림을 삭제한다.
-                    // case 2: A는 B가 올린 게시물의 알림을 받았다. -> B는 게시물을 삭제했다. -> A는 앱을 재부팅하거나 PostListPage를 거치고 알림을 삭제한다.
-                    // 즉 2가지 상황에 대비해 if(index != -1) 이하 코드가 수행되도록 한다.
+                    // notiPostIndex == -1 이라면 이하 if문은 실행할 필요 없다.
+                    if (notiPostIndex != -1) {
+                      // NotificationController의 notifPost Array에 게시물 uid를 삭제한다.
+                      NotificationController.to.notiPost
+                          .removeAt(notiPostIndex);
 
-                    // 지금 테스트 상황으로는 if(index != -1)을 굳이 넣지 않아도 된다.
-                    // 또 혹시 모른다. 넣어야 될지도... 지금은 객관적인 판단이 서지 않는다.
-                    // if (index != -1) {
-                    // 실시간으로 Listen 하는 것을 중지하는 것을 넘어서 삭제한다.
-                    NotificationController.to.listenList[index].cancel();
+                      // NotificationController의 commentCount Array에 element를 remove한다.
+                      NotificationController.to.commentCount
+                          .removeAt(notiPostIndex);
 
-                    // NotificationController의 listenList Array에 element을 remove한다.
-                    NotificationController.to.listenList.removeAt(index);
+                      // 실시간으로 Listen 하는 것을 중지하는 것을 넘어서 삭제한다.
+                      NotificationController.to.listenList[notiPostIndex]
+                          .cancel();
 
-                    // NotificationController의 notifPost Array에 게시물 uid를 삭제한다.
-                    NotificationController.to.notiPost.removeAt(index);
+                      // NotificationController의 listenList Array에 element을 remove한다.
+                      NotificationController.to.listenList
+                          .removeAt(notiPostIndex);
 
-                    // NotificationController의 commentCount Array에 element를 remove한다.
-                    NotificationController.to.commentCount.removeAt(index);
-
-                    // Database의 장애 처리현황 또는 문의 처리현황 게시물이 삭제되어 없을 떄
-                    // Database의 user - notiPost 속성
-                    // 알림과 관련된 게시물 Uid를 삭제한다.
-                    await NotificationController.to.deleteNotiPostFromUser(
-                      notificationModel.belongNotiPostUid,
-                      SettingsController.to.settingUser!.userUid,
-                    );
-                    // }
+                      // Database의 장애 처리현황 또는 문의 처리현황 게시물이 삭제되어 없을 떄
+                      // Database의 user - notiPost 속성
+                      // 알림과 관련된 게시물 Uid를 삭제한다.
+                      await NotificationController.to.deleteNotiPostFromUser(
+                        notificationModel.belongNotiPostUid,
+                        SettingsController.to.settingUser!.userUid,
+                      );
+                    }
                   }
 
                   // Database의 notification을 삭제하는 코드
