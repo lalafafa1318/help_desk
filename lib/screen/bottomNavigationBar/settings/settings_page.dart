@@ -1,5 +1,4 @@
 
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:expandable_text/expandable_text.dart';
@@ -92,7 +91,8 @@ class SettingsPage extends StatelessWidget {
           width: 150.w,
           height: 75.h,
           child: ExpandableText(
-            '${controller.settingUser!.description}',
+            // '${controller.settingUser!.description}',
+            '그냥 텍스트',
             expandText: 'show more',
             collapseText: 'show less',
             textAlign: TextAlign.center,

@@ -95,14 +95,23 @@ class _PostingPhotoViewPageState extends State<PostingPhotoViewPage> {
                 });
               },
               itemBuilder: (BuildContext context, int index) {
-                return Container(
-                  margin: EdgeInsets.only(top: 30.h, left: 20.w, right: 20.w),
-
-                  // 확대, 축소가 가능하게 하기 위해 PhotoView를 적용했다.
-                  child: PhotoView(
-                    imageProvider:
-                        Image.file(PostingController.to.imageList[index]).image,
-                    enableRotation: false,
+                return AspectRatio(
+                  aspectRatio: 4 / 3,
+                  child: ClipRect(
+                    child: Container(
+                      margin:
+                          EdgeInsets.only(top: 50.h, left: 20.w, right: 20.w),
+                      child: PhotoView(
+                        imageProvider:
+                            Image.file(PostingController.to.imageList[index])
+                                .image,
+                        // 이미지가 축소되지 않도록 한다.
+                        minScale: PhotoViewComputedScale.contained * 1,
+                        // 이미지를 확대하면 2배 확대까지만 가능하도록 한다.
+                        maxScale: PhotoViewComputedScale.covered * 2,
+                        enableRotation: false,
+                      ),
+                    ),
                   ),
                 );
               },

@@ -10,6 +10,7 @@ import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/sysClassification.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
+import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/posting/posting_photo_view_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/posting/posting_upload_page.dart';
 
@@ -114,7 +115,7 @@ class PostingPage extends StatelessWidget {
   }
 
   // ImageContainer 입니다.
-  Widget imageContainer() {
+  Widget imageContainer(BuildContext context) {
     return Container(
       width: ScreenUtil().screenWidth,
       height: 100.h,
@@ -127,6 +128,10 @@ class PostingPage extends StatelessWidget {
             width: 100.w,
             child: DottedBorder(
               strokeWidth: 2,
+              color: Colors.grey,
+              dashPattern: const [5, 3],
+              borderType: BorderType.RRect,
+              radius: Radius.circular(10.r),
               child: GestureDetector(
                 onTap: () async {
                   if (PostingController.to.imageList.length == 10) {
@@ -135,14 +140,14 @@ class PostingPage extends StatelessWidget {
                   }
                   //
                   else {
-                    // 이미지 불러오기
-                    await PostingController.to.getImage();
+                    // 스마트폰 카메라 또는 갤러리를 선택한다.
+                    await PostingController.to.getImage(context);
                   }
                 },
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    SizedBox(height: 25.h),
+                    SizedBox(height: 30.h),
 
                     const Icon(Icons.camera_alt_outlined),
 
@@ -151,17 +156,13 @@ class PostingPage extends StatelessWidget {
                     // 상태 변화 감지
                     Obx(
                       () => Text(
-                        '${PostingController.to.imageList.value.length}/10',
+                        '${PostingController.to.imageList.length}/10',
                         textAlign: TextAlign.center,
                       ),
                     ),
                   ],
                 ),
               ),
-              color: Colors.grey,
-              dashPattern: const [5, 3],
-              borderType: BorderType.RRect,
-              radius: Radius.circular(10.r),
             ),
           ),
 
@@ -292,8 +293,8 @@ class PostingPage extends StatelessWidget {
     );
   }
 
-  // 전화번호를 입력하는 Widget
-  Widget enterYourPhoneNumber() {
+  // 전화번호를 보여주는 Widget
+  Widget showYourPhoneNumber() {
     return Container(
       width: ScreenUtil().screenWidth,
       margin: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
@@ -301,18 +302,14 @@ class PostingPage extends StatelessWidget {
         color: Colors.black12,
         dashedLine: const [2, 0],
         type: GFBorderType.rect,
-        child: SizedBox(
+        child: Container(
+          alignment: Alignment.centerLeft,
           height: 40.h,
-          child: TextField(
-            onChanged: (value) {
-              PostingController.to.phoneNumber = value;
-              print('phoneNumber : ${PostingController.to.phoneNumber}');
-            },
-            maxLength: 30,
-            decoration: const InputDecoration(
-              counterText: "",
-              border: InputBorder.none,
-              hintText: '010XXXXXXXX 형식의 전화번호',
+          child: Text(
+            SettingsController.to.settingUser!.phoneNumber,
+            style: TextStyle(
+              color: Colors.black45,
+              fontSize: 15.sp,
             ),
           ),
         ),
@@ -391,7 +388,7 @@ class PostingPage extends StatelessWidget {
               SizedBox(height: 50.h),
 
               // 사진 추가하는 곳
-              imageContainer(),
+              imageContainer(context),
 
               SizedBox(height: 50.h),
 
@@ -400,13 +397,13 @@ class PostingPage extends StatelessWidget {
 
               SizedBox(height: 10.h),
 
-              // 글 내용(Text Content)
-              textContentContainer(),
+              // 전화번호를 보여주는 Widget
+              showYourPhoneNumber(),
 
               SizedBox(height: 10.h),
 
-              // 전화번호를 입력하는 Widget
-              enterYourPhoneNumber(),
+              // 글 내용(Text Content)
+              textContentContainer(),
             ],
           ),
         ),

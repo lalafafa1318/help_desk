@@ -54,7 +54,7 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
   List<Widget> indicators(int imagesLength, int image) {
     return List<Widget>.generate(imagesLength, (index) {
       return Container(
-        margin:  EdgeInsets.all(3.w),
+        margin: EdgeInsets.all(3.w),
         width: 10.w,
         height: 10.h,
         decoration: BoxDecoration(
@@ -77,7 +77,7 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
             // 이전 페이지로 돌아가기
             Get.back();
           },
-          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 25.0),
+          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 25),
         ),
       ),
 
@@ -98,15 +98,23 @@ class _SpecificPhotoViewPageState extends State<SpecificPhotoViewPage> {
                 });
               },
               itemBuilder: (BuildContext context, int imageIndex) {
-                return Container(
-                  margin:  EdgeInsets.only(top: 30.h, left: 20.w, right: 20.w),
-
-                  //확대, 축소가 가능하게 하기 위해 PhotoView를 적용했다.
-                  child: PhotoView(
-                    imageProvider: CachedNetworkImageProvider(
-                      postData!.imageList[imageIndex],
+                return AspectRatio(
+                  aspectRatio: 4 / 3,
+                  child: ClipRect(
+                    child: Container(
+                      margin:
+                          EdgeInsets.only(top: 50.h, left: 20.w, right: 20.w),
+                      child: PhotoView(
+                        imageProvider: CachedNetworkImageProvider(
+                          postData!.imageList[imageIndex],
+                        ),
+                        // 이미지가 축소되지 않도록 한다.
+                        minScale: PhotoViewComputedScale.contained * 1,
+                        // 이미지를 확대하면 2배 확대까지만 가능하도록 한다.
+                        maxScale: PhotoViewComputedScale.covered * 2,
+                        enableRotation: false,
+                      ),
                     ),
-                    enableRotation: false,
                   ),
                 );
               },

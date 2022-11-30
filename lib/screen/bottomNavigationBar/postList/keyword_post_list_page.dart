@@ -25,6 +25,7 @@ class KeywordPostListPage extends StatefulWidget {
 }
 
 class _KeywordPostListPageState extends State<KeywordPostListPage> {
+  // Pager에 대한 Field Setting
   // PostListPage의 Pager의 현재 번호
   int pagerCurrentPage = 0;
 

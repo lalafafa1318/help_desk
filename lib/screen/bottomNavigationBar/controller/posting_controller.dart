@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
@@ -34,9 +35,6 @@ class PostingController extends GetxController {
   // 내용 String
   RxString contentString = ''.obs;
 
-  // 전화번호 String
-  String phoneNumber = '';
-
   // Gallery에서 image를 가져오기 위한 변수
   final ImagePicker imagePicker = ImagePicker();
 
@@ -44,23 +42,78 @@ class PostingController extends GetxController {
   // Controller를 더 쉽게 사용할 수 있도록 하는 get method
   static PostingController get to => Get.find();
 
-  // Gallery에서 image를 가져와 추가하는 method
-  Future<void> getImage() async {
-    // XFile? xFile = await imagePicker.pickImage(source: ImageSource.gallery);
+  // 스마트폰 카메라 또는 갤러리를 선택하는 method
+  Future<void> getImage(BuildContext context) async {
+    // 카메라 또는 갤러리에서 이미지를 선택할 떄 대입하는 변수
+    XFile? xFile;
+    File? file;
 
-    XFile? xFile = await imagePicker.pickImage(source: ImageSource.camera);
+    // 이미지를 가져올 떄
+    // 스마트폰 카메라를 가져올지, 갤러리를 가져올지 선택하는 dialog를 띄운다.
+    await showDialog(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            '이미지 가져오기',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text('이미지를 가져오려면\n카메라 또는 갤러리를 선택하세요'),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // 카메라를 통해 이미지를 가져온다.
+                TextButton(
+                  child: const Text('카메라'),
+                  onPressed: () async {
+                    Get.back();
 
-    // 이미지를 정상적으로 가져올 떄 처리
-    if (xFile != null) {
-      File file = File(xFile.path);
+                    xFile = await imagePicker.pickImage(
+                        source: ImageSource.camera, imageQuality: 100);
 
-      // 상태 변수 변화
-      imageList.add(file);
-    }
-    // 이미지를 가져오지 못했을 떄 처리
-    else {
-      ToastUtil.showToastMessage('이미지 가져오기에 실패하였습니다 :)');
-    }
+                    // 이미지를 정상적으로 가져올 떄 처리
+                    if (xFile != null) {
+                      file = File(xFile!.path);
+
+                      // 상태 변수 변화
+                      imageList.add(file!);
+                    }
+                    // 이미지를 가져오지 못했을 떄 처리
+                    else {
+                      ToastUtil.showToastMessage('이미지 가져오기에 실패하였습니다 :)');
+                    }
+                  },
+                ),
+                // 갤러리를 통해 이미지를 가져온다.
+                TextButton(
+                  child: const Text('갤러리'),
+                  onPressed: () async {
+                    Get.back();
+
+                    xFile = await imagePicker.pickImage(
+                        source: ImageSource.gallery, imageQuality: 100);
+
+                    // 이미지를 정상적으로 가져올 떄 처리
+                    if (xFile != null) {
+                      file = File(xFile!.path);
+
+                      // 상태 변수 변화
+                      imageList.add(file!);
+                    }
+                    // 이미지를 가져오지 못했을 떄 처리
+                    else {
+                      ToastUtil.showToastMessage('이미지 가져오기에 실패하였습니다 :)');
+                    }
+                  },
+                ),
+              ],
+            )
+          ],
+        );
+      },
+    );
   }
 
   // index번쨰 image를 삭제하는 method
@@ -81,15 +134,10 @@ class PostingController extends GetxController {
     List<String> imageUrlList = [];
 
     // 제목을 입력하지 않았거나
-    // 내용을 입력하지 않았거나
-    // 전화번호를 입력하지 않았거나
-    // 전화번호를 입력해도, 정규표현식에 맞지 않았으면
-    // 게시물에 대한 upload validation이 실패했다.
-    if (titleString.isEmpty ||
-        contentString.isEmpty ||
-        phoneNumber.isEmpty ||
-        !(RegExp(r'^010?([0-9]{4})?([0-9]{4})$').hasMatch(phoneNumber))) {
-      // 제목, 내용, 전화번호 중에 한가지라도 빈칸인 경우 Validation 미통과이다.
+    // 내용을 입력하지 않았으면
+    // 게시물에 대한 upload validation을 통과하지 못한다.
+    if (titleString.isEmpty || contentString.isEmpty) {
+      // 그냥 찍어놓은 로그
       print('게시물 업로드 Validation 미통과');
 
       // PostingController에 있는 상태 변수를 초기화 한다.
@@ -146,7 +194,7 @@ class PostingController extends GetxController {
         imageList: imageUrlList,
         postTitle: titleString.toString(),
         postContent: contentString.toString(),
-        phoneNumber: phoneNumber,
+        phoneNumber: AuthController.to.user.value.phoneNumber,
         // 사용자가 게시물을 올릴 떄 처리상태는 WAITING(대기)이다.
         proStatus: ProClassification.WAITING,
         userUid: AuthController.to.user.value.userUid,
@@ -158,11 +206,12 @@ class PostingController extends GetxController {
       // Firebase DataBase에 게시물 upload
       await CommunicateFirebase.setPostData(post, postMap['postUUid']);
 
-      // upload method 내 변수 초기화
+      // upload method 내 변수 clear
       postMap.clear();
       imageUrlList.clear();
 
-      // 업로드후 상태 변수 초기화
+      // 게시물 업로드 완료 후 
+      // PostingController에서 관리되고 있는 상태 변수를 초기화하거나 clear한다.
       initPostingElement();
 
       // 업로드 완료 의미인 true를 반환한다.
@@ -174,24 +223,12 @@ class PostingController extends GetxController {
   void initPostingElement() {
     // PostingController에 관리되고 있는 상태 변수를 초기화 한다.
     oSelectedValue = ObsOrInqClassification.obstacleHandlingStatus;
-
     sSelectedValue = SysClassification.WICS;
 
+    // PostingController에서 쓰이는 상태 변수를 clear한다.
     imageList.clear();
-
     titleString('');
-
     contentString('');
-
-    phoneNumber = '';
-
-    // 상태 변수가 초기화 되었는지 확인한다.
-    print('oSelectedValue : $oSelectedValue');
-    print('sSelectedValue : $sSelectedValue');
-    print('imageList : $imageList');
-    print('titleString : $titleString');
-    print('contentString : $contentString');
-    print('phoneNumber : $phoneNumber');
   }
 
   // PostingController가 메모리에 처음 올라갈 떄 호출되는 method

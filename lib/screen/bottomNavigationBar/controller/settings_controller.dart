@@ -18,7 +18,7 @@ class SettingsController extends GetxController {
   bool didSignUp = true;
 
   // 사용자 계정을 나타내는 인스턴스
-  // AuthController - User의 image, description, userName, userUid, notiPost를 복제했다.
+  // AuthController의 사용자 정보를 복제했다.
   UserModel? settingUser;
 
   // 수정할 이미지에 대한 Field
@@ -162,11 +162,10 @@ class SettingsController extends GetxController {
           ? UserClassification.GENERALUSER
           : UserClassification.ITUSER,
       userName: editName == '' ? settingUser!.userName : editName,
-      description:
-          editDescription == '' ? settingUser!.description : editDescription,
       image: imageUrl == null ? settingUser!.image : imageUrl.toString(),
       userUid: settingUser!.userUid,
       notiPost: settingUser!.notiPost,
+      phoneNumber: settingUser!.phoneNumber,
     );
 
     // Firebase DataBase에 User 정보를 update하는 method

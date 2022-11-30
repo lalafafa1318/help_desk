@@ -26,10 +26,10 @@ class AuthController extends GetxController {
   Rx<UserModel> user = UserModel(
     userType: UserClassification.GENERALUSER,
     userName: '',
-    description: '',
     image: '',
     userUid: '',
     notiPost: [],
+    phoneNumber: '',
   ).obs;
 
 

@@ -6,23 +6,23 @@ class UserModel {
   UserClassification userType;
   // 이름
   String userName;
-  // 설명
-  String description;
   // 활동사진
   String image;
   // Uid
   String userUid;
   // 알림 신청한 게시물
   List<String> notiPost;
+  // 전화번호
+  String phoneNumber;
 
   // Default Constructor
   UserModel({
     required this.userType,
     required this.userName,
-    required this.description,
     required this.image,
     required this.userUid,
     required this.notiPost,
+    required this.phoneNumber,
   });
 
   // Instance를 복제하는 method
@@ -33,14 +33,15 @@ class UserModel {
     String? image,
     String? userUid,
     List<String>? notiPost,
+    String? phoneNumber,
   }) {
     return UserModel(
       userType: userType ?? this.userType,
       userName: userName ?? this.userName,
-      description: description ?? this.description,
       image: image ?? this.image,
       userUid: userUid ?? this.userUid,
       notiPost: notiPost ?? this.notiPost,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
     );
   }
 
@@ -50,10 +51,10 @@ class UserModel {
           (element) => element.toString() == mapData['userType'].toString(),
         ),
         userName = mapData['userName'].toString(),
-        description = mapData['description'].toString(),
         image = mapData['image'].toString(),
         userUid = mapData['userUid'].toString(),
-        notiPost = List<String>.from(mapData['notiPost'] as List);
+        notiPost = List<String>.from(mapData['notiPost'] as List),
+        phoneNumber = mapData['phoneNumber'].toString();
 
   // Model class를 Map으로 바꾸는 method
   static Map<String, dynamic> toMap(UserModel user) {
@@ -61,10 +62,10 @@ class UserModel {
       // UserClassification 타입을 String 타입으로 바꿔서 Database에 저장한다.
       'userType': user.userType.toString(),
       'userName': user.userName,
-      'description': user.description,
       'image': user.image,
       'userUid': user.userUid,
       'notiPost': user.notiPost.isNotEmpty ? user.notiPost : [],
+      'phoneNumber' : user.phoneNumber,
     };
   }
 }

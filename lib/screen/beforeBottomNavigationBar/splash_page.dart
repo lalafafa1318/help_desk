@@ -20,6 +20,8 @@ class _SplashState extends State<Splash> {
   // Splash 화면이 처음 불렸을 떄 호출되는 method
   @override
   void initState() {
+    super.initState();
+    
     print('splash - initState() 호출');
 
     // Timer

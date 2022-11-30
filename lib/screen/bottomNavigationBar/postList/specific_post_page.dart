@@ -6,10 +6,7 @@ import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/getwidget.dart';
-import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/const/causeObsClassification.dart';
-import 'package:help_desk/const/hourClassification.dart';
-import 'package:help_desk/const/minuteClassification.dart';
 import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/proClassification.dart';
 import 'package:help_desk/const/routeDistinction.dart';
@@ -52,9 +49,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
   // Database에 Comment 데이터를 호출하는 것을 허락할지, 불허할지 판별하는 변수
   bool isCallServerAboutCommentData = false;
-
-  // 답변 정보 입력의 처리일자를 표현하는 변수 (IT 담당자 - 장애 처리현황 게시물에 한함)
-  String processDate = '';
 
   // 일반 사용자인지 IT 담당자인지 구별하는 변수
   UserClassification userType = SettingsController.to.settingUser!.userType;
@@ -147,78 +141,26 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             else {
               // 사용자가 게시물(post)에 대해서 알림 신청을 했었다면?
               if (isResult == true) {
-                // 해당 게시물 Uid가 notiPost Array의 몇번째 index에 있는지 확인한다.
-                int index = NotificationController.to.notiPost
-                    .indexOf(postData!.postUid);
-
-                // 실시간으로 Listen 하는 것을 중지하는 것을 넘어서 삭제한다.
-                NotificationController.to.listenList[index].cancel();
-
-                // NotificationController의 notifPost Array에 게시물 uid를 삭제한다.
-                NotificationController.to.notiPost.removeAt(index);
-
-                // NotificationController의 commentCount Array에 element를 remove한다.
-                NotificationController.to.commentCount.removeAt(index);
-
-                // NotificationController의 listenList Array에 element을 remove한다.
-                NotificationController.to.listenList.removeAt(index);
-
-                // Database에 User의 notiPost 속성에 게시물 uid를 삭제한다.
-                await NotificationController.to.deleteNotiPostFromUser(
-                  postData!.postUid,
-                  SettingsController.to.settingUser!.userUid,
-                );
-
-                // Notification.to.update()를 실행행 notifyButton Widget만 재랜더링 한다.
-                NotificationController.to.update(['notifyButton']);
-
-                // 하단 SnackBar 알림
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    duration: const Duration(milliseconds: 500),
-                    content: Text('댓글 알림 off)'),
-                    backgroundColor: Colors.black87,
-                  ),
-                );
+                // 사용자가 게시물에 대한 알림을 해제할 떄, 알림 받기 위해 했던 여러 설정을 해제한다.
+                await NotificationController.to
+                    .clearNotificationSetting(postData!.postUid);
               }
 
               // 사용자가 게시물(post)에 대해서 알림 신청을 하지 않았다면?
               else {
-                // NotificationControler의 notiPost Array에 게시물 uid를 추가한다.
-                NotificationController.to.notiPost.add(postData!.postUid);
-
-                // 해당 게시물 Uid가 notiPost Array의 몇번째 index에 있는지 확인한다.
-                int index = NotificationController.to.notiPost
-                    .indexOf(postData!.postUid);
-
-                // 사용자가 알림 신청한 게시물(Post)에 대한 댓글 개수를 NotificationController의 commentCount Array에 추가한다.
-                NotificationController.to.commentCount.add(
-                  await CommunicateFirebase.getCountFromComments(
-                    postData!.postUid,
-                  ),
-                );
-
-                // Database에서 게시물(post)의 변동사항을 추가로 listen 한다.
-                await NotificationController.to.addListen(index);
-
-                // DataBase에 User의 notiPost 속성에 게시물 uid를 추가한다.
-                await NotificationController.to.addNotiPostFromUser(
-                  postData!.postUid,
-                  SettingsController.to.settingUser!.userUid,
-                );
-
-                // Notification.to.update()를 실행해 notifyButton Widget만 재랜더링 한다.
-                NotificationController.to.update(['notifyButton']);
-
-                // 하단 SnackBar 알림
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    duration: const Duration(milliseconds: 500),
-                    content: Text('댓글 알림을 on'),
-                    backgroundColor: Colors.black87,
-                  ),
-                );
+                // 사용자가 게시물에 대한 알림을 등록할 떄, 알림 받기 위한 여러 설정을 등록하는 method
+                await NotificationController.to
+                    .enrollNotificationSetting(postData!.postUid);
               }
+
+              // 하단 SnackBar 알림
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  duration: const Duration(milliseconds: 500),
+                  content: Text(isResult == true ? '댓글 알림을 off' : '댓글 알림을 on'),
+                  backgroundColor: Colors.black87,
+                ),
+              );
             }
           },
 
@@ -260,34 +202,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         }
         // 게시글이 삭제되지 않았으면?
         else {
-          // DataBase에서
-          // 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서
-          // userData에 업데이트 한다.
-          await updateImageAndUserNameToUserData();
-
-          // Database에 있는 게시물 처리상태(proStatus)를 업데이트 한다.
-          await updatePostProClassification(postData!);
-
-          // DataBase에서
-          // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
-          // postData에 업데이트 하는 method
-          await updateWhoWriteCommentThePostToPostData();
-
-          // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
-          // 부분적으로 재랜더링 한다.
-          // 1. 업데이트된 사용자 Avatar와 이름을 화면에 보여주기 위해 재랜더링 한다.
-          // 2. 업데이트 된 댓글 수를 화면에 보여주기 위해 재랜더링 한다.
-          // 3. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
-          // 4. 답변 정보 입력을 재랜더링 한다.
-          // 5. 게시물에 대한 처리상태를 재랜더링 한다.
-          PostListController.to.update([
-            'showAvatar',
-            'showUserName',
-            'showCommentNum',
-            'showCommentListView',
-            'answerInformationInput',
-            'showProclassification',
-          ]);
+          // SpecificPostPage에서 변경 가능성이 존재하는 데이터를 업데이트하는 method
+          await updateData();
 
           // Toast Message로 게시물이 새로고침 됐다는 것을 알린다.
           ToastUtil.showToastMessage('게시물이 새로고침 되었습니다 :)');
@@ -452,24 +368,31 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         SizedBox(width: 6.w),
 
         // 전화번호를 표시한다.
-        GestureDetector(
-          onTap: () async {
-            // 전화 걸기
-            await FlutterPhoneDirectCaller.callNumber(postData!.phoneNumber);
+        GetBuilder<PostListController>(
+          id: 'showTel',
+          builder: (controller) {
+            print('showTel - 재랜더링 호출');
+            return GestureDetector(
+              onTap: () async {
+                // 전화 걸기
+                await FlutterPhoneDirectCaller.callNumber(
+                    postData!.phoneNumber);
+              },
+              child: Container(
+                width: 100.w,
+                height: 20.h,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5.r),
+                  color: Colors.grey[300],
+                ),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Text(postData!.phoneNumber),
+                ),
+              ),
+            );
           },
-          child: Container(
-            width: 100.w,
-            height: 20.h,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5.r),
-              color: Colors.grey[300],
-            ),
-            child: Align(
-              alignment: Alignment.center,
-              child: Text(postData!.phoneNumber),
-            ),
-          ),
-        ),
+        )
       ],
     );
   }
@@ -1007,6 +930,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       id: 'answerInformationInput',
       builder: (controller) {
         print('answerInformationInput - 재랜더링 호출');
+
         return TapToExpand(
           color: Colors.grey[400],
           title: Text(
@@ -1018,16 +942,14 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           ),
           content: Column(
             children: [
-              // 처리상태를 보여준다.
-              // 일반 사용자는 보여주지 않는다.
-              // IT 담당자만 보여줄 것...
+              // 처리상태를 보여준다. -> 일반 사용자는 보여주지 않는다. IT 담당자만 보여줄 것...
               userType == UserClassification.GENERALUSER
                   ? const Visibility(
                       visible: false,
                       child: Text('일반 사용자의 경우 처리상태 칸을 보여주지 않습니다.'))
                   : commentProClassification(),
 
-              // 장애원인, 실제 처리일자, 실제 처리시간을 보여준다.
+              // 장애원인, 처리일자, 처리시간을 보여준다.
               // 일반 사용자는 당연히 보여주지 않는다.
               // IT 담당자의 경우, 장애 처리현황 게시물이면 보여준다. 문의 처리현황 게시물은 보여주지 않는다.
               userType == UserClassification.GENERALUSER
@@ -1059,8 +981,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                 children: [
                   // 댓글을 입력한다.
                   writeComment(),
-
-                  SizedBox(width: 30.w),
 
                   // 댓글 전송
                   sendComment(),
@@ -1096,63 +1016,61 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         SizedBox(width: 10.w),
 
         // comment에 대한 처리상태를 setting하는 Dropdown
-        Builder(
-          builder: (context) {
-            // comment에 대한 처리상태의 어떤 값을 default로 보여줄지 가져오는 method
-            PostListController.to.commentPSelectedValue = bringCommentValue();
+        GetBuilder<PostListController>(
+          id: 'commentProClassficationDropdown',
+          builder: (controller) {
+            return DropdownButton(
+              value: PostListController.to.commentPSelectedValue.name,
+              style: TextStyle(color: Colors.black, fontSize: 13.sp),
+              items: ProClassification.values
+                  .where((element) =>
+                      element != ProClassification.ALL &&
+                      element != ProClassification.NONE)
+                  .map((element) {
+                // enum의 값을 화면에 표시할 값으로 변환한다.
+                String realText = element.asText;
 
-            // comment에 대한 처리상태 Dropdown에는 어떤 것을 보여줄지 가져오는 method
-            List<DropdownMenuItem<String>> commentPdropdownItem =
-                bringCommentDropdown();
-
-            // comment에 대한 처리상태 Dropdown
-            return GetBuilder<PostListController>(
-              id: 'commentProClassficationDropdown',
-              builder: (controller) {
-                return DropdownButton(
-                  value: PostListController.to.commentPSelectedValue.name,
-                  style: TextStyle(color: Colors.black, fontSize: 13.sp),
-                  items: commentPdropdownItem,
-                  onChanged: (element) {
-                    // PostListController의 commentPSelectedValue 값을 바꾼다.
-                    PostListController.to.commentPSelectedValue =
-                        ProClassification.values.firstWhere(
-                            (enumValue) => enumValue.name == element);
-
-                    // 해당 GetBuilder만 재랜더링 한다.
-                    PostListController.to
-                        .update(['commentProClassficationDropdown']);
-                  },
+                return DropdownMenuItem(
+                  value: element.name,
+                  child: Text(realText),
                 );
+              }).toList(),
+              onChanged: (element) {
+                // PostListController의 commentPSelectedValue 값을 바꾼다.
+                PostListController.to.commentPSelectedValue = ProClassification
+                    .values
+                    .firstWhere((enumValue) => enumValue.name == element);
+
+                // 해당 GetBuilder만 재랜더링 한다.
+                PostListController.to
+                    .update(['commentProClassficationDropdown']);
               },
             );
           },
-        )
+        ),
       ],
     );
   }
 
-  // 장애원인, 실제 처리일자, 실제 처리시간을 보여주는 Widget (IT 담당자 - 장애 처리현황 게시글에만 적용)
+  // 장애원인, 처리일자, 처리시간을 보여주는 Widget (IT 담당자 - 장애 처리현황 게시글에만 적용)
   Widget obsCommentOption() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const ScrollPhysics(),
-      child: Row(
-        children: [
-          // 장애원인 (장애 처리현황에만 적용)
-          causeOfDisability(),
+    return Column(
+      children: [
+        // 장애원인 (장애 처리현황에만 적용)
+        causeOfDisability(),
 
-          SizedBox(width: 10.w),
+        SizedBox(height: 10.h),
 
-          // 실제 처리일자(장애 처리현황에만 적용)
-          actualProcessDate(),
+        // 처리일자(장애 처리현황에만 적용)
+        actualProcessDate(),
 
-          SizedBox(width: 10.w),
+        SizedBox(height: 10.h),
 
-          // 실제 처리시간(장애 처리현황에만 적용)
-          actualProcessTime(),
-        ],
-      ),
+        // 처리시간(장애 처리현황에만 적용)
+        actualProcessTime(),
+
+        SizedBox(height: 10.h),
+      ],
     );
   }
 
@@ -1203,143 +1121,56 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // comment에 대한 실제 처리일자를 setting하는 Widget (IT 담당자 - 장애 처리현황 게시글에만 적용)
+  // comment에 대한 처리일자를 setting하는 Widget (IT 담당자 - 장애 처리현황 게시글에만 적용)
   Widget actualProcessDate() {
     return Row(
       children: [
-        Container(
-          margin: EdgeInsets.only(top: 0.5.h),
-          child: Text(
-            '실제 처리일자',
-            style: TextStyle(fontSize: 13.sp),
-          ),
+        // 처리일자
+        Text(
+          '처리일자',
+          style: TextStyle(fontSize: 13.sp),
         ),
 
         SizedBox(width: 10.w),
 
-        // comment에 대한 실제 처리일자를 setitng한다.
-        GestureDetector(
-          onTap: () async {
-            // showDatePicker를 띄운다.
-            DateTime? selectedDate = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime(2022),
-              lastDate: DateTime(2099),
-              initialDatePickerMode: DatePickerMode.day,
-              locale: const Locale('ko', 'KR'),
-              helpText: '실제 처리일자',
-              cancelText: '취소',
-              confirmText: '확인',
-            );
-
-            // 사용자가 실제 처리일자를 선택했으면 GetBuilder를 통해 업데이트 한다.
-            if (selectedDate != null) {
-              // yy/MM/dd 형식으로 실제 처리일자를 표현한다.
-              processDate = DateFormat('yy/MM/dd').format(selectedDate);
-
-              print('processDate : $processDate');
-
-              PostListController.to.update(['actualProcessDateDropdown']);
-            }
-          },
-
-          // 실제 처리일자를 보여준다.
-          child: GetBuilder<PostListController>(
-            id: 'actualProcessDateDropdown',
-            builder: (controller) {
-              return Container(
-                color: Colors.white,
-                width: 100.w,
-                height: 25.h,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4.w),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(processDate),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+        // 처리일자를 현재 시간에 맞게 판단한 다음 text로 표현한다.
+        Builder(builder: (context) {
+          PostListController.to.commentActualProcessDate =
+              DateFormat('yy/MM/dd').format(DateTime.now());
+          return Container(
+            alignment: Alignment.centerLeft,
+            margin: EdgeInsets.symmetric(horizontal: 2.w, vertical: 3.h),
+            height: 25.h,
+            child: Text(PostListController.to.commentActualProcessDate),
+          );
+        }),
       ],
     );
   }
 
-  // comment에 대한 실제 처리 시간을 setting 하는 Widget (IT 담당자 - 장애 처리현황 게시글에만 적용)
+  // comment에 대한 처리 시간을 setting 하는 Widget (IT 담당자 - 장애 처리현황 게시글에만 적용)
   Widget actualProcessTime() {
     return Row(
       children: [
-        Container(
-          margin: EdgeInsets.only(top: 0.5.h),
-          child: Text(
-            '실제 처리시간',
-            style: TextStyle(fontSize: 13.sp),
-          ),
+        // 처리시간 Text
+        Text(
+          '처리시간',
+          style: TextStyle(fontSize: 13.sp),
         ),
 
         SizedBox(width: 10.w),
 
-        // 실제 처리시간(시, Hour)에 대한 Dropdown
-        GetBuilder<PostListController>(
-          id: 'hourClasificationDropdown',
-          builder: (controller) {
-            return DropdownButton(
-              value: PostListController.to.commentHSelectedValue.name,
-              style: TextStyle(color: Colors.black, fontSize: 13.sp),
-              items: HourClassification.values.map((element) {
-                // enum의 값을 화면에 표시할 값으로 변환한다.
-                String realText = element.asText;
-
-                return DropdownMenuItem(
-                  value: element.name,
-                  child: Text(realText),
-                );
-              }).toList(),
-              onChanged: (element) {
-                // PostListController의 commentHSelectedValue 값을 바꾼다.
-                PostListController.to.commentHSelectedValue = HourClassification
-                    .values
-                    .firstWhere((enumValue) => enumValue.name == element);
-
-                // 해당 GetBuilder만 재랜더링 한다.
-                PostListController.to.update(['hourClasificationDropdown']);
-              },
-            );
-          },
-        ),
-
-        SizedBox(width: 10.w),
-
-        // 실체 처리시간(분, Minute)에 대한 Dropdown
-        GetBuilder<PostListController>(
-          id: 'minuteClassificationDropdown',
-          builder: (controller) {
-            return DropdownButton(
-              value: PostListController.to.commentMSelectedValue.name,
-              style: TextStyle(color: Colors.black, fontSize: 13.sp),
-              items: MinuteClassification.values.map((element) {
-                // enum의 값을 화면에 표시할 값으로 변환한다.
-                String realText = element.asText;
-
-                return DropdownMenuItem(
-                  value: element.name,
-                  child: Text(realText),
-                );
-              }).toList(),
-              onChanged: (element) {
-                // PostListController의 commentMSelectedValue 값을 바꾼다.
-                PostListController.to.commentMSelectedValue =
-                    MinuteClassification.values
-                        .firstWhere((enumValue) => enumValue.name == element);
-
-                // 해당 GetBuilder만 재랜더링 한다.
-                PostListController.to.update(['minuteClassificationDropdown']);
-              },
-            );
-          },
-        ),
+        // 처리시간을 현재 시간에 맞게 판단한 다음 text로 표현한다.
+        Builder(builder: (context) {
+          PostListController.to.commentActualProcessTime =
+              DateFormat('HH:mm').format(DateTime.now());
+          return Container(
+            alignment: Alignment.centerLeft,
+            margin: EdgeInsets.symmetric(horizontal: 2.w, vertical: 3.h),
+            height: 25.h,
+            child: Text(PostListController.to.commentActualProcessTime),
+          );
+        }),
       ],
     );
   }
@@ -1388,109 +1219,29 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         }
         // 게시글이 삭제되지 않으면?
         else {
-          // 댓글을 작성하는 사용자 자격이 GENERALUSER(일반 사용자)인 경우
-          // 댓글 내용이 빈칸인지 확인한다.
-          // 내용이 빈칸이면 검증에 실패한 것이다. -> 댓글 작성이 되지 않는다.
-          if (userType == UserClassification.GENERALUSER) {
-            if (comment.isEmpty) {
-              // 검증 실패 snackBar를 띄운다.
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  duration: Duration(milliseconds: 500),
-                  content: Text('내용을 입력해야 합니다.'),
-                  backgroundColor: Colors.black87,
-                ),
-              );
-              return;
-            }
-          }
-          // 댓글을 작성하는 사용자 자격이 ITUSER(IT 담당자)인 경우
-          else {
-            // 장애 현황 게시물에 관련 댓글
-            // 댓글 내용이 빈칸이고, 실제 처리일자 내용이 비어있을 떄
-            // 검증에 실패한 것이다. -> 댓글 작성이 되지 않는다.
-            if (postData!.obsOrInq ==
-                    ObsOrInqClassification.obstacleHandlingStatus &&
-                (comment.isEmpty || processDate == '')) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  duration: Duration(milliseconds: 500),
-                  content: Text('내용을 입력하거나 실제 처리일자를 입력해야 합니다.'),
-                  backgroundColor: Colors.black87,
-                ),
-              );
-              return;
-            }
-            // 문의 현황 게시물에 관련 댓글
-            // 댓글 내용이 빈칸일 떄
-            // 검증에 실패한 것이다. -> 댓글 작성이 되지 않는다.
-            else if (postData!.obsOrInq ==
-                    ObsOrInqClassification.inqueryHandlingStatus &&
-                comment.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  duration: Duration(milliseconds: 500),
-                  content: Text('내용을 입력해야 합니다.'),
-                  backgroundColor: Colors.black87,
-                ),
-              );
-              return;
-            }
+          // 댓글이 빈 값이면, 게시하지 않는다.
+          if (comment.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                duration: Duration(milliseconds: 500),
+                content: Text('내용을 입력하거나 실제 처리일자를 입력해야 합니다.'),
+                backgroundColor: Colors.black87,
+              ),
+            );
+            return;
           }
 
           // 일반 사용자, IT 담당자가 답변 정보 입력 할 수 있는 모든 조건을 충족한다. -> 검증 완료
 
           // Database에 comment(댓글)을 추가한다.
-          await PostListController.to
-              .addComment(comment, processDate, postData!);
+          await PostListController.to.addComment(comment, postData!);
 
           // Database에 게시물의 whoWriteCommentThePost 속성에 사용자 uid를 추가한다.
           await PostListController.to.addWhoWriteCommentThePost(
               postData!, SettingsController.to.settingUser!.userUid);
 
-          // DataBase에서
-          // 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서
-          // userData에 업데이트 한다.
-          await updateImageAndUserNameToUserData();
-
-          // Database에 있는 게시물 처리상태(proStatus)를 업데이트 한다.
-          await updatePostProClassification(postData!);
-
-          // DataBase에서
-          // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
-          // postData에 업데이트 하는 method
-          await updateWhoWriteCommentThePostToPostData();
-
-          // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
-          // 부분적으로 재랜더링 한다.
-          // 1. 업데이트된 사용자 Avatar와 이름을 화면에 보여주기 위해 재랜더링 한다.
-          // 2. 업데이트 된 댓글 수와 를 화면에 보여주기 위해 재랜더링 한다.
-          // 3. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
-          // 4. 답변 정보 입력을 재랜더링 한다.
-          // 5. 게시물에 대한 처리상태를 재랜더링 한다.
-          PostListController.to.update([
-            'showAvatar',
-            'showUserName',
-            'showCommentNum',
-            'showCommentListView',
-            'answerInformationInput',
-            'showProclassification',
-          ]);
-
-          // 초기화 작업
-          // comment Text를 관리하는 controller의 값을 빈 값으로 다시 만든다.
-          PostListController.to.commentController.text = '';
-
-          // 답변 정보 입력에 따른 처리상태는 값이 업데이트되므로 굳이 여기서 초기화할 필요가 없다.
-
-          // 답변 정보 입력에 따른 처리상태, 장애원인, 실제 처리일자, 실제 처리시간 변수를 초기화 한다.
-          PostListController.to.commentCSelectedValue =
-              CauseObsClassification.USER;
-          processDate = '';
-          PostListController.to.commentHSelectedValue =
-              HourClassification.ZERO_ZERO_HOUR;
-          PostListController.to.commentMSelectedValue =
-              MinuteClassification.ZERO_ZERO_MINUTE;
+          // SpecificPostPage에 변경 사항이 존재하는 데이터를 업데이트 한다.
+          await updateData();
         }
       },
       icon: const Icon(Icons.send),
@@ -1651,8 +1402,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // 게시물이 삭제되었는지 확인하는 method
-  Future<bool> isDeletePost(
-      ObsOrInqClassification obsOrInq, String postUid) async {
+  Future<bool> isDeletePost(ObsOrInqClassification obsOrInq, String postUid) async {
     print('SpecificPostPage - isDeletePost() 호출');
 
     // 게시물이 삭제됐으면 isDeletePostResult는 true
@@ -1817,35 +1567,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   await PostListController.to
                       .deleteComment(commentArray[index], postData!);
 
-                  // DataBase에서
-                  // 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서
-                  // userData에 업데이트 한다.
-                  await updateImageAndUserNameToUserData();
-
-                  // Database에 있는 게시물 처리상태(proStatus)를 업데이트 한다.
-
-                  await updatePostProClassification(postData!);
-
-                  // DataBase에서
-                  // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
-                  // postData에 업데이트 하는 method
-                  await updateWhoWriteCommentThePostToPostData();
-
-                  // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
-                  // 부분적으로 재랜더링 한다.
-                  // 1. 업데이트된 사용자 Avatar와 이름을 화면에 보여주기 위해 재랜더링 한다.
-                  // 2. 업데이트 된 댓글 수와 를 화면에 보여주기 위해 재랜더링 한다.
-                  // 3. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
-                  // 4. 답변 정보입력을 재랜더링 한다.
-                  // 5. 게시물에 대한 처리상태를 재랜더링 한다.
-                  PostListController.to.update([
-                    'showAvatar',
-                    'showUserName',
-                    'showCommentNum',
-                    'showCommentListView',
-                    'answerInformationInput',
-                    'showProclassification',
-                  ]);
+                  // SpecificPostPage에 변경 사항 가능성이 있는 데이터를 업데이트한다.
+                  await updateData();
 
                   // 로딩바 끝(필요하면 추가하기로)
                   EasyLoading.dismiss();
@@ -1858,6 +1581,78 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         );
       },
     );
+  }
+
+  // SpecificPostPage에서 변경 가능성이 존재하는 데이터를 업데이트하는 method
+  Future<void> updateData() async {
+    // DataBase에서
+    // 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서 userData에 업데이트 한다.
+    await updateUserData();
+
+    // DataBase에서
+    // 게시물(obsPosts, inqPosts)에 대한 proStatus, phoneNumber, whoWriteCommentThePost에 대한 데이터를 받아와서 postData에 업데이트한다.
+    await updatePostData();
+
+    // Database에 있는 게시물 처리상태(proStatus)를 업데이트 한다.
+    // await updatePostProClassification(postData!);
+
+    // // DataBase에서
+    // // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
+    // // postData에 업데이트 하는 method
+    // await updateWhoWriteCommentThePostToPostData();
+
+    // 답변 정보 입력에 대한 정보 초기화 작업 한다.
+    resetAnswerInformationInput();
+
+    // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
+    // 필요한 부분만 재랜더링 한다.
+    // 1. 게시물에 대한 처리상태가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
+    // 2. 게시물을 작성한 사용자의 전화번호가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
+    // 3. 사용자 Avatar와 이름이 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
+    // 4. 게시물에 대한 댓글 수가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
+    // 5. 댓글 데이터가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
+    // 6. 답변 정보 입력에 댓글 입력하는 부분을 빈칸으로 다시 만든다.
+    //    IT 담당자가 장애 처리현황 게시물에 대한 답변 정보 입력을 하고, 바로 답변 정보 입력을 해야할 떄
+    //    처리일자, 처리시간이 현재 일자, 시간으로 업데이트 되어야 한다. 그렇게 하기 위해서 재랜더링 하는 이유도 있다.
+    PostListController.to.update([
+      'showProclassification',
+      'showTel',
+      'showAvatar',
+      'showUserName',
+      'showCommentNum',
+      'showCommentListView',
+      'answerInformationInput',
+    ]);
+  }
+
+  // DataBase에서
+  // 게시글 작성한 사람(User)에 대한 image, userName 속성에 접근한다.
+  // 접근한 다음 userData에 업데이트 한다.
+  Future<void> updateUserData() async {
+    print('SpecificPostPage - updateUserData() 호출');
+
+    // DataBase에 게시글 작성한 사람(User) 정보를 가져온다.
+    UserModel user = await PostListController.to.getUserData(userData!.userUid);
+
+    // UserData의 image, userName 속성에 값을 업데이트 한다.
+    userData!.image = user.image;
+    userData!.userName = user.userName;
+  }
+
+  // DataBase에서
+  // 게시물(obsPosts, inqPosts)에 대해서 변경 가능성이 존재하는 속성에 접근한다.
+  // 변경 가능성이 존재하는 속성 : proStatus, phoneNumber, whoWriteCommentThePost
+  // 접근한 다음 postData에 업데이트 한다.
+  Future<void> updatePostData() async {
+    print('SpecificPostPage - updatePostData() 호출');
+
+    // DataBase에 게시글(obsPosts, inqPosts) 정보를 가져온다.
+    PostModel post = await PostListController.to.getPostData(postData!);
+
+    // postData의 proStatus, phoneNumber, whoWriteCommentThePost 속성에 값을 업데이트 한다.
+    postData!.proStatus = post.proStatus;
+    postData!.phoneNumber = post.phoneNumber;
+    postData!.whoWriteCommentThePost = post.whoWriteCommentThePost;
   }
 
   // Database에 있는 게시물 처리상태(proStatus)를 업데이트하고
@@ -1883,24 +1678,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // DataBase에서
-  // 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서
-  // userData에 업데이트 한다.
-  Future<void> updateImageAndUserNameToUserData() async {
-    // DataBase에 존재하는 User에 대한 image또는 UserName이 변동이 있는지 확인한다.
-    // 이 작업을 왜 하는가?
-    // 혹여나 image나 userName이 변동사항이 발생할 수 있기 떄문에 일일히 확인하는 작업이 필요하다.
-    print('SpecificPostPage - updateImageAndUserNameToUserData() 호출');
-
-    // DataBase에 게시글 작성한 사람(User)의 image 속성과 userName 속성을 확인하여 가져온다.
-    Map<String, String> imageAndUserName = await PostListController.to
-        .updateImageAndUserNameToUser(userData!.userUid);
-
-    // UserData의 image, userName 속성에 값을 업데이트 한다.
-    userData!.image = imageAndUserName['image']!;
-    userData!.userName = imageAndUserName['userName']!;
-  }
-
-  // DataBase에서
   // obsPosts 또는 inqPosts에 대한 whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
   // postData에 업데이트 하는 method
   Future<void> updateWhoWriteCommentThePostToPostData() async {
@@ -1922,94 +1699,32 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     postData!.whoWriteCommentThePost.addAll(whoWriteTheCommentThePost);
   }
 
-  // comment에 대한 처리상태의 어떤 값을 default로 보여줄지 가져오는 method
-  ProClassification bringCommentValue() {
-    // 게시물 처리상태가 대기(WAITING)인 경우
-    if (postData!.proStatus == ProClassification.WAITING) {
-      return ProClassification.INPROGRESS;
-    }
+  // 답변 정보 입력에 대한 내용을 초기화 하는 method
+  void resetAnswerInformationInput() {
+    // 답변 정보 입력에서 IT 담당자에게만 보이는 처리상태, 장애원인을 초기화한다.
+    // 즉, 처리상태는 대기(WAITING), 장애원인은 사용자(USER)로 초기화한다.
+    PostListController.to.commentPSelectedValue = ProClassification.WAITING;
+    PostListController.to.commentCSelectedValue = CauseObsClassification.USER;
 
-    // 게시물 처리상태가 처리중(INPROGRESS)인 경우
-    else if (postData!.proStatus == ProClassification.INPROGRESS) {
-      return ProClassification.PROCESSCOMPLETED;
-    }
+    // 답변 정보 입력에서 IT 담당자에게만 보이는 처리일자, 처리시간을 초기화한다.
+    // 즉 처리일자와 처리시간을 빈값으로 초기화한다.
+    PostListController.to.commentActualProcessDate = '';
+    PostListController.to.commentActualProcessTime = '';
 
-    // 게시물 처리상태가 보류(HOLD)인 경우
-    else if (postData!.proStatus == ProClassification.HOLD) {
-      return ProClassification.INPROGRESS;
-    }
-
-    // 게시물 처리상태가 처리완료(PROGRESSCOMPLETED)인 경우
-    else {
-      return ProClassification.PROCESSCOMPLETED;
-    }
+    // comment Text를 관리하는 controller의 값을 빈값을 초기화한다.
+    PostListController.to.commentController.text = '';
   }
 
-  // comment에 대한 처리상태 Dropdown에는 어떤 것을 보여줄지 가져오는 method
-  List<DropdownMenuItem<String>> bringCommentDropdown() {
-    // 게시물 처리상태가 대기(WAITING)인 경우
-    // 또는 게시물 처리상태가 보류(HOLD)인 경우
-    // 처리상태 Dropdown에는 처리중(PROCESSCOMPLETED)만 나타낸다.
-    if (postData!.proStatus == ProClassification.WAITING ||
-        postData!.proStatus == ProClassification.HOLD) {
-      return ProClassification.values
-          .where((element) =>
-              element != ProClassification.ALL &&
-              element != ProClassification.WAITING &&
-              element != ProClassification.PROCESSCOMPLETED &&
-              element != ProClassification.HOLD &&
-              element != ProClassification.NONE)
-          .map((element) {
-        // enum의 값을 화면에 표시할 값으로 변환한다.
-        String realText = element.asText;
+  // SpecificPostPage에 사용했던 데이터를 초기화 하는 method
+  void clearData() {
+    // 배열, 변수 clear
+    postData = null;
+    userData = null;
 
-        return DropdownMenuItem(
-          value: element.name,
-          child: Text(realText),
-        );
-      }).toList();
-    }
+    whereRoute = null;
 
-    // 게시물 처리상태가 처리중(INPROGRESS)인 경우
-    // 처리상태 Dropdown에는 처리완료(PROCESSCOMPLETED)와 보류(HOLD)만 나타낸다.
-    else if (postData!.proStatus == ProClassification.INPROGRESS) {
-      return ProClassification.values
-          .where((element) =>
-              element != ProClassification.ALL &&
-              element != ProClassification.WAITING &&
-              element != ProClassification.INPROGRESS &&
-              element != ProClassification.NONE)
-          .map((element) {
-        // enum의 값을 화면에 표시할 값으로 변환한다.
-        String realText = element.asText;
-
-        return DropdownMenuItem(
-          value: element.name,
-          child: Text(realText),
-        );
-      }).toList();
-    }
-
-    // 게시물 처리상태가 처리완료(PROGRESSCOMPLETED)인 경우
-    // 처리상태 Dropdown에는 처리완료(PROCESSCOMPLETED)만 나타낸다.
-    else {
-      return ProClassification.values
-          .where((element) =>
-              element != ProClassification.ALL &&
-              element != ProClassification.WAITING &&
-              element != ProClassification.INPROGRESS &&
-              element != ProClassification.HOLD &&
-              element != ProClassification.NONE)
-          .map((element) {
-        // enum의 값을 화면에 표시할 값으로 변환한다.
-        String realText = element.asText;
-
-        return DropdownMenuItem(
-          value: element.name,
-          child: Text(realText),
-        );
-      }).toList();
-    }
+    commentArray.clear();
+    commentUserArray.clear();
   }
 
   // specificPostPage가 처음 불릴 떄 호출되는 method
@@ -2043,72 +1758,27 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         }
         // 게시글이 삭제되지 않으면?
         else {
-          // DataBase에서
-          // 게시물 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서
-          // userData에 업데이트 한다.
-          await updateImageAndUserNameToUserData();
-
-          // Database에 있는 게시물 처리상태(proStatus)를 업데이트 한다.
-          await updatePostProClassification(postData!);
-
-          // DataBase에서
-          // obsPosts 또는 inqPosts의 whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
-          // postData에 업데이트 한다.
-          await updateWhoWriteCommentThePostToPostData();
+          // SpecificPostPage에서 변경 가능성이 존재하는 데이터를 업데이트하는 method
+          await updateData();
 
           // Database에 Comment 데이터를 호출하는 것을 허락한다.
           isCallServerAboutCommentData = true;
-
-          // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
-          // 부분적으로 재랜더링 한다.
-          // 1. 업데이트된 사용자 Avatar와 이름을 화면에 보여주기 위해 재랜더링 한다.
-          // 2. 업데이트 된 댓글 수와 를 화면에 보여주기 위해 재랜더링 한다.
-          // 3. 댓글 데이터를 화면에 보여주기 위해 재랜더링 한다.
-          // 4. 답변 정보 입력을 재랜더링 한다.
-          // 5. 게시물에 대한 처리상태를 재랜더링 한다.
-          PostListController.to.update([
-            'showAvatar',
-            'showUserName',
-            'showCommentNum',
-            'showCommentListView',
-            'answerInformationInput',
-            'showProclassification',
-          ]);
         }
       },
     );
   }
 
-  // specificPostPage가 사라질 떄 호출되는 method
+  // SpecificPostPage가 사라질 떄 호출되는 method
   @override
   void dispose() {
     // 로그
     print('SpecificPostPage - dispose() 호출');
 
-    // 사용자가 하단 comment을 입력할 수 있는 창에 text를 입력했으면
-    // PostListController.to.commentController!.text를 빈칸으로 설정한다.
-    if (PostListController.to.commentController.text.isNotEmpty) {
-      PostListController.to.commentController.text = '';
-    }
+    // 답변 정보 입력을 초기화 한다.
+    resetAnswerInformationInput();
 
-    // 답변 정보 입력에 따른 처리상태는 값이 업데이트되므로 굳이 여기서 초기화할 필요가 없다.
-
-    // 답변 정보 입력에 따른 장애원인, 실제 처리일자, 실제 처리시간 변수를 초기화 한다.
-    PostListController.to.commentCSelectedValue = CauseObsClassification.USER;
-    processDate = '';
-    PostListController.to.commentHSelectedValue =
-        HourClassification.ZERO_ZERO_HOUR;
-    PostListController.to.commentMSelectedValue =
-        MinuteClassification.ZERO_ZERO_MINUTE;
-
-    // 배열, 변수 clear
-    postData = null;
-    userData = null;
-
-    whereRoute = null;
-
-    commentArray.clear();
-    commentUserArray.clear();
+    // SpecificPostPage에서 사용했던 데이터를 clear한다.
+    clearData();
 
     super.dispose();
   }

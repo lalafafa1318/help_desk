@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
-
 import 'package:firebase_storage/firebase_storage.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -37,19 +35,21 @@ class _SignUpPageState extends State<SignUpPage> {
   final ImagePicker imagePicker = ImagePicker();
   File? imageFile;
 
-  // TextFormField Validation을 위한 Field
+  // 이름, 전화번호 관련된 TextFormField Validation을 위한 Field
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // TextFormField Text를 저장하는 Field
+  // 이름과 관련된 TextFormField Text를 저장하는 Field
   TextEditingController? nameTextController;
-  TextEditingController? descriptionTextController;
+
+  // 전화번호와 관련된 TextFormField Text를 저장하는 Field
+  TextEditingController? telTextController;
 
   @override
   void initState() {
     super.initState();
 
     nameTextController = TextEditingController();
-    descriptionTextController = TextEditingController();
+    telTextController = TextEditingController();
 
     print('sign_up_page initState() 호출');
   }
@@ -58,7 +58,7 @@ class _SignUpPageState extends State<SignUpPage> {
   void dispose() {
     // textController의 경우 addListener()를 사용하지 않았다면 굳이 dispose시킬 필요가 없다.
     // nameTextController!.dispose();
-    // descriptionTextController!.dispose();
+    // telTextController!.dispose();
 
     print('sign_up_page dispose 호출');
 
@@ -111,7 +111,7 @@ class _SignUpPageState extends State<SignUpPage> {
               if (xFile != null) {
                 setState(() {
                   imageFile = File(xFile.path);
-                  print('imageFile : ${imageFile}');
+                  print('imageFile : $imageFile');
                 });
               }
               // 갤러리에서 이미지를 받지 못할 떄에 대한 처리
@@ -126,21 +126,23 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  // name, description TextFormField 입니다.
+  // 이름과 전화번호 관련된 TextFormField를 보여준다.
   Widget twoTextFormField() {
     return Form(
       key: _formKey,
       child: Column(
         children: [
-          // name TextFormField
+          // 이름 TextFormField
           Container(
             padding: EdgeInsets.symmetric(horizontal: 48.0.w, vertical: 8.0.h),
             child: TextFormField(
               controller: nameTextController,
               validator: (value) {
+                // 사용자가 입력한 text가 정규 표현식을 만족하지 못하는 경우...
                 if (!(value!.contains(RegExp(r'^[가-힣]{2,4}$')))) {
                   return '이름을 입력해주세요';
                 }
+                // 사용자가 입력한 text가 문제 없는 경우...
                 return null;
               },
               decoration: const InputDecoration(
@@ -153,23 +155,30 @@ class _SignUpPageState extends State<SignUpPage> {
 
           SizedBox(height: 16.h),
 
-          // description TextFormField
+          // 전화번호 TextFormField
           Container(
             padding: EdgeInsets.symmetric(horizontal: 48.0.w, vertical: 8.0.h),
             child: TextFormField(
-              maxLength: 50,
               maxLines: null,
-              controller: descriptionTextController,
+              keyboardType: TextInputType.phone,
+              controller: telTextController,
               validator: (value) {
+                // 사용자가 입력한 text가 빈값인 경우...
                 if (value!.isEmpty) {
-                  return '설명을 입력해주세요.';
+                  return '전화번호가 빈값 입니다.';
                 }
+                // 사용자가 입력한 text가 핸드폰 전화번호, 일반 전화번호 형식에 만족하지 않는 경우...
+                // 또는 핸드폰 전화번호, 일반 전화번호 형식을 만족하지만 하이픈(-)이 있는 경우 ...
+                else if (!value.isPhoneNumber || value.contains('-')) {
+                  return '전화번호 정규식에 적합하지 않습니다.';
+                }
+                // 사용자가 입력한 text가 문제 없는 경우..
                 return null;
               },
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: '설명',
-                hintText: 'Description 입니다.',
+                labelText: '하이픈(-)을 제외한 전화번호',
+                hintText: '전화번호 입니다.',
               ),
             ),
           ),
@@ -183,15 +192,13 @@ class _SignUpPageState extends State<SignUpPage> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 48.0.w, vertical: 8.0.h),
       child: ElevatedButton(
-        onPressed: (){
+        onPressed: () {
           // 키보드 내리기
           FocusManager.instance.primaryFocus?.unfocus();
 
           // 회원 가입 하는 method
           signButton();
-
         },
-        
         child: const Text('회원가입 하기'),
       ),
     );
@@ -199,23 +206,26 @@ class _SignUpPageState extends State<SignUpPage> {
 
   // "회원가입 하기" 내부 작동 코드 입니다.
   void signButton() {
+    // 사용자가 입력한 이름과 전화번호를 검증한다.
     bool validResult = _formKey.currentState!.validate();
 
-    // 이미지를 게시하고,  name, description validation이 통과할 경우
+    // 이미지를 게시하고, 이름, 전화번호 검증이 통과됐으면 ...
     if (imageFile != null && validResult) {
-      // Firebase DataBase에 User 정보 올리기
+      // DataBase에 User 정보 올리기
       registerUser();
-
-      EasyLoading.show(
-          status: '회원 정보를\n 등록하고 있습니다.', maskType: EasyLoadingMaskType.black);
-    } else {
+    }
+    //
+    else {
       // Toast Message 띄우기
-      ToastUtil.showToastMessage('이미지, 이름 그리고 설명에 대한 validation을 통과하지 못했습니다.');
+      ToastUtil.showToastMessage('검증을 통과하지 못했습니다.\n다시 입력해주세요');
     }
   }
 
   // User 정보를 Firebase Storage와 Firebase Database에 저장하는 method
   Future<void> registerUser() async {
+    EasyLoading.show(
+        status: '사용자 정보를\n등록하고 있습니다.', maskType: EasyLoadingMaskType.black);
+
     // "회원가입" image를 Firebase Storage에 upload하는 method
     UploadTask uploadFileEvent = CommunicateFirebase.signInUploadImage(
       imageFile: imageFile!,
@@ -231,11 +241,11 @@ class _SignUpPageState extends State<SignUpPage> {
       // 회원가입을 하면 userType을 GENERALUSER (일반 사용자)로 설정한다.
       userType: UserClassification.GENERALUSER,
       userName: nameTextController!.text,
-      description: descriptionTextController!.text,
       image: imageUrl,
       userUid: widget.userUid,
       // 회원 가입할 떄 notiPost 속성은 무조건 []이다.
       notiPost: [],
+      phoneNumber: telTextController!.text,
     );
 
     // Firebase DataBase에 User 정보를 upload하는 method
@@ -253,9 +263,6 @@ class _SignUpPageState extends State<SignUpPage> {
 
     // 회원가입 했다는 표시로 true를 가지도록 한다.
     SettingsController.to.didSignUp = true;
-
-    // 로그
-    print('SettingsController- didSignUp : ${SettingsController.to.didSignUp}');
   }
 
   @override
@@ -284,14 +291,14 @@ class _SignUpPageState extends State<SignUpPage> {
 
                 SizedBox(height: 80.h),
 
-                // 이름과 설명을 입력하는 부분 
+                // 이름과 설명을 입력하는 부분
                 twoTextFormField(),
 
                 SizedBox(height: 80.h),
 
                 // 회원가입 하기 버튼을 입력하는 부분
                 signUpButton(),
-                
+
                 SizedBox(height: 80.h),
               ],
             ),

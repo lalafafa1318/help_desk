@@ -11,7 +11,6 @@ import 'package:help_desk/screen/bottomNavigationBar/controller/settings_control
 import 'package:help_desk/utils/uuid_util.dart';
 import 'package:intl/intl.dart';
 
-
 // 알림 목록을 관리하는 controller 입니다.
 class NotificationController extends GetxController {
   // 사용자가 알림 신청한 게시물 Uid를 담는 배열 (장애 처리현황, 문의 처리현황 게시물 모두 한곳에 저장)
@@ -35,6 +34,59 @@ class NotificationController extends GetxController {
   // Method
   // Controller를 더 쉽게 사용할 수 있도록 하는 get method
   static NotificationController get to => Get.find();
+
+  // 사용자가 게시물에 대한 알림을 해제할 떄, 알림 받기 위해 했던 여러 설정을 해제한다.
+  Future<void> clearNotificationSetting(String postUid) async {
+    // 해당 게시물 Uid가 notiPost Array의 몇번째 index에 있는지 확인한다.
+    int index = notiPost.indexOf(postUid);
+
+    // 실시간으로 Listen 하는 것을 중지하는 것을 넘어서 취소한다.
+    listenList[index].cancel();
+
+    // NotificationController의 listenList Array에 element을 remove한다.
+    listenList.removeAt(index);
+
+    // NotificationController의 notifPost Array에 게시물 uid를 삭제한다.
+    notiPost.removeAt(index);
+
+    // NotificationController의 commentCount Array에 element를 remove한다.
+    commentCount.removeAt(index);
+
+    // Database에 User의 notiPost 속성에 게시물 uid를 삭제한다.
+    await deleteNotiPostFromUser(
+      postUid,
+      SettingsController.to.settingUser!.userUid,
+    );
+
+    // update()를 실행행 notifyButton Widget만 재랜더링 한다.
+    update(['notifyButton']);
+  }
+
+  // 사용자가 게시물에 대한 알림을 등록할 떄, 알림 받기 위한 여러 설정을 등록하는 method
+  Future<void> enrollNotificationSetting(String postUid) async {
+    // NotificationControler의 notiPost Array에 게시물 uid를 추가한다.
+    notiPost.add(postUid);
+
+    // 해당 게시물 Uid가 notiPost Array의 몇번째 index에 있는지 확인한다.
+    int index = notiPost.indexOf(postUid);
+
+    // 사용자가 알림 신청한 게시물(Post)에 대한 댓글 개수를 NotificationController의 commentCount Array에 추가한다.
+    commentCount.add(
+      await CommunicateFirebase.getCountFromComments(postUid),
+    );
+
+    // Database에서 게시물(post)의 변동사항을 추가로 listen 한다.
+    await addListen(index);
+
+    // DataBase에 User의 notiPost 속성에 게시물 uid를 추가한다.
+    await addNotiPostFromUser(
+      postUid,
+      SettingsController.to.settingUser!.userUid,
+    );
+
+    // update()를 실행해 notifyButton Widget만 재랜더링 한다.
+    update(['notifyButton']);
+  }
 
   // Database에 User의 notiPost 속성에 게시물 uid를 추가한다.
   Future<void> addNotiPostFromUser(String postUid, String userUid) async {

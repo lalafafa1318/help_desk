@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/const/causeObsClassification.dart';
-import 'package:help_desk/const/hourClassification.dart';
-import 'package:help_desk/const/minuteClassification.dart';
 import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/proClassification.dart';
 import 'package:help_desk/const/sysClassification.dart';
@@ -63,18 +61,19 @@ class PostListController extends GetxController {
   // 사용자가 입력한 댓글과 대댓글을 control 하는 Field
   TextEditingController commentController = TextEditingController();
 
-  // SpecificPostPage의 comment 처리상태를 관리하는 변수
-  ProClassification commentPSelectedValue = ProClassification.INPROGRESS;
+  // SpecificPostPage의 comment 처리상태를 관리하는 변수 (IT 담당자에 한해서 처리상태가 보여진다.)
+  // default는 대기(WAITING) 상태이다.
+  ProClassification commentPSelectedValue = ProClassification.WAITING;
 
-  // SpecificPostPage의 comment 장애원인을 관리하는 변수 (장애 처리현황 게시물에 한함)
+  // SpecificPostPage의 comment 장애원인을 관리하는 변수 (IT 담당자 - 장애 처리현황 게시물에 한해서 장애원인이 보여진다.)
+  // default는 사용자(USER)이다.
   CauseObsClassification commentCSelectedValue = CauseObsClassification.USER;
 
-  // SpecificPostPage의 comment 실제 처리시간(시, Hour)을 관리하는 변수 (장애 처리현황 게시물에 한함)
-  HourClassification commentHSelectedValue = HourClassification.ZERO_ZERO_HOUR;
+  // SpecificPostPage의 처리일자를 관리하는 변수 (IT 담당자 - 장애 처리현황 게시물에 한해서 처리일자가 보여진다.)
+  String commentActualProcessDate = '';
 
-  // SpecificPostPage의 comment 실제 처리시간(분, Minute)을 관리하는 변수 (장애 처리현황 게시물에 한함)
-  MinuteClassification commentMSelectedValue =
-      MinuteClassification.ZERO_ZERO_MINUTE;
+  // SpecificPostPage의 처리시간을 관리하는 변수 (IT 담당자 - 장애 처리현황 게시물에 한해서 처리시간이 보여진다.)
+  String commentActualProcessTime = '';
 
   // Method
   // PostListController를 쉽게 사용하도록 도와주는 method
@@ -326,10 +325,10 @@ class PostListController extends GetxController {
     }
   }
 
-  // Database에 게시글 작성한 사람(User)의 image 속성과 userName 속성을 확인하여 가져오는 method
-  Future<Map<String, String>> updateImageAndUserNameToUser(
+  // DataBase에 게시글 작성한 사람(User)의 image,userName,phoneNumber 속성을 확인하여 가져오는 method
+  Future<Map<String, String>> getImageAndUserNameAndPhoneNumber(
       String userUid) async {
-    return await CommunicateFirebase.updateImageAndUserNameToUser(userUid);
+    return await CommunicateFirebase.getImageAndUserNameAndPhoneNumber(userUid);
   }
 
   // IT 담당자가 가장 최근 올린 댓글을 가져오는 method
@@ -352,19 +351,27 @@ class PostListController extends GetxController {
     await CommunicateFirebase.deletePostData(postData);
   }
 
-
   // Database에서 게시물(post)에 대한 여러 comment를 가져오는 method
   Future<Map<String, dynamic>> getCommentAndUser(PostModel postData) async {
     return await CommunicateFirebase.getCommentAndUser(postData);
   }
 
   // comment에 있는 사용자 Uid를 가지고 user 정보에 접근하는 method
-  Future<UserModel> getUserData(String commentUserUid) async {
+  Future<UserModel> getUserData(String userUid) async {
     Map<String, dynamic> userData =
-        await CommunicateFirebase.getUserData(commentUserUid);
+        await CommunicateFirebase.getUserData(userUid);
 
     // Map을 Model class로 변환하여 반환한다.
     return UserModel.fromMap(userData);
+  }
+
+  // getPostData
+  Future<PostModel> getPostData(PostModel postModel) async {
+    Map<String, dynamic> postData = await CommunicateFirebase.getPostData(
+        postModel.obsOrInq, postModel.postUid);
+
+    // Map을 Model class로 변환하여 반환한다.
+    return PostModel.fromJson(postData);
   }
 
   // Database에 게시물(post)의 whoWriteCommentThePost 속성에 사용자 uid를 추가하는 method
@@ -374,8 +381,7 @@ class PostListController extends GetxController {
   }
 
   // DataBase에 comment(댓글)을 추가하는 method
-  Future<void> addComment(
-      String comment, String processDate, PostModel postData) async {
+  Future<void> addComment(String comment, PostModel postData) async {
     // Comment 모델 만들기
     CommentModel commentModel = CommentModel(
       content: comment,
@@ -400,14 +406,14 @@ class PostListController extends GetxController {
               UserClassification.GENERALUSER
           ? null
           : postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus
-              ? processDate
+              ? PostListController.to.commentActualProcessDate
               : null,
       // 실제 처리시간
       actualProcessTime: SettingsController.to.settingUser!.userType ==
               UserClassification.GENERALUSER
           ? null
           : postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus
-              ? '${commentHSelectedValue.asText.substring(0, 2)}:${commentMSelectedValue.asText.substring(0, 2)}'
+              ? PostListController.to.commentActualProcessTime
               : null,
     );
 

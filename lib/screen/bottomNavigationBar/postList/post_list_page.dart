@@ -27,6 +27,7 @@ class PostListPage extends StatefulWidget {
 }
 
 class _PostListPageState extends State<PostListPage> {
+  // Pager에 대한 setting
   // PostListPage의 Pager의 현재 번호
   int pagerCurrentPage = 0;
 
@@ -306,8 +307,7 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 장애 처리현황 게시물을 obsPostData에 추가하는 method
-  Widget prepareShowObsPostData(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
+  Widget prepareShowObsPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocObsPostDataInArray(ultimateData),
       builder: (context, snapshot) {
@@ -388,8 +388,7 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 문의 처리현황 게시물을 inqPostData에 추가하는 method
-  Widget prepareShowInqPostData(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowInqPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocInqPostDataInArray(allData),
       builder: (context, snapshot) {
@@ -993,14 +992,11 @@ class _PostListPageState extends State<PostListPage> {
                 int postDataLength = 0;
 
                 // 장애 처리현황, 문의 처리현황 마다 다르게 Pager의 numberPages를 결정한다.
-                if (PostListController.to.selectObsOrInq ==
-                    ObsOrInqClassification.obstacleHandlingStatus) {
-                  postDataLength = PostListController.to.obsPostData.length;
-                }
-                //
-                else {
-                  postDataLength = PostListController.to.inqPostData.length;
-                }
+                PostListController.to.selectObsOrInq ==
+                        ObsOrInqClassification.obstacleHandlingStatus
+                    ? postDataLength = PostListController.to.obsPostData.length
+                    : PostListController.to.inqPostData.length;
+
                 return isShowPager == true
                     // Pager를 보여준다.
                     ? Container(
@@ -1016,7 +1012,7 @@ class _PostListPageState extends State<PostListPage> {
                           initialPage: pagerCurrentPage,
                           onPageChange: (int pagerUpdatePage) async {
                             pagerCurrentPage = pagerUpdatePage;
-
+     
                             PostListController.to.update(['showPager']);
 
                             await Future.delayed(
