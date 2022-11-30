@@ -218,7 +218,7 @@ class SettingsPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // 아이콘
-            Icon(Icons.comment_bank_outlined, size: 20),
+            const Icon(Icons.comment_bank_outlined, size: 20),
 
             // 아이콘과 제목 간격을 10만큼 넓힌다.
             SizedBox(width: 10.w),

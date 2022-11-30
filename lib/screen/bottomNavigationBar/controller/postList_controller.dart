@@ -93,16 +93,14 @@ class PostListController extends GetxController {
 
   // Database에서 받은 장애 처리현황 게시물을 obsPostData에 추가하는 method
   // 그리고 게시물에 대한 사용자 정보를 파악하여 obsUserData에 추가하는 method
-  Future<List<PostModel>> allocObsPostDataInArray(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
+  Future<List<PostModel>> allocObsPostDataInArray(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
     // 장애 처리현황 게시물을 담고 있는 obsPostData
     // 게시물에 대한 사용자 정보를 담고 있는 obsUserData를 clear 한다.
     obsPostData.clear();
     obsUserData.clear();
 
     for (var doc in allData) {
-      // QueryDocumentSnapshot -> Json -> Model class로 변환한다.
-      PostModel postModel = PostModel.fromQueryDocumentSnapshot(doc);
+      PostModel postModel = PostModel.fromMap(doc.data());
       // 장애 처리현황에 관한 게시물을 담고 있는 obsPostData에 Model class를 추가한다.
       obsPostData.add(postModel);
 
@@ -119,8 +117,7 @@ class PostListController extends GetxController {
 
   // Database에서 받은 문의 처리현황 게시물을 inqPostData에 추가하는 method
   // 그리고 게시물에 대한 사용자 정보를 파악하여 inqUserData에 추가하는 method
-  Future<List<PostModel>> allocInqPostDataInArray(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
+  Future<List<PostModel>> allocInqPostDataInArray(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) async {
     // 문의 처리현황 게시물을 담고 있는 inqPostData
     // 게시물에 대한 사용자 정보를 담고 있는 inqUserData를 clear 한다.
     inqPostData.clear();
@@ -129,8 +126,7 @@ class PostListController extends GetxController {
     await Future.delayed(const Duration(milliseconds: 5));
 
     for (var doc in allData) {
-      // QueryDocumentSnapshot -> Json -> Model class로 변환한다.
-      PostModel postModel = PostModel.fromQueryDocumentSnapshot(doc);
+      PostModel postModel = PostModel.fromMap(doc.data());
       // 문의 처리현황에 관한 게시물을 담고 있는 inqPostData에 Model class를 추가한다.
       inqPostData.add(postModel);
 
@@ -326,25 +322,25 @@ class PostListController extends GetxController {
   }
 
   // DataBase에 게시글 작성한 사람(User)의 image,userName,phoneNumber 속성을 확인하여 가져오는 method
-  Future<Map<String, String>> getImageAndUserNameAndPhoneNumber(
-      String userUid) async {
-    return await CommunicateFirebase.getImageAndUserNameAndPhoneNumber(userUid);
-  }
+  // Future<Map<String, String>> getImageAndUserNameAndPhoneNumber(
+  //     String userUid) async {
+  //   return await CommunicateFirebase.getImageAndUserNameAndPhoneNumber(userUid);
+  // }
 
   // IT 담당자가 가장 최근 올린 댓글을 가져오는 method
-  Future<QueryDocumentSnapshot<Map<String, dynamic>>?> getITUserLastComment(
-      PostModel postData) async {
-    return await CommunicateFirebase.getITUserLastComment(postData);
-  }
+  // Future<QueryDocumentSnapshot<Map<String, dynamic>>?> getITUserLastComment(
+  //     PostModel postData) async {
+  //   return await CommunicateFirebase.getITUserLastComment(postData);
+  // }
 
   // DataBase에 저장된 obsPosts 또는 inqPosts의 whoWriteTheCommentThePost 속성을 확인하여 가져오는 method
-  Future<List<String>> updateWhoWriteCommentThePost(
-    ObsOrInqClassification obsOrInq,
-    String postUid,
-  ) async {
-    return await CommunicateFirebase.updateWhoWriteCommentThePost(
-        obsOrInq, postUid);
-  }
+  // Future<List<String>> updateWhoWriteCommentThePost(
+  //   ObsOrInqClassification obsOrInq,
+  //   String postUid,
+  // ) async {
+  //   return await CommunicateFirebase.updateWhoWriteCommentThePost(
+  //       obsOrInq, postUid);
+  // }
 
   // DataBase에 게시물을 delete하는 method
   Future<void> deletePost(PostModel postData) async {
@@ -356,7 +352,7 @@ class PostListController extends GetxController {
     return await CommunicateFirebase.getCommentAndUser(postData);
   }
 
-  // comment에 있는 사용자 Uid를 가지고 user 정보에 접근하는 method
+  // DataBase에 user 정보에 접근하는 method
   Future<UserModel> getUserData(String userUid) async {
     Map<String, dynamic> userData =
         await CommunicateFirebase.getUserData(userUid);
@@ -365,7 +361,7 @@ class PostListController extends GetxController {
     return UserModel.fromMap(userData);
   }
 
-  // getPostData
+  // DataBase에 post 정보에 접근하는 method
   Future<PostModel> getPostData(PostModel postModel) async {
     PostModel postData = await CommunicateFirebase.getPostData(postModel);
 

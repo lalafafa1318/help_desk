@@ -106,7 +106,7 @@ class EditProfilePage extends StatelessWidget {
     );
   }
 
-  // 이름과 전화번호 관련된 TextFormField를 보여준다. (신버전)
+  // 이름과 전화번호 관련된 TextFormField를 보여준다.
   Widget editTwoTextField() {
     return Form(
       key: SettingsController.to.editFormKey,

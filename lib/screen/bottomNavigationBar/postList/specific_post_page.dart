@@ -141,10 +141,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             else {
               // 사용자가 게시물(post)에 대해서 알림 신청을 했었다면?
               isResult == true
-                    // 사용자가 게시물에 대한 알림을 해제할 떄, 알림 받기 위해 했던 여러 설정을 해제한다.
+                  // 사용자가 게시물에 대한 알림을 해제할 떄, 알림 받기 위해 했던 여러 설정을 해제한다.
                   ? await NotificationController.to
                       .clearNotificationSetting(postData!.postUid)
-                    // 사용자가 게시물에 대한 알림을 등록할 떄, 알림 받기 위한 여러 설정을 등록한다.
+                  // 사용자가 게시물에 대한 알림을 등록할 떄, 알림 받기 위한 여러 설정을 등록한다.
                   : await NotificationController.to
                       .enrollNotificationSetting(postData!.postUid);
 
@@ -536,8 +536,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             ),
           )
         : const Visibility(
-            child: Text('Visibility 테스트'),
             visible: false,
+            child: Text('Visibility 테스트'),
           );
   }
 
@@ -588,24 +588,25 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         print('showCommentNum - 재랜더링 호출');
 
         return Padding(
-            padding: EdgeInsets.all(5.r),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.comment_outlined,
-                  color: Colors.blue[300],
-                  size: 20,
-                ),
-                SizedBox(width: 5.w),
-                Text(
-                  postData!.whoWriteCommentThePost.length.toString(),
-                  style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.bold),
-                ),
-              ],
-            ));
+          padding: EdgeInsets.all(5.r),
+          child: Row(
+            children: [
+              Icon(
+                Icons.comment_outlined,
+                color: Colors.blue[300],
+                size: 20,
+              ),
+              SizedBox(width: 5.w),
+              Text(
+                postData!.whoWriteCommentThePost.length.toString(),
+                style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        );
       },
     );
   }
@@ -768,7 +769,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       margin: EdgeInsets.only(bottom: 5.h),
       child: whoWriteUserUid == postData!.userUid
           ? Text(
-              '${userName}(글쓴이)',
+              '$userName(글쓴이)',
               style: TextStyle(
                 color: Colors.blue[300],
                 fontWeight: FontWeight.bold,
@@ -1397,8 +1398,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // 게시물이 삭제되었는지 확인하는 method
-  Future<bool> isDeletePost(
-      ObsOrInqClassification obsOrInq, String postUid) async {
+  Future<bool> isDeletePost(ObsOrInqClassification obsOrInq, String postUid) async {
     print('SpecificPostPage - isDeletePost() 호출');
 
     // 게시물이 삭제됐으면 isDeletePostResult는 true
@@ -1625,50 +1625,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     // UserData의 image, userName 속성에 값을 업데이트 한다.
     userData!.image = user.image;
     userData!.userName = user.userName;
-  }
-
-  // Database에 있는 게시물 처리상태(proStatus)를 업데이트하고
-  // 화면에 보이는 게시물에 대한 처리상태도 업데이트하는 method
-  Future<void> updatePostProClassification(PostModel postModel) async {
-    print('SpecificPostPage - updatePostProclassification() 호출');
-
-    // IT 담당자가 가장 최근 올린 댓글을 가져온다.
-    // 다만, null값일 수 있다. 즉 IT 담당자가 올린 댓글이 없을 수 있다.
-    QueryDocumentSnapshot<Map<String, dynamic>>? recentITUserComment =
-        await PostListController.to.getITUserLastComment(postModel);
-
-    // 화면에 보이는 게시물에 대한 처리상태를 업데이트 한다.
-    // IT 담당자가 올린 댓글이 없었다면, 게시물에 대한 처리상태는 WAITING(대기)가 된다.
-    // 만약 IT 담당자가 올린 댓글이 있었다면, 가장 최근에 올린 댓글에 대한 처리상태를 바탕으로 게시물에 대한 처리상태가 결정된다.
-    recentITUserComment == null
-        ? postData!.proStatus = ProClassification.WAITING
-        : postData!.proStatus = ProClassification.values.firstWhere(
-            (element) =>
-                element.toString() ==
-                recentITUserComment.data()['proStatus'].toString(),
-          );
-  }
-
-  // DataBase에서
-  // obsPosts 또는 inqPosts에 대한 whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
-  // postData에 업데이트 하는 method
-  Future<void> updateWhoWriteCommentThePostToPostData() async {
-    // Database에 존재하는 Post에 대한 댓글수가 변동이 있는지 확인한다.
-    // 이 작업을 왜 하는가?
-    // 혹여나 댓글 수가 변동사항이 있을 수 있기 떄문에 일일히 확인하는 작업이 필요하다.
-
-    print('SpecificPostPage - updateWhoWriteCommentThePostData() 호출');
-
-    // DataBase에 저장된 obsPosts 또는 inqPosts의 whoWriteTheCommentThePost 속성을 확인하여 가져온다.
-    List<String> whoWriteTheCommentThePost =
-        await PostListController.to.updateWhoWriteCommentThePost(
-      postData!.obsOrInq,
-      postData!.postUid,
-    );
-
-    // PostData의 whoWriteCommentThePost 속성에 값을 업데이트 한다.
-    postData!.whoWriteCommentThePost.clear();
-    postData!.whoWriteCommentThePost.addAll(whoWriteTheCommentThePost);
   }
 
   // DataBase에서

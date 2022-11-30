@@ -829,6 +829,34 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
     );
   }
 
+  // Pager를 보여준다.
+  Widget pager(int postDataLength) {
+    return Container(
+      padding: EdgeInsets.all(5.0.w),
+      margin: EdgeInsets.only(bottom: 10.h),
+      width: ScreenUtil().screenWidth,
+      height: 50.h,
+      child: NumberPaginator(
+        numberPages: postDataLength % 5 == 0
+            ? pagerLastPage = (postDataLength / 5).floor()
+            : pagerLastPage = (postDataLength / 5).floor() + 1,
+        initialPage: pagerCurrentPage,
+        onPageChange: (int pagerUpdatePage) async {
+          pagerCurrentPage = pagerUpdatePage;
+
+          PostListController.to.update(['keywordPostListPageShowPager']);
+
+          await Future.delayed(const Duration(milliseconds: 5));
+
+          PostListController.to.oSelectedValue ==
+                  ObsOrInqClassification.obstacleHandlingStatus
+              ? PostListController.to.update(['updateConditionObsPostData'])
+              : PostListController.to.update(['updateConditionInqPostData']);
+        },
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -895,48 +923,16 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
                   int postDataLength = 0;
 
                   // 장애 처리현황, 문의 처리현황 마다 다르게 Pager의 numberPages를 결정한다.
-                  if (PostListController.to.oSelectedValue ==
-                      ObsOrInqClassification.obstacleHandlingStatus) {
-                    postDataLength =
-                        PostListController.to.conditionObsPostData.length;
-                  }
-                  //
-                  else {
-                    postDataLength =
-                        PostListController.to.conditionInqPostData.length;
-                  }
+                  PostListController.to.oSelectedValue ==
+                          ObsOrInqClassification.obstacleHandlingStatus
+                      ? postDataLength =
+                          PostListController.to.conditionObsPostData.length
+                      : postDataLength =
+                          PostListController.to.conditionInqPostData.length;
+
                   return isShowPager == true
                       // Pager를 보여준다.
-                      ? Container(
-                          padding: EdgeInsets.all(5.0.w),
-                          margin: EdgeInsets.only(bottom: 10.h),
-                          width: ScreenUtil().screenWidth,
-                          height: 50.h,
-                          child: NumberPaginator(
-                            numberPages: postDataLength % 5 == 0
-                                ? pagerLastPage = (postDataLength / 5).floor()
-                                : pagerLastPage =
-                                    (postDataLength / 5).floor() + 1,
-                            initialPage: pagerCurrentPage,
-                            onPageChange: (int pagerUpdatePage) async {
-                              pagerCurrentPage = pagerUpdatePage;
-
-                              PostListController.to
-                                  .update(['keywordPostListPageShowPager']);
-
-                              await Future.delayed(
-                                  const Duration(milliseconds: 5));
-
-                              PostListController.to.oSelectedValue ==
-                                      ObsOrInqClassification
-                                          .obstacleHandlingStatus
-                                  ? PostListController.to
-                                      .update(['updateConditionObsPostData'])
-                                  : PostListController.to
-                                      .update(['updateConditionInqPostData']);
-                            },
-                          ),
-                        )
+                      ? pager(postDataLength)
                       // Pager를 보여주지 않는다.
                       : const Visibility(
                           visible: false,

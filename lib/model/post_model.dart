@@ -79,34 +79,29 @@ class PostModel {
     };
   }
 
-  // QueryDocumentSnapshot를 Json 형식으로 바꾸는 Method
-  PostModel.fromQueryDocumentSnapshot(
-    QueryDocumentSnapshot<Map<String, dynamic>> mapData,
-  ) : this.fromJson(mapData.data());
-
   // Json 형식을 Model class 형식으로 바꾸는 Method
   // dynamic를 String으로 전환하는 것은 쉽지만
   // List<dynamic>을 List<String>으로 전환하는 작업이 어렵다.
-  PostModel.fromJson(Map<String, dynamic> json)
+  PostModel.fromMap(Map<String, dynamic> mapData)
       : obsOrInq = ObsOrInqClassification.values.firstWhere(
-          (enumValue) => enumValue.toString() == json['obsOrInq'].toString(),
+          (enumValue) => enumValue.toString() == mapData['obsOrInq'].toString(),
         ),
         sysClassficationCode = SysClassification.values.firstWhere(
           (enumValue) =>
-              enumValue.toString() == json['sysClassficationCode'].toString(),
+              enumValue.toString() == mapData['sysClassficationCode'].toString(),
         ),
-        imageList = List<String>.from(json['imageList'] as List),
-        postTitle = json['postTitle'].toString(),
-        postContent = json['postContent'].toString(),
-        phoneNumber = json['phoneNumber'].toString(),
+        imageList = List<String>.from(mapData['imageList'] as List),
+        postTitle = mapData['postTitle'].toString(),
+        postContent = mapData['postContent'].toString(),
+        phoneNumber = mapData['phoneNumber'].toString(),
         proStatus = ProClassification.values.firstWhere(
-          (enumValue) => enumValue.toString() == json['proStatus'].toString(),
+          (enumValue) => enumValue.toString() == mapData['proStatus'].toString(),
         ),
-        userUid = json['userUid'].toString(),
-        postUid = json['postUid'].toString(),
-        postTime = json['postTime'].toString(),
+        userUid = mapData['userUid'].toString(),
+        postUid = mapData['postUid'].toString(),
+        postTime = mapData['postTime'].toString(),
         whoWriteCommentThePost =
-            List<String>.from(json['whoWriteCommentThePost'] as List);
+            List<String>.from(mapData['whoWriteCommentThePost'] as List);
 
   // PostModel를 복제하는 Method
   PostModel copyWith({

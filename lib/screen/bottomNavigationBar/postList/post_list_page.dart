@@ -307,7 +307,8 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 장애 처리현황 게시물을 obsPostData에 추가하는 method
-  Widget prepareShowObsPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
+  Widget prepareShowObsPostData(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocObsPostDataInArray(ultimateData),
       builder: (context, snapshot) {
@@ -388,7 +389,8 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 문의 처리현황 게시물을 inqPostData에 추가하는 method
-  Widget prepareShowInqPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowInqPostData(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocInqPostDataInArray(allData),
       builder: (context, snapshot) {
@@ -873,6 +875,34 @@ class _PostListPageState extends State<PostListPage> {
     );
   }
 
+  // Pager를 표시한다.
+  Widget pager(int postDataLength) {
+    return Container(
+      padding: EdgeInsets.all(5.0.w),
+      margin: EdgeInsets.only(bottom: 10.h),
+      width: ScreenUtil().screenWidth,
+      height: 50.h,
+      child: NumberPaginator(
+        numberPages: postDataLength % 5 == 0
+            ? pagerLastPage = (postDataLength / 5).floor()
+            : pagerLastPage = (postDataLength / 5).floor() + 1,
+        initialPage: pagerCurrentPage,
+        onPageChange: (int pagerUpdatePage) async {
+          pagerCurrentPage = pagerUpdatePage;
+
+          PostListController.to.update(['showPager']);
+
+          await Future.delayed(const Duration(milliseconds: 5));
+
+          PostListController.to.selectObsOrInq ==
+                  ObsOrInqClassification.obstacleHandlingStatus
+              ? PostListController.to.update(['updateObsPostData'])
+              : PostListController.to.update(['updateInqPostData']);
+        },
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -999,35 +1029,7 @@ class _PostListPageState extends State<PostListPage> {
 
                 return isShowPager == true
                     // Pager를 보여준다.
-                    ? Container(
-                        padding: EdgeInsets.all(5.0.w),
-                        margin: EdgeInsets.only(bottom: 10.h),
-                        width: ScreenUtil().screenWidth,
-                        height: 50.h,
-                        child: NumberPaginator(
-                          numberPages: postDataLength % 5 == 0
-                              ? pagerLastPage = (postDataLength / 5).floor()
-                              : pagerLastPage =
-                                  (postDataLength / 5).floor() + 1,
-                          initialPage: pagerCurrentPage,
-                          onPageChange: (int pagerUpdatePage) async {
-                            pagerCurrentPage = pagerUpdatePage;
-     
-                            PostListController.to.update(['showPager']);
-
-                            await Future.delayed(
-                                const Duration(milliseconds: 5));
-
-                            PostListController.to.selectObsOrInq ==
-                                    ObsOrInqClassification
-                                        .obstacleHandlingStatus
-                                ? PostListController.to
-                                    .update(['updateObsPostData'])
-                                : PostListController.to
-                                    .update(['updateInqPostData']);
-                          },
-                        ),
-                      )
+                    ? pager(postDataLength)
                     // Pager를 보여주지 않는다.
                     : const Visibility(
                         visible: false,

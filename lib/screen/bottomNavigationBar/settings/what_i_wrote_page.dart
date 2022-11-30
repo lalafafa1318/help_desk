@@ -670,14 +670,13 @@ class _WhatIWrotePageState extends State<WhatIWrotePage> {
         int postDataLength = 0;
 
         // 장애 처리현황, 문의 처리현황 마다 다르게 Pager의 numberPages를 결정한다.
-        if (SettingsController.to.selectObsOrInq ==
-            ObsOrInqClassification.obstacleHandlingStatus) {
-          postDataLength = SettingsController.to.obsWhatIWrotePostDatas.length;
-        }
-        //
-        else {
-          postDataLength = SettingsController.to.inqWhatIWrotePostDatas.length;
-        }
+        SettingsController.to.selectObsOrInq ==
+                ObsOrInqClassification.obstacleHandlingStatus
+            ? postDataLength =
+                SettingsController.to.obsWhatIWrotePostDatas.length
+            : postDataLength =
+                SettingsController.to.inqWhatIWrotePostDatas.length;
+
         return isShowPager == true
             // Pager를 보여준다.
             ? Container(
