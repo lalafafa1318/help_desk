@@ -1,4 +1,3 @@
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:expandable_text/expandable_text.dart';
@@ -91,8 +90,7 @@ class SettingsPage extends StatelessWidget {
           width: 150.w,
           height: 75.h,
           child: ExpandableText(
-            // '${controller.settingUser!.description}',
-            '그냥 텍스트',
+            controller.settingUser!.phoneNumber,
             expandText: 'show more',
             collapseText: 'show less',
             textAlign: TextAlign.center,
@@ -273,7 +271,7 @@ class SettingsPage extends StatelessWidget {
           backgroundColor: const Color(0xFFf2eeed),
           body: Column(
             children: [
-              SizedBox(height: 40.h),
+              SizedBox(height: 50.h),
 
               // 아바타 View + Edit outline Button
               topView(controller),

@@ -1,11 +1,7 @@
 // 프로필 수정하는 class
-
-
 import 'package:cached_network_image/cached_network_image.dart';
-
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/components/border/gf_border.dart';
@@ -110,86 +106,64 @@ class EditProfilePage extends StatelessWidget {
     );
   }
 
-  // name, description TextFormField 입니다.
+  // 이름과 전화번호 관련된 TextFormField를 보여준다. (신버전)
   Widget editTwoTextField() {
-    return Column(
-      children: [
-        // Edit Name TextField
-        Container(
-          width: ScreenUtil().screenWidth,
-          margin: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
-          child: GFBorder(
-            color: Colors.black12,
-            dashedLine: const [2, 0],
-            type: GFBorderType.rect,
-
-            // 단순형 상태 관리 GetBuilder
-            child: GetBuilder<SettingsController>(
-              id: 'editName',
-              builder: (controller) {
-                return SizedBox(
-                  height: 60.h,
-                  child: TextField(
-                    onChanged: (value) {
-                      SettingsController.to.editName = value;
-
-                      // update를 쳐서 GetBuilder를 부른다.
-                      SettingsController.to.update(['editName']);
-                    },
-                    maxLength: 30,
-                    decoration: InputDecoration(
-                      counterText: "",
-                      border: InputBorder.none,
-                      hintText: '수정할 이름을 입력해주세요',
-                      errorText:
-                          controller.editName.contains(RegExp(r'^[가-힣]{2,4}$'))
-                              ? null
-                              : '이름 정규표현식에 맞지 않습니다',
-                    ),
-                  ),
-                );
+    return Form(
+      key: SettingsController.to.editFormKey,
+      child: Column(
+        children: [
+          // 이름 TextFormField
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 48.0.w, vertical: 8.0.h),
+            child: TextFormField(
+              controller: SettingsController.to.nameTextController,
+              validator: (value) {
+                // 사용자가 입력한 text가 정규 표현식을 만족하지 못하는 경우...
+                if (!(value!.contains(RegExp(r'^[가-힣]{2,4}$')))) {
+                  return '이름을 입력해주세요';
+                }
+                // 사용자가 입력한 text가 문제 없는 경우...
+                return null;
               },
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: '이름',
+                hintText: 'Name 입니다.',
+              ),
             ),
           ),
-        ),
 
-        SizedBox(height: 16.h),
+          SizedBox(height: 16.h),
 
-        // Edit Description TextField
-        Container(
-          width: ScreenUtil().screenWidth,
-          height: 100.h,
-          margin: EdgeInsets.symmetric(horizontal: 15.w),
-          child: GFBorder(
-            color: Colors.black12,
-            dashedLine: const [2, 0],
-            type: GFBorderType.rect,
-
-            // 단순형 상태관리 GetBuilder
-            child: GetBuilder<SettingsController>(
-              id: 'editDescription',
-              builder: (controller) {
-                return TextField(
-                  onChanged: (value) {
-                    SettingsController.to.editDescription = value;
-
-                    // update를 쳐서 GetBuilder를 실행한다.
-                    SettingsController.to.update(['editDescription']);
-                  },
-                  maxLines: 3,
-                  maxLength: 50,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: '수정할 Description을 입력해주세요',
-                    errorText:
-                        controller.editDescription == '' ? '빈 내용 입니다' : null,
-                  ),
-                );
+          // 전화번호 TextFormField
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 48.0.w, vertical: 8.0.h),
+            child: TextFormField(
+              maxLines: null,
+              keyboardType: TextInputType.phone,
+              controller: SettingsController.to.telTextController,
+              validator: (value) {
+                // 사용자가 입력한 text가 빈값인 경우...
+                if (value!.isEmpty) {
+                  return '전화번호가 빈값 입니다.';
+                }
+                // 사용자가 입력한 text가 핸드폰 전화번호, 일반 전화번호 형식에 만족하지 않는 경우...
+                // 또는 핸드폰 전화번호, 일반 전화번호 형식을 만족하지만 하이픈(-)이 있는 경우 ...
+                else if (!value.isPhoneNumber || value.contains('-')) {
+                  return '전화번호 정규식에 적합하지 않습니다.';
+                }
+                // 사용자가 입력한 text가 문제 없는 경우..
+                return null;
               },
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: '하이픈(-)을 제외한 전화번호',
+                hintText: '전화번호 입니다.',
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -242,16 +216,19 @@ class EditProfilePage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              SizedBox(height: 30.h),
+
               // Image와 프로필 사진을 변경하는 Button이 있는 Widget
               imageBox(),
 
-              SizedBox(height: 40.h),
+              SizedBox(height: 30.h),
 
-              // name, description이 있는 Widget
+              // 이름과 전화번호를 수정하는 부분
               editTwoTextField(),
 
               SizedBox(height: 40.h),
 
+              // 프로필 수정하기 버튼을 입력하는 부분
               editProfileButton(),
             ],
           ),

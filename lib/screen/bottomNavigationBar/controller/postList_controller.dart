@@ -367,11 +367,10 @@ class PostListController extends GetxController {
 
   // getPostData
   Future<PostModel> getPostData(PostModel postModel) async {
-    Map<String, dynamic> postData = await CommunicateFirebase.getPostData(
-        postModel.obsOrInq, postModel.postUid);
+    PostModel postData = await CommunicateFirebase.getPostData(postModel);
 
     // Map을 Model class로 변환하여 반환한다.
-    return PostModel.fromJson(postData);
+    return postData;
   }
 
   // Database에 게시물(post)의 whoWriteCommentThePost 속성에 사용자 uid를 추가하는 method

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
@@ -21,13 +22,15 @@ class SettingsController extends GetxController {
   // AuthController의 사용자 정보를 복제했다.
   UserModel? settingUser;
 
-  // 수정할 이미지에 대한 Field
-  ImagePicker? imagePicker;
+  // 수정한 이미지에 대한 Field
+  ImagePicker imagePicker = ImagePicker();
   File? editImage;
-
-  // 수정할 이름, 설명에 대한 Field
-  String editName = '';
-  String editDescription = '';
+  // 이름, 전화번호 관련된 TextFormField Validation을 위한 Field
+  final GlobalKey<FormState> editFormKey = GlobalKey<FormState>();
+  // 이름과 관련된 TextFormField Text를 저장하는 Field
+  TextEditingController? nameTextController;
+  // 전화번호와 관련된 TextFormField Text를 저장하는 Field
+  TextEditingController? telTextController;
 
   // whatIWrotePage, whatICommentPage 장애/게시물 선택에서
   // 장애 처리현황을 선택했는가? 문의 처리현황을 선택했는가?
@@ -60,24 +63,8 @@ class SettingsController extends GetxController {
 
   // 프로필 수정 페이지에서 이전 가기를 눌렀을 떄 호출되는 method
   void getBackEditProfilePage() {
-    // 사용자가 image를 수정했을 떄
-    if (editImage != null) {
-      editImage = null;
-
-      print('editImage : ${editImage}');
-    }
-    // 사용자가 name을 수정했을 떄
-    if (editName != '') {
-      editName = '';
-
-      print('editName : ${editName}');
-    }
-    // 사용자가 description을 수정했을 떄
-    if (editDescription != '') {
-      editDescription = '';
-
-      print('editDescription : ${editDescription}');
-    }
+    // 프로필 수정할 페이지에서 사용했던 데이터를 초기화한다.
+    clearEditProfileData();
 
     // 이전 가기
     Get.back();
@@ -99,61 +86,33 @@ class SettingsController extends GetxController {
     UploadTask? updateFileEvent;
     String? imageUrl;
 
-    // 로딩 준비
-    EasyLoading.show(
-      status: '프로필 정보를\n 수정하고 있습니다.',
-      maskType: EasyLoadingMaskType.black,
-    );
-
     // 1. 검증 작업(validation)
 
-    // 이름 정규표현식이 적합한 경우
-    if (editName.contains(RegExp(r'^[가-힣]{2,4}$'))) {
-      // 2.3.4 처리
-      ToastUtil.showToastMessage('검증성공');
-    }
-    // 이름 정규표현식에 적합하지 않은 경우
-    else {
-      // 사용자가 이름 바꿀 의사가 있었으나 정규표현식에 맞지 않은 경우
-      if (editName != '') {
-        // 로딩 중지
-        EasyLoading.dismiss();
+    // 사용자가 입력한 이름과 전화번호를 검증한다.
+    bool validResult = editFormKey.currentState!.validate();
 
-        // 다시 프로필 수정 페이지로 유도
-        ToastUtil.showToastMessage('검증 실패');
-        return false;
-      }
-
-      // 사용자가 이름 바꿀 의사가 없고, 최소 이미지 또는 Description 중에서 수정했을 경우
-      else if (editImage != null || editDescription != '') {
-        // 2.3.4 처리
-        ToastUtil.showToastMessage('검증 성공');
-      }
-
-      // 사용자가 3가지 모두 터치하지 않고 버튼을 누를 경우
-      else {
-        // 로딩 중지
-        EasyLoading.dismiss();
-
-        // 다시 프로필 수정 페이지로 유도
-        ToastUtil.showToastMessage('검증 실패');
-        return false;
-      }
+    // 이미지를 게시하지 않거나, 이름과 전화번호에 대해서 검증 실패한 경우...
+    if (!(editImage != null && validResult)) {
+      // Toast Message 띄우기
+      ToastUtil.showToastMessage('검증을 통과하지 못했습니다.\n다시 입력해주세요');
+      return false;
     }
 
     // 2. 테스트 용도 서버에 User 정보를 바꾼다.
+    // 로딩 준비
+    EasyLoading.show(
+      status: '프로필 정보를\n수정하고 있습니다.',
+      maskType: EasyLoadingMaskType.black,
+    );
 
-    // 사용자가 이미지를 Update 친 경우
     // "프로필 수정 페이지" image를 Firebase Storage에 upload하는 method
-    if (editImage != null) {
-      updateFileEvent = await CommunicateFirebase.editUploadImage(
-        imageFile: editImage!,
-        userUid: settingUser!.userUid.toString(),
-      );
+    updateFileEvent = await CommunicateFirebase.editUploadImage(
+      imageFile: editImage!,
+      userUid: settingUser!.userUid.toString(),
+    );
 
-      // Firebase Storage에 저장된 image를 download하는 method
-      imageUrl = await CommunicateFirebase.imageDownloadUrl(updateFileEvent);
-    }
+    // Firebase Storage에 저장된 image를 download하는 method
+    imageUrl = await CommunicateFirebase.imageDownloadUrl(updateFileEvent);
 
     // Firebase Database에 업데이트 칠 UserModel 객체
     UserModel updateUser = UserModel(
@@ -161,15 +120,15 @@ class SettingsController extends GetxController {
       userType: settingUser!.userType == UserClassification.GENERALUSER
           ? UserClassification.GENERALUSER
           : UserClassification.ITUSER,
-      userName: editName == '' ? settingUser!.userName : editName,
-      image: imageUrl == null ? settingUser!.image : imageUrl.toString(),
+      userName: nameTextController!.text,
+      image: imageUrl.toString(),
       userUid: settingUser!.userUid,
       notiPost: settingUser!.notiPost,
-      phoneNumber: settingUser!.phoneNumber,
+      phoneNumber: telTextController!.text,
     );
 
     // Firebase DataBase에 User 정보를 update하는 method
-    await CommunicateFirebase.updateUserData(updateUser);
+    await CommunicateFirebase.updateUser(updateUser);
 
     // 3. AuthController user에 값을 바꾼다.
     AuthController.to.user(updateUser);
@@ -177,10 +136,12 @@ class SettingsController extends GetxController {
     // 4. SettingsController user에 값을 바꾼다.
     settingUser = updateUser;
 
-    // 5. 후처리
-    editImage = null;
-    editName = '';
-    editDescription = '';
+    // 5. 사용자가 프로필을 수정하기 전, 업로드한 게시물이 있을 경우...
+    // DataBase에 게시물(obsPosts, inqPosts)에 phoneNumber 속성을 최신 상태로 update 한다.
+    await CommunicateFirebase.updatePhoneNumberInPost(settingUser!);
+
+    // 6. 초기화 작업
+    clearEditProfileData();
 
     // 로딩 중지
     EasyLoading.dismiss();
@@ -192,6 +153,14 @@ class SettingsController extends GetxController {
     update(['showProfile']);
 
     return true;
+  }
+
+  // 프로필 수정할 페이지에서 사용했던 데이터를 초기화하는 method
+  void clearEditProfileData() {
+    // 이미지와 이름, 전화번호를 초기화 한다.
+    editImage = null;
+    nameTextController!.text = '';
+    telTextController!.text = '';
   }
 
   // 장애 처리현황 또는 문의 처리현황 게시물을 가져오는 method
@@ -315,11 +284,11 @@ class SettingsController extends GetxController {
 
     print('SettingsController - onInit() 호출');
 
-    // AuthController - User를 복제한다.
+    // AuthController의 사용자 정보를 복제한다.
     settingUser = AuthController.to.user.value.copyWith();
 
-    // ImagePicker에 값을 대입한다.
-    imagePicker = ImagePicker();
+    nameTextController = TextEditingController();
+    telTextController = TextEditingController();
   }
 
   // SettingsController가 메모리에 제거되기 전 일련의 과정을 수행하는 method
@@ -327,10 +296,8 @@ class SettingsController extends GetxController {
   void onClose() {
     print('settings_controller - onClose() 호출');
 
-    // 변수 초기화
+    // 변수 초기화 및 clear
     settingUser = null;
-
-    imagePicker = null;
     editImage = null;
 
     obsWhatIWrotePostDatas.clear();

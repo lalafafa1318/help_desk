@@ -140,18 +140,13 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             // 게시글이 삭제되지 않았으면?
             else {
               // 사용자가 게시물(post)에 대해서 알림 신청을 했었다면?
-              if (isResult == true) {
-                // 사용자가 게시물에 대한 알림을 해제할 떄, 알림 받기 위해 했던 여러 설정을 해제한다.
-                await NotificationController.to
-                    .clearNotificationSetting(postData!.postUid);
-              }
-
-              // 사용자가 게시물(post)에 대해서 알림 신청을 하지 않았다면?
-              else {
-                // 사용자가 게시물에 대한 알림을 등록할 떄, 알림 받기 위한 여러 설정을 등록하는 method
-                await NotificationController.to
-                    .enrollNotificationSetting(postData!.postUid);
-              }
+              isResult == true
+                    // 사용자가 게시물에 대한 알림을 해제할 떄, 알림 받기 위해 했던 여러 설정을 해제한다.
+                  ? await NotificationController.to
+                      .clearNotificationSetting(postData!.postUid)
+                    // 사용자가 게시물에 대한 알림을 등록할 떄, 알림 받기 위한 여러 설정을 등록한다.
+                  : await NotificationController.to
+                      .enrollNotificationSetting(postData!.postUid);
 
               // 하단 SnackBar 알림
               ScaffoldMessenger.of(context).showSnackBar(
@@ -165,7 +160,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           },
 
           // 사용자가 게시물(post)에 대해서 알림 신청을 했는지 하지 않았는지 판별해 서로 다른 아이콘을 보여준다.
-          icon: isResult
+          icon: isResult == true
               ? const Icon(
                   Icons.notifications_active_outlined,
                   color: Colors.red,
@@ -1402,7 +1397,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // 게시물이 삭제되었는지 확인하는 method
-  Future<bool> isDeletePost(ObsOrInqClassification obsOrInq, String postUid) async {
+  Future<bool> isDeletePost(
+      ObsOrInqClassification obsOrInq, String postUid) async {
     print('SpecificPostPage - isDeletePost() 호출');
 
     // 게시물이 삭제됐으면 isDeletePostResult는 true
@@ -1593,14 +1589,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     // 게시물(obsPosts, inqPosts)에 대한 proStatus, phoneNumber, whoWriteCommentThePost에 대한 데이터를 받아와서 postData에 업데이트한다.
     await updatePostData();
 
-    // Database에 있는 게시물 처리상태(proStatus)를 업데이트 한다.
-    // await updatePostProClassification(postData!);
-
-    // // DataBase에서
-    // // obsPosts 또는 inqPosts에 대한 whoLikeThePost(게시물 공감한 사람), whoWriteCommentThePost(게시물에 댓글 작성한 사람)에 대한 데이터를 받아와서
-    // // postData에 업데이트 하는 method
-    // await updateWhoWriteCommentThePostToPostData();
-
     // 답변 정보 입력에 대한 정보 초기화 작업 한다.
     resetAnswerInformationInput();
 
@@ -1637,22 +1625,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     // UserData의 image, userName 속성에 값을 업데이트 한다.
     userData!.image = user.image;
     userData!.userName = user.userName;
-  }
-
-  // DataBase에서
-  // 게시물(obsPosts, inqPosts)에 대해서 변경 가능성이 존재하는 속성에 접근한다.
-  // 변경 가능성이 존재하는 속성 : proStatus, phoneNumber, whoWriteCommentThePost
-  // 접근한 다음 postData에 업데이트 한다.
-  Future<void> updatePostData() async {
-    print('SpecificPostPage - updatePostData() 호출');
-
-    // DataBase에 게시글(obsPosts, inqPosts) 정보를 가져온다.
-    PostModel post = await PostListController.to.getPostData(postData!);
-
-    // postData의 proStatus, phoneNumber, whoWriteCommentThePost 속성에 값을 업데이트 한다.
-    postData!.proStatus = post.proStatus;
-    postData!.phoneNumber = post.phoneNumber;
-    postData!.whoWriteCommentThePost = post.whoWriteCommentThePost;
   }
 
   // Database에 있는 게시물 처리상태(proStatus)를 업데이트하고
@@ -1697,6 +1669,22 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     // PostData의 whoWriteCommentThePost 속성에 값을 업데이트 한다.
     postData!.whoWriteCommentThePost.clear();
     postData!.whoWriteCommentThePost.addAll(whoWriteTheCommentThePost);
+  }
+
+  // DataBase에서
+  // 게시물(obsPosts, inqPosts)에 대해서 변경 가능성이 존재하는 속성에 접근한다.
+  // 변경 가능성이 존재하는 속성 : proStatus, phoneNumber, whoWriteCommentThePost
+  // 접근한 다음 postData에 업데이트 한다.
+  Future<void> updatePostData() async {
+    print('SpecificPostPage - updatePostData() 호출');
+
+    // DataBase에 게시글(obsPosts, inqPosts) 정보를 가져온다.
+    PostModel post = await PostListController.to.getPostData(postData!);
+
+    // postData의 proStatus, phoneNumber, whoWriteCommentThePost 속성에 값을 업데이트 한다.
+    postData!.proStatus = post.proStatus;
+    postData!.phoneNumber = post.phoneNumber;
+    postData!.whoWriteCommentThePost = post.whoWriteCommentThePost;
   }
 
   // 답변 정보 입력에 대한 내용을 초기화 하는 method
