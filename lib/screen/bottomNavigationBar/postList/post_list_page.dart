@@ -307,8 +307,7 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 장애 처리현황 게시물을 obsPostData에 추가하는 method
-  Widget prepareShowObsPostData(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
+  Widget prepareShowObsPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocObsPostDataInArray(ultimateData),
       builder: (context, snapshot) {
@@ -389,8 +388,7 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 문의 처리현황 게시물을 inqPostData에 추가하는 method
-  Widget prepareShowInqPostData(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowInqPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocInqPostDataInArray(allData),
       builder: (context, snapshot) {
@@ -504,111 +502,18 @@ class _PostListPageState extends State<PostListPage> {
               margin: EdgeInsets.only(top: 30.h),
               child: Text('${index + 1}'),
             ),
+
             // 게시물
             Expanded(
-              child: GFCard(
-                elevation: 2.0,
-                boxFit: BoxFit.cover,
-                titlePosition: GFPosition.start,
-                showImage: false,
-                title: GFListTile(
-                  color: Colors.black12,
-                  padding: EdgeInsets.all(16.r),
-
-                  // User 이미지
-                  avatar: GFAvatar(
-                    radius: 30.r,
-                    backgroundImage: CachedNetworkImageProvider(userData.image),
-                  ),
-
-                  // User 이름
-                  titleText: userData.userName,
-
-                  // 게시물 제목
-                  subTitleText: postData.postTitle,
-
-                  // 게시물 올린 날짜
-                  description: Container(
-                    margin: EdgeInsets.only(top: 5.h),
-                    child: Text(
-                      // postTime은 원래 초(Second)까지 존재하나
-                      // 화면에서는 분(Minute)까지 표시한다.
-                      postData.postTime.substring(0, 16),
-                      style: TextStyle(fontSize: 10.sp),
-                    ),
-                  ),
-                ),
-
-                // 글 내용과 사진, 좋아요, 댓글 수를 보여준다.
-                // +) 시스템, 처리상태를 나타낸다.
-                content: Column(
-                  children: [
-                    // 글 내용
-                    Padding(
-                      padding: EdgeInsets.all(16.0.r),
-                      child: Text(
-                        postData.postContent,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-
-                    SizedBox(height: 10.h),
-
-                    // 게시물 이미지 개수, 좋아요 수, 댓글 수를 보여준다.
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        // 게시물 이미지 개수
-                        postData.imageList.isNotEmpty
-                            ? Row(
-                                children: [
-                                  SizedBox(width: 20.w),
-
-                                  // 이미지 아이콘
-                                  Icon(
-                                    Icons.photo,
-                                    color: Colors.black,
-                                    size: 15.sp,
-                                  ),
-
-                                  // 간격
-                                  SizedBox(width: 5.w),
-
-                                  // 이미지 아이콘 개수
-                                  Text(
-                                    postData.imageList.length.toString(),
-                                  ),
-                                ],
-                              )
-                            : const Visibility(
-                                visible: false,
-                                child: Text('이미지가 없으면 표시하지 않습니다.'),
-                              ),
-
-                        SizedBox(width: 20.w),
-
-                        // 댓글 수
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Icon(
-                              Icons.comment_outlined,
-                              color: Colors.blue[300],
-                              size: 15.sp,
-                            ),
-                            SizedBox(width: 5.w),
-                            Text(postData.whoWriteCommentThePost.length
-                                .toString()),
-                          ],
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: 20.h),
-
-                    // 시스템 분류 코드와 처리 상태 분류 코드 (제 1책)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              flex: 1,
+              child: Column(
+                children: [
+                  // 시스템 처리 코드, 처리 단계를 나타내는 Container 입니다.
+                  Container(
+                    margin: EdgeInsets.only(top: 26.h),
+                    width: ScreenUtil().screenWidth,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         // 시스템 분류 코드
                         Container(
@@ -622,14 +527,14 @@ class _PostListPageState extends State<PostListPage> {
                           child: Align(
                             alignment: Alignment.center,
                             child: Text(
-                              postData.sysClassficationCode.asText,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w600),
+                              '시스템 : ${postData.sysClassficationCode.asText}',
+                              style: TextStyle(
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
-
-                        SizedBox(width: 10.w),
 
                         // 처리 상태 분류 코드
                         Container(
@@ -643,16 +548,124 @@ class _PostListPageState extends State<PostListPage> {
                           child: Align(
                             alignment: Alignment.center,
                             child: Text(
-                              postData.proStatus.asText,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w600),
+                              '처리상태 : ${postData.proStatus.asText}',
+                              style: TextStyle(
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+
+                  // GFCard
+                  GFCard(
+                    elevation: 2.0,
+                    boxFit: BoxFit.cover,
+                    titlePosition: GFPosition.start,
+                    showImage: false,
+
+                    title: GFListTile(
+                      color: Colors.black12,
+                      padding: EdgeInsets.all(16.r),
+
+                      // User 이미지
+                      avatar: GFAvatar(
+                        radius: 30.r,
+                        backgroundImage:
+                            CachedNetworkImageProvider(userData.image),
+                      ),
+
+                      // User 이름
+                      titleText: userData.userName,
+
+                      // 게시물 제목
+                      subTitleText: postData.postTitle,
+
+                      // 게시물 올린 날짜
+                      description: Container(
+                        margin: EdgeInsets.only(top: 5.h),
+                        child: Text(
+                          // postTime은 원래 초(Second)까지 존재하나
+                          // 화면에서는 분(Minute)까지 표시한다.
+                          postData.postTime.substring(0, 16),
+                          style: TextStyle(fontSize: 10.sp),
+                        ),
+                      ),
+                    ),
+
+                    // 글 내용과 사진, 댓글 수를 보여준다.
+                    // +) 시스템, 처리상태를 나타낸다.
+                    content: Column(
+                      children: [
+                        // 글 내용
+                        Padding(
+                          padding: EdgeInsets.all(16.0.r),
+                          child: Text(
+                            postData.postContent,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+
+                        SizedBox(height: 10.h),
+
+                        // 게시물 이미지 개수, 댓글 수를 보여준다.
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            // 게시물 이미지 개수
+                            postData.imageList.isNotEmpty
+                                ? Row(
+                                    children: [
+                                      SizedBox(width: 20.w),
+
+                                      // 이미지 아이콘
+                                      Icon(
+                                        Icons.photo,
+                                        color: Colors.black,
+                                        size: 15.sp,
+                                      ),
+
+                                      // 간격
+                                      SizedBox(width: 5.w),
+
+                                      // 이미지 아이콘 개수
+                                      Text(
+                                        postData.imageList.length.toString(),
+                                      ),
+                                    ],
+                                  )
+                                : const Visibility(
+                                    visible: false,
+                                    child: Text('이미지가 없으면 표시하지 않습니다.'),
+                                  ),
+
+                            SizedBox(width: 20.w),
+
+                            // 댓글 수
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Icon(
+                                  Icons.comment_outlined,
+                                  color: Colors.blue[300],
+                                  size: 15.sp,
+                                ),
+                                SizedBox(width: 5.w),
+                                Text(postData.whoWriteCommentThePost.length
+                                    .toString()),
+                              ],
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(height: 20.h),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

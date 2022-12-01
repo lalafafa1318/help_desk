@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
@@ -147,6 +146,9 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   // 사용자가 게시물에 대한 알림을 등록할 떄, 알림 받기 위한 여러 설정을 등록한다.
                   : await NotificationController.to
                       .enrollNotificationSetting(postData!.postUid);
+
+              // update()를 실행해 notifyButton Widget만 재랜더링 한다.
+              NotificationController.to.update(['notifyButton']);
 
               // 하단 SnackBar 알림
               ScaffoldMessenger.of(context).showSnackBar(
@@ -1555,7 +1557,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                 onPressed: () async {
                   // 로딩바 시작(필요하면 추가하기로)
                   EasyLoading.show(
-                    status: 'comment를 삭제 합니다:)',
+                    status: 'comment를\n삭제 합니다:)',
                     maskType: EasyLoadingMaskType.black,
                   );
 

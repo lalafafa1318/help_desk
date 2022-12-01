@@ -35,7 +35,7 @@ class NotificationController extends GetxController {
   // Controller를 더 쉽게 사용할 수 있도록 하는 get method
   static NotificationController get to => Get.find();
 
-  // 사용자가 게시물에 대한 알림을 해제할 떄, 알림 받기 위해 했던 여러 설정을 해제한다.
+  // 사용자가 게시물에 대한 알림을 해제할 떄, 위 게시물에 대해서 알림 받기 위해 했던 여러 설정을 해제한다.
   Future<void> clearNotificationSetting(String postUid) async {
     // 해당 게시물 Uid가 notiPost Array의 몇번째 index에 있는지 확인한다.
     int index = notiPost.indexOf(postUid);
@@ -57,12 +57,9 @@ class NotificationController extends GetxController {
       postUid,
       SettingsController.to.settingUser!.userUid,
     );
-
-    // update()를 실행행 notifyButton Widget만 재랜더링 한다.
-    update(['notifyButton']);
   }
 
-  // 사용자가 게시물에 대한 알림을 등록할 떄, 알림 받기 위한 여러 설정을 등록하는 method
+  // 사용자가 게시물에 대한 알림을 등록할 떄, 위 게시물에 대해서 알림 받기 위한 여러 설정을 등록하는 method
   Future<void> enrollNotificationSetting(String postUid) async {
     // NotificationControler의 notiPost Array에 게시물 uid를 추가한다.
     notiPost.add(postUid);
@@ -83,9 +80,6 @@ class NotificationController extends GetxController {
       postUid,
       SettingsController.to.settingUser!.userUid,
     );
-
-    // update()를 실행해 notifyButton Widget만 재랜더링 한다.
-    update(['notifyButton']);
   }
 
   // Database에 User의 notiPost 속성에 게시물 uid를 추가한다.

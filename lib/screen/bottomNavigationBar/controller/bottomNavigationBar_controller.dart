@@ -27,8 +27,8 @@ class BottomNavigationBarController extends GetxController {
     // 최신 BottomNavigationBar History가 "Post List"인 경우 처리
     else if (bottomNaviBarHistory.last == 0) {
       // 검색창에 Keyword를 입력했으면 빈칸으로 만든다.
-      if (PostListController.to.searchTextController!.text.isNotEmpty) {
-        PostListController.to.searchTextController!.text = '';
+      if (PostListController.to.searchTextController.text.isNotEmpty) {
+        PostListController.to.searchTextController.text = '';
       }
 
       // 다음 페이지를 BottomNavigationBar History에 기록한다.
@@ -54,7 +54,7 @@ class BottomNavigationBarController extends GetxController {
     // 다음 페이지 BottomNavigationBar History에 기록한다.
     bottomNaviBarHistory.add(index);
 
-    print('BottomNaviBarHistory : ${bottomNaviBarHistory}');
+    print('BottomNaviBarHistory : $bottomNaviBarHistory');
 
     // selectedIndex 상태 변화 감지 -> Obx 호출
     selectedIndex(index);

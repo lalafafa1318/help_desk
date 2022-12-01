@@ -491,110 +491,23 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 게시물의 index를 표시한다.
             Container(
               margin: EdgeInsets.only(top: 30.h),
               child: Text('${index + 1}'),
             ),
+
+            // 게시물
             Expanded(
-              child: GFCard(
-                elevation: 2.0,
-                boxFit: BoxFit.cover,
-                titlePosition: GFPosition.start,
-                showImage: false,
-                title: GFListTile(
-                  color: Colors.black12,
-                  padding: EdgeInsets.all(16.r),
-
-                  // User 이미지
-                  avatar: GFAvatar(
-                    radius: 30.r,
-                    backgroundImage:
-                        CachedNetworkImageProvider(userModel.image),
-                  ),
-
-                  // 사용자 이름
-                  titleText: userModel.userName,
-
-                  // 게시물 제목
-                  subTitleText: postModel.postTitle,
-
-                  // 게시물 올린 날짜
-                  description: Container(
-                    margin: EdgeInsets.only(top: 5.h),
-                    child: Text(
-                      postModel.postTime.substring(0, 16),
-                      style: TextStyle(fontSize: 10.sp),
-                    ),
-                  ),
-                ),
-                content: Column(
-                  children: [
-                    // 글 내용
-                    Padding(
-                      padding: EdgeInsets.all(16.0.r),
-                      child: Text(
-                        postModel.postContent,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-
-                    SizedBox(height: 10.h),
-
-                    // 게시물 이미지 개수, 좋아요 수, 댓글 수를 보여준다.
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        // 게시물 이미지 개수
-                        postModel.imageList.isNotEmpty
-                            ? Row(
-                                children: [
-                                  SizedBox(width: 20.w),
-
-                                  // 이미지 아이콘
-                                  Icon(
-                                    Icons.photo,
-                                    color: Colors.black,
-                                    size: 15.sp,
-                                  ),
-
-                                  // 간격
-                                  SizedBox(width: 5.w),
-
-                                  // 이미지 아이콘 개수
-                                  Text(
-                                    postModel.imageList.length.toString(),
-                                  ),
-                                ],
-                              )
-                            : const Visibility(
-                                visible: false,
-                                child: Text('이미지가 없어서 표시하지 않습니다.'),
-                              ),
-
-                        SizedBox(width: 20.w),
-
-                        // 댓글 수
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Icon(
-                              Icons.comment_outlined,
-                              color: Colors.blue[300],
-                              size: 15.sp,
-                            ),
-                            SizedBox(width: 5.w),
-                            Text(postModel.whoWriteCommentThePost.length
-                                .toString()),
-                          ],
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: 20.h),
-
-                    // 시스템 분류 코드와 처리 상태 분류 코드 (제 1책)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              flex: 1,
+              child: Column(
+                children: [
+                  // 시스템 처리 코드, 처리 단계를 나타내는 Container 입니다.
+                  Container(
+                    margin: EdgeInsets.only(top: 26.h),
+                    width: ScreenUtil().screenWidth,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         // 시스템 분류 코드
                         Container(
@@ -608,14 +521,14 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
                           child: Align(
                             alignment: Alignment.center,
                             child: Text(
-                              postModel.sysClassficationCode.asText,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w600),
+                              '시스템 : ${postModel.sysClassficationCode.asText}',
+                              style: TextStyle(
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
-
-                        SizedBox(width: 10.w),
 
                         // 처리 상태 분류 코드
                         Container(
@@ -629,16 +542,118 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
                           child: Align(
                             alignment: Alignment.center,
                             child: Text(
-                              postModel.proStatus.asText,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w600),
+                              '처리상태 : ${postModel.proStatus.asText}',
+                              style: TextStyle(
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+
+                  // GFCard
+                  GFCard(
+                    elevation: 2.0,
+                    boxFit: BoxFit.cover,
+                    titlePosition: GFPosition.start,
+                    showImage: false,
+                    title: GFListTile(
+                      color: Colors.black12,
+                      padding: EdgeInsets.all(16.r),
+
+                      // User 이미지
+                      avatar: GFAvatar(
+                        radius: 30.r,
+                        backgroundImage:
+                            CachedNetworkImageProvider(userModel.image),
+                      ),
+
+                      // 사용자 이름
+                      titleText: userModel.userName,
+
+                      // 게시물 제목
+                      subTitleText: postModel.postTitle,
+
+                      // 게시물 올린 날짜
+                      description: Container(
+                        margin: EdgeInsets.only(top: 5.h),
+                        child: Text(
+                          postModel.postTime.substring(0, 16),
+                          style: TextStyle(fontSize: 10.sp),
+                        ),
+                      ),
+                    ),
+                    content: Column(
+                      children: [
+                        // 글 내용
+                        Padding(
+                          padding: EdgeInsets.all(16.0.r),
+                          child: Text(
+                            postModel.postContent,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+
+                        SizedBox(height: 10.h),
+
+                        // 게시물 이미지 개수, 좋아요 수, 댓글 수를 보여준다.
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            // 게시물 이미지 개수
+                            postModel.imageList.isNotEmpty
+                                ? Row(
+                                    children: [
+                                      SizedBox(width: 20.w),
+
+                                      // 이미지 아이콘
+                                      Icon(
+                                        Icons.photo,
+                                        color: Colors.black,
+                                        size: 15.sp,
+                                      ),
+
+                                      // 간격
+                                      SizedBox(width: 5.w),
+
+                                      // 이미지 아이콘 개수
+                                      Text(
+                                        postModel.imageList.length.toString(),
+                                      ),
+                                    ],
+                                  )
+                                : const Visibility(
+                                    visible: false,
+                                    child: Text('이미지가 없어서 표시하지 않습니다.'),
+                                  ),
+
+                            SizedBox(width: 20.w),
+
+                            // 댓글 수
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Icon(
+                                  Icons.comment_outlined,
+                                  color: Colors.blue[300],
+                                  size: 15.sp,
+                                ),
+                                SizedBox(width: 5.w),
+                                Text(postModel.whoWriteCommentThePost.length
+                                    .toString()),
+                              ],
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(height: 20.h),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
