@@ -14,14 +14,14 @@ import 'package:help_desk/utils/toast_util.dart';
 import 'package:image_picker/image_picker.dart';
 
 class SettingsController extends GetxController {
-  // Field
+  // **** 기타 설정 **** //
   // 사용자가 회원가입 절차를 거쳤는지 아닌지를 판별하는 상태 변수
   bool didSignUp = true;
-
   // 사용자 계정을 나타내는 인스턴스
   // AuthController의 사용자 정보를 복제했다.
   UserModel? settingUser;
 
+  // **** 프로필 수정 페이지에서 관리하는 데이터 **** //
   // 수정한 이미지에 대한 Field
   ImagePicker imagePicker = ImagePicker();
   File? editImage;
@@ -32,26 +32,23 @@ class SettingsController extends GetxController {
   // 전화번호와 관련된 TextFormField Text를 저장하는 Field
   TextEditingController? telTextController;
 
+  // **** 내가 쓴 글 페이지, 내가 댓글 단 글 페이지에서 관리하는 데이터 **** //
   // whatIWrotePage, whatICommentPage 장애/게시물 선택에서
   // 장애 처리현황을 선택했는가? 문의 처리현황을 선택했는가?
   ObsOrInqClassification selectObsOrInq =
       ObsOrInqClassification.obstacleHandlingStatus;
-
   // 장애 처리현황과 관련해서 사용자가 쓴 게시물을 담는 배열
   List<PostModel> obsWhatIWrotePostDatas = [];
   // 장애 처리현황과 관련해서 사용자가 쓴 게시물에 대한 사용자 정보를 담는 배열
   List<UserModel> obsWhatIWroteUserDatas = [];
-
   // 문의 처리현황과 관련해서 사용자가 쓴 게시물을 담는 배열
   List<PostModel> inqWhatIWrotePostDatas = [];
   // 문의  처리현황과 관련해서 사용자가 쓴 게시물에 대한 사용자 정보를 담는 배열
   List<UserModel> inqWhatIWroteUserDatas = [];
-
   // 장애 처리현황과 관련해서 사용자가 댓글 작성한 게시물을 담는 배열
   List<PostModel> obsWhatICommentPostDatas = [];
   // 장애 처리현황과 관련해서 사용자가 댓글 작성한 게시물에 대한 사용자 정보를 담는 배열
   List<UserModel> obsWhatICommentUserDatas = [];
-
   // 문의 처리현황과 관련해서 사용자가 댓글 작성한 게시물을 담는 배열
   List<PostModel> inqWhatICommentPostDatas = [];
   // 문의 처리현황과 관련해서 사용자가 댓글 작성한 게시물에 대한 사용자 정보를 담는 배열
@@ -119,11 +116,13 @@ class SettingsController extends GetxController {
       // 사용자가 일반 사용자인지 IT 담당자인지에 따라 userType을 다르게 설정한다.
       userType: settingUser!.userType == UserClassification.GENERALUSER
           ? UserClassification.GENERALUSER
-          : UserClassification.ITUSER,
+          : settingUser!.userType == UserClassification.IT1USER
+              ? UserClassification.IT1USER
+              : UserClassification.IT2USER,
       userName: nameTextController!.text,
       image: imageUrl.toString(),
       userUid: settingUser!.userUid,
-      notiPost: settingUser!.notiPost,
+      commentNotificationPostUid: settingUser!.commentNotificationPostUid,
       phoneNumber: telTextController!.text,
     );
 

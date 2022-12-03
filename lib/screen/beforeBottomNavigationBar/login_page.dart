@@ -25,7 +25,6 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-
   // Facebook Login Button
   Widget facebookLoginButton() {
     return Padding(

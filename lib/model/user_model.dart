@@ -10,8 +10,8 @@ class UserModel {
   String image;
   // Uid
   String userUid;
-  // 알림 신청한 게시물
-  List<String> notiPost;
+  // 사용자가 게시물 알림 신청했을 떄 해당 게시물 Uid
+  List<String> commentNotificationPostUid;
   // 전화번호
   String phoneNumber;
 
@@ -21,7 +21,7 @@ class UserModel {
     required this.userName,
     required this.image,
     required this.userUid,
-    required this.notiPost,
+    required this.commentNotificationPostUid,
     required this.phoneNumber,
   });
 
@@ -32,7 +32,7 @@ class UserModel {
     String? description,
     String? image,
     String? userUid,
-    List<String>? notiPost,
+    List<String>? commentNotificationPostUid,
     String? phoneNumber,
   }) {
     return UserModel(
@@ -40,7 +40,7 @@ class UserModel {
       userName: userName ?? this.userName,
       image: image ?? this.image,
       userUid: userUid ?? this.userUid,
-      notiPost: notiPost ?? this.notiPost,
+      commentNotificationPostUid: commentNotificationPostUid ?? this.commentNotificationPostUid,
       phoneNumber: phoneNumber ?? this.phoneNumber,
     );
   }
@@ -53,7 +53,7 @@ class UserModel {
         userName = mapData['userName'].toString(),
         image = mapData['image'].toString(),
         userUid = mapData['userUid'].toString(),
-        notiPost = List<String>.from(mapData['notiPost'] as List),
+        commentNotificationPostUid = List<String>.from(mapData['commentNotificationPostUid'] as List),
         phoneNumber = mapData['phoneNumber'].toString();
 
   // Model class를 Map으로 바꾸는 method
@@ -64,8 +64,8 @@ class UserModel {
       'userName': user.userName,
       'image': user.image,
       'userUid': user.userUid,
-      'notiPost': user.notiPost.isNotEmpty ? user.notiPost : [],
-      'phoneNumber' : user.phoneNumber,
+      'commentNotificationPostUid': user.commentNotificationPostUid.isNotEmpty ? user.commentNotificationPostUid : [],
+      'phoneNumber': user.phoneNumber,
     };
   }
 }

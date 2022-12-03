@@ -52,8 +52,7 @@ class CommunicateFirebase {
   }
 
   // "회원가입" 페이지에 있는 Image를 Firebase Storage에 upload하는 method
-  static UploadTask signInUploadImage(
-      {required File imageFile, required String userUid}) {
+  static UploadTask signInUploadImage({required File imageFile, required String userUid}) {
     // ImageFile의 확장자(png, jpg) 가져오기
     String imageFileExt = imageFile.toString().split('.').last.substring(0, 3);
 
@@ -314,7 +313,7 @@ class CommunicateFirebase {
         documentSnapshot.data()!['whoWriteCommentThePost'] as List);
 
     // 2. DataBase 게시물에 대한 처리상태를 업데이트하고, 최신의 값을 가지는 작업
-    
+
     QuerySnapshot<Map<String, dynamic>> querySnapshot = await documentSnapshot
         .reference
         .collection('comments')
@@ -385,7 +384,8 @@ class CommunicateFirebase {
   }
 
   // 게시물이 삭제되었는지 확인하는 method
-  static Future<bool> isDeletePost(ObsOrInqClassification obsOrInq, String postUid) async {
+  static Future<bool> isDeletePost(
+      ObsOrInqClassification obsOrInq, String postUid) async {
     DocumentSnapshot<Map<String, dynamic>> postData;
 
     // 확인하려는 게시물이 장애 처리현황인 경우...
@@ -407,7 +407,8 @@ class CommunicateFirebase {
   // DocumentReference 데이터 타입이여야 한다.
   // 따라서 getPostData method가 있어도, DocumentReference 데이터 타입을 가진 getPostData를 따로 만든 것이다.
   // DataBase에 게시물 데이터를에 접근하는 method
-  static DocumentReference<Map<String, dynamic>> documentReferenceGetPostData(ObsOrInqClassification obsOrInq, String postUid) {
+  static DocumentReference<Map<String, dynamic>> documentReferenceGetPostData(
+      ObsOrInqClassification obsOrInq, String postUid) {
     DocumentReference<Map<String, dynamic>> documentRefrence;
     // 해당 게시물이 장애 처리현황 게시물인 경우..
     if (obsOrInq == ObsOrInqClassification.obstacleHandlingStatus) {
@@ -422,7 +423,8 @@ class CommunicateFirebase {
   }
 
   // Database에 게시물(post)의 whoWriteCommentThePost 속성에 사용자 uid를 추가하는 method
-  static Future<void> addWhoWriteCommentThePost(PostModel postData, String userUid) async {
+  static Future<void> addWhoWriteCommentThePost(
+      PostModel postData, String userUid) async {
     // 반환 타입이 DocumentReference으로 DataBase에 게시물 데이터에 접근하는 method
     DocumentReference<Map<String, dynamic>> documentReference =
         documentReferenceGetPostData(postData.obsOrInq, postData.postUid);
@@ -476,7 +478,8 @@ class CommunicateFirebase {
   }
 
   // DataBase에 comment(댓글)을 추가하는 method
-  static Future<void> setCommentData(CommentModel commentModel, PostModel postData) async {
+  static Future<void> setCommentData(
+      CommentModel commentModel, PostModel postData) async {
     // 댓글과 관련된 게시물이 장애 처리현황인 경우
     if (postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus) {
       // Database에 comment 정보를 set한다.
@@ -500,7 +503,8 @@ class CommunicateFirebase {
   }
 
   // Database에서 게시물(post)에 대한 여러 comment를 가져오는 method
-  static Future<Map<String, dynamic>> getCommentAndUser(PostModel postData) async {
+  static Future<Map<String, dynamic>> getCommentAndUser(
+      PostModel postData) async {
     // Database에서 게시물(post)에 해당하는 여러 comment을 가져온다.
     QuerySnapshot<Map<String, dynamic>> comments =
         (postData.obsOrInq == ObsOrInqClassification.obstacleHandlingStatus
@@ -552,7 +556,8 @@ class CommunicateFirebase {
   }
 
   // Database에 comment을 삭제한다.
-  static Future<void> deleteComment(CommentModel comment, PostModel postData) async {
+  static Future<void> deleteComment(
+      CommentModel comment, PostModel postData) async {
     // Database의 comemnt을 가져온다.
     DocumentReference<Map<String, dynamic>> commentReference =
         getCommentData(comment, postData);
@@ -590,44 +595,48 @@ class CommunicateFirebase {
     );
   }
 
-  // Database에 User의 notiPost 속성에 게시물 uid를 추가한다.
-  static Future<void> addNotiPostFromUser(String postUid, String userUid) async {
+  // Database에 User의 commentNotificationPostUid 속성에 
+  // 사용자가 알림 신청한 게시물 uid를 추가한다.
+  static Future<void> addCommentNotificationPostUid(String postUid, String userUid) async {
     DocumentSnapshot<Map<String, dynamic>> user =
         await _firebaseFirestore.collection('users').doc(userUid).get();
 
-    List<String> notiPost = List<String>.from(user.data()!['notiPost'] as List);
+    List<String> commentNotificationPostUid = List<String>.from(user.data()!['commentNotificationPostUid'] as List);
 
-    notiPost.add(postUid);
+    commentNotificationPostUid.add(postUid);
 
     await _firebaseFirestore.collection('users').doc(userUid).update(
-      {'notiPost': notiPost},
+      {'commentNotificationPostUid': commentNotificationPostUid},
     );
   }
 
-  // Database에 User의 notiPost 속성에 게시물 uid를 삭제한다.
-  static Future<void> deleteNotiPostFromUser(String postUid, String userUid) async {
+  // Database에 User의 commentNotificationPostUid 속성에 
+  // 사용자가 알림 신청한 게시물 uid를 삭제한다.
+  static Future<void> deleteCommentNotificationPostUid(String postUid, String userUid) async {
     DocumentSnapshot<Map<String, dynamic>> user =
         await _firebaseFirestore.collection('users').doc(userUid).get();
 
-    List<String> notiPost = List<String>.from(user.data()!['notiPost'] as List);
+    List<String> commentNotificationPostUid = List<String>.from(user.data()!['commentNotificationPostUid'] as List);
 
-    notiPost.remove(postUid);
+    commentNotificationPostUid.remove(postUid);
 
     await _firebaseFirestore.collection('users').doc(userUid).update(
-      {'notiPost': notiPost},
+      {'commentNotificationPostUid': commentNotificationPostUid},
     );
   }
 
-  // Database에 User의 notiPost 속성을 가져와 notiPost Array에 값을 대입한다.
-  static Future<List<String>> getNotiPostFromUser(String userUid) async {
+  // Database에 User의 commentNotificationPostUid 속성을 가져오는 method
+  static Future<List<String>> getCommentNotificationPostUid(
+      String userUid) async {
     DocumentSnapshot<Map<String, dynamic>> user =
         await _firebaseFirestore.collection('users').doc(userUid).get();
 
-    return List<String>.from(user.data()!['notiPost'] as List);
+    return List<String>.from(user.data()!['commentNotificationPostUid'] as List);
   }
 
-  // 알림 신청한 장애 처리현황 또는 문의 처리현황 게시글에 대한 댓글(comment)의 개수를 반환하는 method
-  static Future<int> getCountFromComments(String postUid) async {
+  // 위 필드의 commentNotificationPostUidList의 성분,즉 사용자가 알림 신청한 게시물 uid를 이용한다.
+  // 게시물 uid를 이용하여 DataBase에 게시물에 대한 댓글 개수를 찾는 method
+  static Future<int> getPostCommentCount(String postUid) async {
     QuerySnapshot<Map<String, dynamic>> comments;
 
     // 알림 신청한 게시물이 장애 처리현황인지 문의 처리현황인지 확인한다.
@@ -655,36 +664,72 @@ class CommunicateFirebase {
     return comments.size;
   }
 
-  // Database에 Notificaion을 모두 가져오는 method
-  static Future<List<NotificationModel>> getNotificationFromUser(
+  // Database에 commentNotificaions에 있는 알림 기록를 모두 가져오는 method
+  static Future<List<NotificationModel>> getCommentNotificationModelList(
       String userUid) async {
-    List<NotificationModel> notificationModelList = [];
+    List<NotificationModel> commentNotificationModelList = [];
 
     QuerySnapshot<Map<String, dynamic>> notifications = await _firebaseFirestore
         .collection('users')
         .doc(userUid)
-        .collection('notifications')
+        .collection('commentNotifications')
         .orderBy('notiTime', descending: true)
         .get();
 
     notifications.docs.forEach(
-      (notificationModel) {
-        notificationModelList.add(
-          NotificationModel.fromMap(notificationModel.data()),
+      (QueryDocumentSnapshot<Map<String, dynamic>> commentNotificationModel) {
+       commentNotificationModelList.add(
+          NotificationModel.fromMap(commentNotificationModel.data()),
         );
       },
     );
 
-    return notificationModelList;
+    return commentNotificationModelList;
   }
 
-  // Database에 Notification을 삭제하는 method
-  static Future<void> deleteNotification(String notiUid, String userUid) async {
+   // Database에 requestNotificaions에 있는 알림 기록를 모두 가져오는 method
+  static Future<List<NotificationModel>> getRequestNotificationModelList(
+      String userUid) async {
+    List<NotificationModel> requestNotificationModelList = [];
+
+    QuerySnapshot<Map<String, dynamic>> notifications = await _firebaseFirestore
+        .collection('users')
+        .doc(userUid)
+        .collection('requestNotifications')
+        .orderBy('notiTime', descending: true)
+        .get();
+
+    notifications.docs.forEach(
+      (QueryDocumentSnapshot<Map<String, dynamic>> requestNotificationModel) {
+       requestNotificationModelList.add(
+          NotificationModel.fromMap(requestNotificationModel.data()),
+        );
+      },
+    );
+
+    return requestNotificationModelList;
+  }
+
+
+
+   // Databse에 commentNotifications에 있는 어떤 알림을 삭제하는 method
+  static Future<void> deleteCommentNotification(String notiUid, String userUid) async {
     await _firebaseFirestore
         .collection('users')
         .doc(userUid)
-        .collection('notifications')
+        .collection('commentNotifications')
         .doc(notiUid)
         .delete();
   }
+
+   // Databse에 requestNotifications에 있는 어떤 알림을 삭제하는 method
+  static Future<void> deleteRequestNotification(String notiUid, String userUid) async {
+    await _firebaseFirestore
+        .collection('users')
+        .doc(userUid)
+        .collection('requestNotifications')
+        .doc(notiUid)
+        .delete();
+  }
+
 }

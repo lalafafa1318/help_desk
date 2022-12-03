@@ -115,7 +115,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         print('SpecificPostPage - notifyButton 호출');
         // 사용자가 게시물(post)에 대해서 알림 신청을 했는지 하지 않았는지 여부를 판별한다.
         bool isResult =
-            NotificationController.to.notiPost.contains(postData!.postUid);
+            NotificationController.to.commentNotificationPostUidList.contains(postData!.postUid);
 
         return IconButton(
           onPressed: () async {
@@ -142,10 +142,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
               isResult == true
                   // 사용자가 게시물에 대한 알림을 해제할 떄, 알림 받기 위해 했던 여러 설정을 해제한다.
                   ? await NotificationController.to
-                      .clearNotificationSetting(postData!.postUid)
+                      .clearCommentNotificationSettings(postData!.postUid)
                   // 사용자가 게시물에 대한 알림을 등록할 떄, 알림 받기 위한 여러 설정을 등록한다.
                   : await NotificationController.to
-                      .enrollNotificationSetting(postData!.postUid);
+                      .enrollCommentNotificationSettings(postData!.postUid);
 
               // update()를 실행해 notifyButton Widget만 재랜더링 한다.
               NotificationController.to.update(['notifyButton']);
@@ -554,7 +554,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         child: GestureDetector(
           onTap: () {
             // SpecificPhotoViewPage로 Routing한다.
-
             // argument 0번쨰 : PostData이다.
             // argument 1번쨰 : PostData의 imageList 속성이 있고 그 중에서 몇번째 사진인지 알려주는 imageIndex이다.
             Get.to(
@@ -1415,7 +1414,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     return isDeletePostResult;
   }
 
-// 게시물이 삭제됐다는 것을 알리는 AlertDialog 입니다.
+  // 게시물이 삭제됐다는 것을 알리는 AlertDialog 입니다.
   Future<bool?> deletePostDialog() async {
     return showDialog<bool?>(
       context: context,
@@ -1454,7 +1453,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-// 게시물에 대한 삭제를 클릭했을 떄 나타나는 AlertDialog 입니다.
+  // 게시물에 대한 삭제를 클릭했을 떄 나타나는 AlertDialog 입니다.
   Future<bool?> clickDeletePostDialog(PostModel postData) async {
     return showDialog<bool?>(
       context: context,
@@ -1584,11 +1583,13 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // SpecificPostPage에서 변경 가능성이 존재하는 데이터를 업데이트하는 method
   Future<void> updateData() async {
     // DataBase에서
-    // 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서 userData에 업데이트 한다.
+    // 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서 
+    // 위 필드인 userData에 업데이트 한다.
     await updateUserData();
 
     // DataBase에서
-    // 게시물(obsPosts, inqPosts)에 대한 proStatus, phoneNumber, whoWriteCommentThePost에 대한 데이터를 받아와서 postData에 업데이트한다.
+    // 게시물(obsPosts, inqPosts)에 대한 proStatus, phoneNumber, whoWriteCommentThePost에 대한 데이터를 받아와서
+    // 위 필드인 postData에 업데이트한다.
     await updatePostData();
 
     // 답변 정보 입력에 대한 정보 초기화 작업 한다.
@@ -1617,7 +1618,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
   // DataBase에서
   // 게시글 작성한 사람(User)에 대한 image, userName 속성에 접근한다.
-  // 접근한 다음 userData에 업데이트 한다.
+  // 접근한 다음 위 필드 userData에 업데이트 한다.
   Future<void> updateUserData() async {
     print('SpecificPostPage - updateUserData() 호출');
 
@@ -1632,7 +1633,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // DataBase에서
   // 게시물(obsPosts, inqPosts)에 대해서 변경 가능성이 존재하는 속성에 접근한다.
   // 변경 가능성이 존재하는 속성 : proStatus, phoneNumber, whoWriteCommentThePost
-  // 접근한 다음 postData에 업데이트 한다.
+  // 접근한 다음 위 필드 postData에 업데이트 한다.
   Future<void> updatePostData() async {
     print('SpecificPostPage - updatePostData() 호출');
 

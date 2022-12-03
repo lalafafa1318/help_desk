@@ -238,13 +238,13 @@ class _SignUpPageState extends State<SignUpPage> {
 
     // Firebase Database에 저장될 UserModel 객체
     UserModel user = UserModel(
-      // 회원가입을 하면 userType을 GENERALUSER (일반 사용자)로 설정한다.
+      // 회원가입을 하면 userType을 GENERALUSER (일반 사용자)로 default한다.
       userType: UserClassification.GENERALUSER,
       userName: nameTextController!.text,
       image: imageUrl,
       userUid: widget.userUid,
-      // 회원 가입할 떄 notiPost 속성은 무조건 []이다.
-      notiPost: [],
+      // 회원 가입할 떄 commentNotificationPostUid 속성은 무조건 []이다.
+      commentNotificationPostUid: [],
       phoneNumber: telTextController!.text,
     );
 

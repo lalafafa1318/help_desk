@@ -28,7 +28,7 @@ class AuthController extends GetxController {
     userName: '',
     image: '',
     userUid: '',
-    notiPost: [],
+    commentNotificationPostUid: [],
     phoneNumber: '',
   ).obs;
 
@@ -57,6 +57,8 @@ class AuthController extends GetxController {
 
     // 회원가입을 이미 했다는 의미로 false를 대입한다.
     SettingsController.to.didSignUp = false;
+
+    print('userType : ${AuthController.to.user.value.userType}');
 
     // 로그
     print('SettingsController- didSignUp : ${SettingsController.to.didSignUp}');

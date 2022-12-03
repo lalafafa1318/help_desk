@@ -1,9 +1,7 @@
 // 게시물에 대한 Model class입니다.
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/proClassification.dart';
 import 'package:help_desk/const/sysClassification.dart';
-import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
 
 class PostModel {
   // 게시물이 장애 처리 현황에 속해있는가? 아니면 문의 처리현황에 속해있는가?

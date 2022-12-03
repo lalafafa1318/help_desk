@@ -64,9 +64,6 @@ dependencies:
   #flutter_facebook_auth: ^3.5.0
   flutter_facebook_auth: ^3.5.7
 
-  # KaKao 로고인/로그아웃 연동
-  kakao_flutter_sdk_user: ^1.2.1
-
   # Twitter 로고인/로그아웃 연동
   twitter_login: ^4.2.3
   #twitter_login_v2: ^0.0.2
@@ -74,9 +71,6 @@ dependencies:
   # Image Picker && Dotted Border
   image_picker: ^0.8.5+3
   dotted_border: ^2.0.0+2
-
-  # http
-  http: ^0.13.5
 
   # Toast
   oktoast: ^3.3.1

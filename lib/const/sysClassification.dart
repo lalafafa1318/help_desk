@@ -2,39 +2,39 @@
 enum SysClassification {
   // 시스템 전체
   ALL,
-  // WICS
+  // WICS (IT 1실이 담당하고 있다고 가정)
   WICS,
-  // ICMS
+  // ICMS (IT 1실이 담당하고 있다고 가정)
   ICMS,
-  // 매출
+  // 매출  (IT 1실이 담당하고 있다고 가정)
   SALES,
-  // 고액
+  // 고액  (IT 1실이 담당하고 있다고 가정)
   EXPENSIVE,
-  // NGOS
+  // NGOS  (IT 1실이 담당하고 있다고 가정)
   NGOS,
-  // NCCS
+  // NCCS  (IT 1실이 담당하고 있다고 가정)
   NCCS,
-  // NCCSSB
+  // NCCSSB  (IT 1실이 담당하고 있다고 가정)
   NCCSSB,
-  // 홈페이지
+  // 홈페이지 (IT 2실이 담당하고 있다고 가정)
   HOMEPAGE,
-  // NSCS
+  // NSCS   (IT 2실이 담당하고 있다고 가정)
   NSCS,
-  // ARM
+  // ARM    (IT 2실이 담당하고 있다고 가정)
   ARM,
-  // 서버
+  // 서버    (IT 2실이 담당하고 있다고 가정)
   SERVER,
-  // 네트워크
+  // 네트워크  (IT 2실이 담당하고 있다고 가정)
   NETWORK,
-  // 콜인프라
-  CALL_INFRASTRUCTURE,
-  // 보안
+  // 콜인프라  (IT 2실이 담당하고 있다고 가정)
+  CALL_INFRASTRUCTURE, 
+  // 보안     (IT 2실이 담당하고 있다고 가정)
   SECURITY,
-  // 문서중앙화
+  // 문서중앙화  (IT 2실이 담당하고 있다고 가정)
   DOC_CENTRALIZATION,
-  // 개인장비(PC등)
+  // 개인장비(PC등)  (IT 2실이 담당하고 있다고 가정)
   PERSONAL_EQUIPMENT,
-  // 기타
+  // 기타  (IT 2실이 담당하고 있다고 가정)
   ETC,
 }
 
