@@ -144,8 +144,7 @@ class NotificationPage extends StatelessWidget {
   }
 
   // 알림 메시지 view 입니다.
-  Widget notificationMessageView(
-      List<NotificationModel> notificationModelList, int index) {
+  Widget notificationMessageView(List<NotificationModel> notificationModelList, int index) {
     // 알림을 Tap하면 SpecificPostPage로 Routing 할 때 0번쨰 argument
     int idx = -1;
 
@@ -220,21 +219,21 @@ class NotificationPage extends StatelessWidget {
                     // -> 해당 게시물에 대해서 알림 받기 위해 설정했던 모든 것을 해제한다.
                     if (isDeletePostResult == true) {
                       // 댓글 알림과 관련된 게시물 Uid가 commentNotificationPostUidList의 몇번째 index에 있는지 확인한다.
-                      int notiPostIndex = NotificationController
+                      int commentNotificationPostUidIndex = NotificationController
                           .to.commentNotificationPostUidList
                           .indexOf(notificationModel.belongNotiPostUid);
 
                       // notiPostIndex == -1 이라면 이하 if문은 실행할 필요 없다.
-                      // ex) 사용자가 알림 신청한 게시물에 대한 알림을 2개 이상 받았다고 하자...
+                      // ex) 사용자가 알림 신청한 게시물에 대한 댓글 알림을 2개 이상 받았다고 하자...
                       // 그런데, 알림 신청한 게시물 작성자가 게시물을 삭제했다고 하자..
                       // 그 다음 사용자가 알림 신청한 게시물(2개로 가정한다.)를 삭제하려고 한다...
-                      // 첫번쨰 알림 게시물을 삭제할 떄는 이하 if문을 타고가서 해당 게시물에 대해 알림 받기 위해 했던 여러 설정을 해제한다.
-                      // 두번쨰 알림 게시물을 삭제할 떄는 해당 게시물에 대한 알림 받기 위해 했던 여러 설정을 해제한 상태이므로
-                      // 이하 if문을 수행하지 않는다.
-                      notiPostIndex != -1
+                      // 첫번쨰 댓글 알림을 삭제할 떄는 이하 if문을 타고가서 해당 게시물에 대해 알림 받기 위해 했던 여러 설정을 해제한다.
+                      // 두번쨰 댓글 알림을 삭제할 떄는 해당 게시물에 대한 알림 받기 위해 했던 여러 설정을 해제한 상태이므로 이하 if문을 수행하지 않는다.
+                      commentNotificationPostUidIndex != -1
                           ? NotificationController.to
                               .clearCommentNotificationSettings(
-                                  notificationModel.belongNotiPostUid)
+                              notificationModel.belongNotiPostUid,
+                            )
                           : null;
                     }
 

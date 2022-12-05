@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -16,7 +18,8 @@ import 'package:intl/intl.dart';
 
 // 알림 목록을 관리하는 controller 입니다.
 class NotificationController extends GetxController {
-  // **** 일반 요청자, IT 담당자(IT 1실, 2실)가 자의적으로 알림 신청했을 떄 바탕이 되는 데이터 **** //
+  /* 일반 요청자, IT 담당자(IT 1실, 2실)가 댓글 알림 신청했을 떄 바탕이 되는 데이터 */
+
   // 사용자가 알림 신청한 게시물 Uid를 담는 배열
   List<String> commentNotificationPostUidList = [];
   // 사용자가 알림 신청한 게시물에 대한 댓글 개수를 담는 배열
@@ -26,7 +29,8 @@ class NotificationController extends GetxController {
   // Database에 저장된 commentNotifications에 있는 데이터를 가져와 저장하는 배열
   List<NotificationModel> commentNotificationModelList = [];
 
-  // **** IT 담당자(IT 1실, 2실)가 담당하는 시스템이 명시된 게시물이 업로드 됐을 떄 알림 받기 위해 바탕이 되는 데이터 **** //
+  /* IT 담당자(IT 1실, 2실)가 담당하는 시스템이 명시된 게시물이 업로드 됐을 떄 알림 받기 위해 바탕이 되는 데이터 */
+
   // DataBase에 저장된 requestNotifications에 있는 데이터를 가져와 저장하는 배열
   List<NotificationModel> requestNotificationModelList = [];
   // 장애 처리현황 게시물에서 IT 1실이 담당하는 시스템을 가진 게시물이 업로드 되는지 확인하는 변수
@@ -46,17 +50,25 @@ class NotificationController extends GetxController {
   // 문의 처리현황 게시물에서 IT 2실이 담당하는 시스템을 가진 게시물 총 개수
   int inqPostsIT2Count = 0;
 
-  // **** 각종 기타 설정 **** //
-  // 오직 하나의 Instnace만 쓰도록 하기 위해 설정했다.
-  final FirebaseFirestore firebaseFirestore =
-      CommunicateFirebase.getFirebaseFirestoreInstnace();
-  // Flutter Local Notification에 필요한 변수
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+
+  /* Flutter Local Notification과 관련된 부분 */
+
+  // Flutter Local Notification initalize를 위해 필요한 변수
+  late final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  // 요청 알림 또는 댓글 알림이 왔을 떄 가장 최근 시간에 온 알림을 저장하는 변수
+  late NotificationModel allNotificationModel;
+
+
+  /* 각종 기타 설정 */
+
   // IT 담당자의 경우, 알림 페이지에서 요청 알림 목록을 클릭했는지, 댓글 알림 목록을 클릭했는지 판별하는 변수
   NotificationClassification notificationClassification =
       NotificationClassification.REQUESTNOTIFICATION;
-
+  // FirebaseFiresStore과 관련된 하나의 객체만 쓰기 위해서 설정했다.
+  final FirebaseFirestore firebaseFirestore =
+      CommunicateFirebase.getFirebaseFirestoreInstnace();
+  
+ 
   // Method
   // Controller를 더 쉽게 사용할 수 있도록 하는 get method
   static NotificationController get to => Get.find();
@@ -140,16 +152,6 @@ class NotificationController extends GetxController {
                       .doc(postPath.data()!['userUid'].toString())
                       .get();
 
-              // Flutter Local Notification 전송
-              await showBigTextNotification(
-                // 댓글이 작성된 게시물 작성자 - 댓글이 작성된 게시물 제목
-                title:
-                    '${user.data()!['userName'].toString()} - ${postPath.data()!['postTitle'].toString()}',
-                // 댓글 내용
-                body:
-                    '새로운 댓글이 달렸어요 : ${comments.docs.last.data()['content'].toString()}',
-              );
-
               // NotificationModel을 만든다.
               NotificationModel noti = NotificationModel(
                 title:
@@ -166,6 +168,19 @@ class NotificationController extends GetxController {
                       element.toString() ==
                       postPath.data()!['obsOrInq'].toString(),
                 ),
+              );
+
+              // 요청 알림 또는 댓글 알림이 왔을 떄 가장 최근 시간에 온 알림을 저장하는 변수
+              allNotificationModel = noti;
+
+              // Flutter Local Notification 전송
+              await showGroupNotifications(
+                // 댓글이 작성된 게시물 작성자 - 댓글이 작성된 게시물 제목
+                title:
+                    '${user.data()!['userName'].toString()} - ${postPath.data()!['postTitle'].toString()}',
+                // 댓글 내용
+                body:
+                    '새로운 댓글이 달렸어요 : ${comments.docs.last.data()['content'].toString()}',
               );
 
               // Database에 Notification을 저장한다.
@@ -281,46 +296,57 @@ class NotificationController extends GetxController {
             QueryDocumentSnapshot<Map<String, dynamic>> recentObsPost =
                 docs.last;
 
-            // Flutter Local Notification을 띄울 떄 title에 게시물 업로드한 사용자를 보여주기 위해서 DataBase에 사용자 정보를 가져온다.
-            String userUid = recentObsPost.data()['userUid'].toString();
-            DocumentSnapshot<Map<String, dynamic>> user =
-                await firebaseFirestore.collection('users').doc(userUid).get();
+            // 그럴 일은 가능성이 낮겠지만 IT 1실 담당자 자격의 자신이 IT 1실 담당자가 관리하는 시스템 관련 게시물을 올렸을 떄는 이하 if문을 실행하지 않도록 한다.
+            // 즉 나 자신 말고 다른 사람이 IT 1실 담당자가 관리하는 시스템 관련 게시물을 올렸을 때, 이하 if문을 실행한다.
+            if (recentObsPost.data()['userUid'] !=
+                SettingsController.to.settingUser!.userUid) {
+              // Flutter Local Notification을 띄울 떄 title에 게시물 업로드한 사용자를 보여주기 위해서 DataBase에 사용자 정보를 가져온다.
+              String userUid = recentObsPost.data()['userUid'].toString();
+              DocumentSnapshot<Map<String, dynamic>> user =
+                  await firebaseFirestore
+                      .collection('users')
+                      .doc(userUid)
+                      .get();
 
-            // Flutter Local Notification을 띄운다.
-            // Flutter Local Notification 전송
-            await showBigTextNotification(
-              // 게시물 작성자 - 댓글이 작성된 게시물 제목
-              title:
-                  '${user.data()!['userName'].toString()} - ${recentObsPost.data()['postTitle'].toString()}',
-              // 게시물 시스템 분류 코드를 나타낸다.
-              body:
-                  'IT1실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentObsPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
-            );
+              // NotificationModel을 만든다.
+              NotificationModel noti = NotificationModel(
+                title:
+                    '${user.data()!['userName'].toString()} - ${recentObsPost.data()['postTitle'].toString()}',
+                body:
+                    'IT1실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentObsPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
+                notiUid: UUidUtil.getUUid(),
+                belongNotiPostUid: recentObsPost.data()['postUid'].toString(),
+                notiTime:
+                    DateFormat('yy/MM/dd - HH:mm:ss').format(DateTime.now()),
+                belongNotiObsOrInq: ObsOrInqClassification.values.firstWhere(
+                  (element) =>
+                      element.toString() ==
+                      recentObsPost.data()['obsOrInq'].toString(),
+                ),
+              );
 
-            // NotificationModel을 만든다.
-            NotificationModel noti = NotificationModel(
-              title:
-                  '${user.data()!['userName'].toString()} - ${recentObsPost.data()['postTitle'].toString()}',
-              body:
-                  'IT1실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentObsPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
-              notiUid: UUidUtil.getUUid(),
-              belongNotiPostUid: recentObsPost.data()['postUid'].toString(),
-              notiTime:
-                  DateFormat('yy/MM/dd - HH:mm:ss').format(DateTime.now()),
-              belongNotiObsOrInq: ObsOrInqClassification.values.firstWhere(
-                (element) =>
-                    element.toString() ==
-                    recentObsPost.data()['obsOrInq'].toString(),
-              ),
-            );
+              // 요청 알림 또는 댓글 알림이 왔을 떄 가장 최근 시간에 온 알림을 저장하는 변수
+              allNotificationModel = noti;
 
-            // Database에 Notification을 저장한다.
-            await firebaseFirestore
-                .collection('users')
-                .doc(SettingsController.to.settingUser!.userUid)
-                .collection('requestNotifications')
-                .doc(noti.notiUid)
-                .set(NotificationModel.toMap(noti));
+              // Flutter Local Notification을 띄운다.
+              // Flutter Local Notification 전송
+              await showGroupNotifications(
+                // 게시물 작성자 - 댓글이 작성된 게시물 제목
+                title:
+                    '${user.data()!['userName'].toString()} - ${recentObsPost.data()['postTitle'].toString()}',
+                // 게시물 시스템 분류 코드를 나타낸다.
+                body:
+                    'IT1실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentObsPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
+              );
+
+              // Database에 requestNotifications에 알림 데이터를 저장한다.
+              await firebaseFirestore
+                  .collection('users')
+                  .doc(SettingsController.to.settingUser!.userUid)
+                  .collection('requestNotifications')
+                  .doc(noti.notiUid)
+                  .set(NotificationModel.toMap(noti));
+            }
           }
           // obsPostIT1Count의 갑을 최신의 값으로 업데이트 한다.
           obsPostsIT1Count = event.size;
@@ -362,8 +388,7 @@ class NotificationController extends GetxController {
 
   // Database에 User의 commentNotificationPostUid 속성에
   // 사용자가 알림 신청한 게시물 uid를 추가한다.
-  Future<void> addCommentNotificationPostUid(
-      String postUid, String userUid) async {
+  Future<void> addCommentNotificationPostUid(String postUid, String userUid) async {
     await CommunicateFirebase.addCommentNotificationPostUid(postUid, userUid);
   }
 
@@ -423,8 +448,7 @@ class NotificationController extends GetxController {
     await CommunicateFirebase.deleteRequestNotification(notiUid, userUid);
   }
 
-
-  // 사용자가 게시물에 대한 알림을 신청할 떄, 위 게시물에 대해서 알림 받기 위한 여러 설정을 등록하는 method
+  // 사용자가 게시물에 대한 댓글 알림을 신청할 떄, 위 게시물에 대해서 알림 받기 위한 여러 설정을 등록한다
   Future<void> enrollCommentNotificationSettings(String postUid) async {
     // NotificationControler의 commentNotificationPostUidList에 게시물 uid를 추가한다.
     commentNotificationPostUidList.add(postUid);
@@ -447,7 +471,7 @@ class NotificationController extends GetxController {
     );
   }
 
-  // 사용자가 게시물에 대한 알림을 해제할 떄, 위 게시물에 대해서 알림 받기 위해 했던 여러 설정을 해제한다.
+  // 사용자가 게시물에 대한 댓글 알림을 해제할 떄, 위 게시물에 대해서 알림 받기 위해 했던 여러 설정을 해제한다.
   Future<void> clearCommentNotificationSettings(String postUid) async {
     // 사용자가 알림 신청했던 게시물 Uid를 가지고
     // 위 필드 commentNotificationPostUidList의 몇번쨰 index에 있는지 확인한다.
@@ -474,43 +498,113 @@ class NotificationController extends GetxController {
 
   // Flutter Local Notification을 setting 하는 method
   Future<void> localNotificationInitialize() async {
-    var androidIntialize =
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+    // 안드로이드 세팅
+    AndroidInitializationSettings androidIntialize =
         const AndroidInitializationSettings('mipmap/ic_launcher');
-    var iOSInitialize = const DarwinInitializationSettings();
-    var initializationSettings = InitializationSettings(
+    // iOS 세팅
+    IOSInitializationSettings iOSInitialize = const IOSInitializationSettings();
+
+    InitializationSettings initializationSettings = InitializationSettings(
       android: androidIntialize,
       iOS: iOSInitialize,
     );
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    // Flutter Local Notification 설정 완료
+    await flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      // 사용자 스마트폰에 있는 알림을 선택할 떄 호출되는 callBack Method
+      onSelectNotification: ((String? payload) {
+        if (payload != null && payload.isNotEmpty) {
+          // payload를 log로 찍는다.
+          print('payload : $payload');
+
+          
+          // 알림과 관련있는 SpecificPostPage로 Routing한다.
+          // callBack Method의 매개변수 payload가 알림이 어떤 게시물과 관련되어 있는지 확인하는 belongNotiPostUid가 있다.
+          // 이 속성을 이용하여 SpecificPostPage로 Routing 한다.
+
+        }
+        //
+        else {
+          print('payload가 없습니다.');
+        }
+      }),
+    );
   }
 
   // Flutter Loal Notification을 show하는 method
-  Future<void> showBigTextNotification(
-      {var id = 0,
-      required String title,
-      required String body,
-      var payload}) async {
-    AndroidNotificationDetails androidPlatformChannelSpecifics =
-        const AndroidNotificationDetails(
-      'you_can_name_it_whatever1',
-      'channel_name',
-      playSound: false,
-      ongoing: true,
+  Future<void> showGroupNotifications({
+    required String title,
+    required String body,
+  }) async {
+    /* 그룹 알림으로 띄우기 위해서 필요한 변수 설정 */
+    const String groupKey = 'com.android.example.help_Desk';
+    const String groupChannelId = 'help_Desk ID';
+    const String groupChannelName = 'help_Desk Name';
+    const String groupChannelDescription = 'help_Desk Description';
+
+    // AndroidNotificationDetails를 설정한다.
+    const AndroidNotificationDetails notificationAndroidSpecifics =
+        AndroidNotificationDetails(
+      groupChannelId,
+      groupChannelName,
+      channelDescription: groupChannelDescription,
+      groupKey: groupKey,
       importance: Importance.max,
       priority: Priority.high,
     );
 
-    var not = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-      iOS: const DarwinNotificationDetails(),
+    // IOSNotificationDetails를 합쳐서 NotificationDetails를 완성한다.
+    NotificationDetails notificationPlatformSpecifics =
+        const NotificationDetails(
+      android: notificationAndroidSpecifics,
+      iOS: IOSNotificationDetails(threadIdentifier: 'iOSGroup'),
     );
 
+    // 알림을 보여준다.
     await flutterLocalNotificationsPlugin.show(
-      0,
-      title,
-      body,
-      not,
+      // id -> 랜덤값을 줘서 id를 결정한다.
+      Random().nextInt(1000000),
+      // title
+      allNotificationModel.title,
+      // body
+      allNotificationModel.body,
+      // notificationDetails
+      notificationPlatformSpecifics,
+      // payload
+      // 지금까지 왔던 요청 알림 또는 댓글 알림 등 여러 알림을 그룹화 해서 저장한 배열에서 사용자가 어떤 알림을 클릭했는지 index를 찾고 remove하고자 payload를 i로 설정했다.
+      payload: allNotificationModel.belongNotiPostUid,
+    );
+
+
+    /* 그룹화된 알림을 설정하고 보여준다. */
+    InboxStyleInformation inboxStyleInformation = const InboxStyleInformation(
+      [],
+      contentTitle: '',
+      summaryText: '요청 및 댓글 알림',
+    );
+
+    AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      groupChannelId,
+      groupChannelName,
+      channelDescription: groupChannelDescription,
+      groupKey: groupKey,
+      styleInformation: inboxStyleInformation,
+      setAsGroupSummary: true,
+    );
+
+    NotificationDetails platformChannelSpecifics = NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+        iOS: const IOSNotificationDetails(threadIdentifier: 'iOSGroup'));
+
+    flutterLocalNotificationsPlugin.show(
+      -1,
+      '',
+      '',
+      platformChannelSpecifics,
     );
   }
 
