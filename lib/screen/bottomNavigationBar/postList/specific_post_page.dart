@@ -47,6 +47,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   List<UserModel> commentUserArray = [];
 
   // Database에 Comment 데이터를 호출하는 것을 허락할지, 불허할지 판별하는 변수
+  // 맨 처음 SpecificPostPage에 접근할 떄는 위 변수가 false이나, 게시물이 삭제되지 않았다는 것을 확인하면 위 변수는 true로 전환된다.
   bool isCallServerAboutCommentData = false;
 
   // 일반 사용자인지 IT 담당자인지 구별하는 변수
@@ -114,8 +115,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       builder: (controller) {
         print('SpecificPostPage - notifyButton 호출');
         // 사용자가 게시물(post)에 대해서 알림 신청을 했는지 하지 않았는지 여부를 판별한다.
-        bool isResult =
-            NotificationController.to.commentNotificationPostUidList.contains(postData!.postUid);
+        bool isResult = NotificationController.to.commentNotificationPostUidList
+            .contains(postData!.postUid);
 
         return IconButton(
           onPressed: () async {
@@ -1291,8 +1292,18 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         whereRoute = RouteDistinction.notificationPageObsToSpecifcPostPage;
         break;
       // NotificationPage에서 알림과 관련된 문의 처리현황 게시물을 Tab했다면?
-      default:
+      case RouteDistinction.notificationPageInqToSpecifcPostPage:
         whereRoute = RouteDistinction.notificationPageInqToSpecifcPostPage;
+        break;
+      // 스마트폰 환경에 표시된 알림을 Tab 했다면? (알림과 관련된 게시물이 장애 처리현황 게시물일 떄)
+      case RouteDistinction.smartPhoneNotificaitonObsToSpecificPostPage:
+        whereRoute =
+            RouteDistinction.smartPhoneNotificaitonObsToSpecificPostPage;
+        break;
+      // 스마트폰 환경에 표시된 알림을 Tab 했다면? (알림과 관련된 게시물이 문의 처리현황 게시물일 떄)
+      default:
+        whereRoute =
+            RouteDistinction.smartPhoneNotificaitonInqToSpecificPostPage;
         break;
     }
   }
@@ -1377,7 +1388,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       userData =
           SettingsController.to.inqWhatICommentUserDatas[index].copyWith();
     }
-
     // NotificationPage의 알림과 관련된 장애 처리현황 게시물을 Tab해서 Routing 되었을 경우
     else if (whereRoute ==
         RouteDistinction.notificationPageObsToSpecifcPostPage) {
@@ -1387,19 +1397,34 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       // Tab했던 장애 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
       userData = PostListController.to.obsUserData[index].copyWith();
     }
-
     // NotificationPage의 알림과 관련된 문의 처리현황 게시물을 Tab해서 Routing 되었을 경우
-    else {
+    else if (whereRoute ==
+        RouteDistinction.notificationPageInqToSpecifcPostPage) {
       // Tab했던 문의 처리현황 게시물을 copy(clone)한다.
       postData = PostListController.to.inqPostData[index].copyWith();
 
       // Tab했던 문의 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
       userData = PostListController.to.inqUserData[index].copyWith();
     }
+    // smartPhone 환경의 알림을 Tab 해서 Routing 되었을 경우(알림과 관련된 게시물이 장애 처리현황 게시물일 떄)
+    else if (whereRoute ==
+        RouteDistinction.smartPhoneNotificaitonObsToSpecificPostPage) {
+      // print('postData runtimeType : ${Get.arguments[2].runtimeType}');
+      // print('userData runtimeType : ${Get.arguments[3].runtimeType}');
+      postData = (Get.arguments[2] as PostModel).copyWith();
+      userData = (Get.arguments[3] as UserModel).copyWith();
+    }
+
+    // smartPhone 환경의 알림을 Tab 해서 Routing 되었을 경우(알림과 관련된 게시물이 문의 처리현황 게시물일 떄)
+    else {
+      postData = (Get.arguments[2] as PostModel).copyWith();
+      userData = (Get.arguments[3] as UserModel).copyWith();
+    }
   }
 
   // 게시물이 삭제되었는지 확인하는 method
-  Future<bool> isDeletePost(ObsOrInqClassification obsOrInq, String postUid) async {
+  Future<bool> isDeletePost(
+      ObsOrInqClassification obsOrInq, String postUid) async {
     print('SpecificPostPage - isDeletePost() 호출');
 
     // 게시물이 삭제됐으면 isDeletePostResult는 true
@@ -1583,7 +1608,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // SpecificPostPage에서 변경 가능성이 존재하는 데이터를 업데이트하는 method
   Future<void> updateData() async {
     // DataBase에서
-    // 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서 
+    // 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서
     // 위 필드인 userData에 업데이트 한다.
     await updateUserData();
 

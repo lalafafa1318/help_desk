@@ -9,10 +9,15 @@ import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/const/notificationClassification.dart';
 import 'package:help_desk/const/obsOrInqClassification.dart';
+import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/const/sysClassification.dart';
 import 'package:help_desk/const/userClassification.dart';
 import 'package:help_desk/model/notification_model.dart';
+import 'package:help_desk/model/post_model.dart';
+import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
+import 'package:help_desk/screen/bottomNavigationBar/postList/specific_post_page.dart';
+import 'package:help_desk/utils/toast_util.dart';
 import 'package:help_desk/utils/uuid_util.dart';
 import 'package:intl/intl.dart';
 
@@ -50,14 +55,12 @@ class NotificationController extends GetxController {
   // 문의 처리현황 게시물에서 IT 2실이 담당하는 시스템을 가진 게시물 총 개수
   int inqPostsIT2Count = 0;
 
-
   /* Flutter Local Notification과 관련된 부분 */
 
   // Flutter Local Notification initalize를 위해 필요한 변수
   late final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
   // 요청 알림 또는 댓글 알림이 왔을 떄 가장 최근 시간에 온 알림을 저장하는 변수
   late NotificationModel allNotificationModel;
-
 
   /* 각종 기타 설정 */
 
@@ -67,8 +70,7 @@ class NotificationController extends GetxController {
   // FirebaseFiresStore과 관련된 하나의 객체만 쓰기 위해서 설정했다.
   final FirebaseFirestore firebaseFirestore =
       CommunicateFirebase.getFirebaseFirestoreInstnace();
-  
- 
+
   // Method
   // Controller를 더 쉽게 사용할 수 있도록 하는 get method
   static NotificationController get to => Get.find();
@@ -388,7 +390,8 @@ class NotificationController extends GetxController {
 
   // Database에 User의 commentNotificationPostUid 속성에
   // 사용자가 알림 신청한 게시물 uid를 추가한다.
-  Future<void> addCommentNotificationPostUid(String postUid, String userUid) async {
+  Future<void> addCommentNotificationPostUid(
+      String postUid, String userUid) async {
     await CommunicateFirebase.addCommentNotificationPostUid(postUid, userUid);
   }
 
@@ -515,16 +518,108 @@ class NotificationController extends GetxController {
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
       // 사용자 스마트폰에 있는 알림을 선택할 떄 호출되는 callBack Method
-      onSelectNotification: ((String? payload) {
+      onSelectNotification: ((String? payload) async {
         if (payload != null && payload.isNotEmpty) {
           // payload를 log로 찍는다.
           print('payload : $payload');
 
-          
-          // 알림과 관련있는 SpecificPostPage로 Routing한다.
-          // callBack Method의 매개변수 payload가 알림이 어떤 게시물과 관련되어 있는지 확인하는 belongNotiPostUid가 있다.
-          // 이 속성을 이용하여 SpecificPostPage로 Routing 한다.
+          /* 알림과 관련있는 SpecificPostPage로 Routing한다.
+          callBack Method의 매개변수 payload에는 
+          알림이 어떤 게시물과 관련되어 있는지 확인하는 belongNotiPostUid가 있다. 
+          그리고 게시물이 장애 처리현황인지 문의 처리현황인지 확인하는 belongNotiPostObsOrInq가 있다.
+          2가지 속성을 이용하여 SpecificPostPage로 Routing 한다. */
 
+          // payload에는 ${belongNotiPostUid}-${belongNotiPostObsOrInq}가 있는데 각각의 속성을 뽑아내기 위해서 :를 기준으로 split을 쓴다.
+          List<String> splitPayload = payload.split(':');
+
+          ObsOrInqClassification obsOrInq =
+              ObsOrInqClassification.values.firstWhere(
+            (ObsOrInqClassification element) =>
+                element.toString() == splitPayload[1],
+          );
+
+          // 알림과 관련된 게시물이 장애 처리현황인지 문의 처리현황인지 확인한다.
+          if (obsOrInq == ObsOrInqClassification.obstacleHandlingStatus) {
+            // 장애 처리현황 게시물 정보를 뽑아낸다.
+            DocumentSnapshot<Map<String, dynamic>> postData =
+                await firebaseFirestore
+                    .collection('obsPosts')
+                    .doc(splitPayload[0])
+                    .get();
+
+            // 게시물에 따른 사용자 정보도 뽑아낸다.
+            DocumentSnapshot<Map<String, dynamic>> userData =
+                await firebaseFirestore
+                    .collection('users')
+                    .doc(postData.data()!['userUid'].toString())
+                    .get();
+            // 장애 처리현황 게시물 정보가 삭제되지 않았다면?
+            if (postData.data() != null) {
+              // 일반 클래스 형식으로 전환하기 위해 fromMap를 쓴다.
+              PostModel postModel = PostModel.fromMap(postData.data()!);
+              UserModel userModel = UserModel.fromMap(userData.data()!);
+
+              // SpecificPostPage로 Routing한다.
+              // argument 0번쨰 : 의미 없는 값이다.
+              // argument 1번쨰 : 스마트폰 환경의 알림에서 SpecificPostPage로 Routing 되었다는 것을 알린다.
+              // argument 2번쨰 : 알림과 관련된 게시물 정보(일반 클래스 형식)을 전달한다.
+              // argument 3번째 : 알림과 관련된 게시물에 따른 사용자 정보(일반 클래스 형식)을 전달한다.
+              Get.to(
+                () => const SpecificPostPage(),
+                arguments: [
+                  0,
+                  RouteDistinction.smartPhoneNotificaitonObsToSpecificPostPage,
+                  postModel,
+                  userModel,
+                ],
+              );
+            }
+            // 장애 처리현황 게시물이 삭제되었다면?
+            else {
+              ToastUtil.showToastMessage('알림과 관련된 게시물이 삭제되었습니다.');
+            }
+          }
+          //
+          else {
+            // 문의 처리현황 게시물 정보를 뽑아낸다.
+            DocumentSnapshot<Map<String, dynamic>> postData =
+                await firebaseFirestore
+                    .collection('inqPosts')
+                    .doc(splitPayload[0])
+                    .get();
+            // 게시물에 따른 사용자 정보도 뽑아낸다.
+            DocumentSnapshot<Map<String, dynamic>> userData =
+                await firebaseFirestore
+                    .collection('users')
+                    .doc(postData.data()!['userUid'].toString())
+                    .get();
+
+            // 문의 처리현황 게시물 정보가 삭제되지 않았다면?
+            if (postData.data() != null) {
+              // 일반 클래스 형식으로 전환하기 위해 fromMap를 쓴다.
+              PostModel postModel = PostModel.fromMap(postData.data()!);
+              UserModel userModel = UserModel.fromMap(userData.data()!);
+
+              // SpecificPostPage로 Routing한다.
+              // argument 0번쨰 : 의미 없는 값이다.
+              // argument 1번쨰 : 스마트폰 환경의 알림에서 SpecificPostPage로 Routing 되었다는 것을 알린다.
+              // argument 2번쨰 : 알림과 관련된 게시물 정보(일반 클래스 형식)을 전달한다.
+              // argument 3번째 : 알림과 관련된 게시물에 따른 사용자 정보(일반 클래스 형식)을 전달한다.
+              Get.to(
+                () => const SpecificPostPage(),
+                arguments: [
+                  '_',
+                  RouteDistinction.smartPhoneNotificaitonInqToSpecificPostPage,
+                  postModel,
+                  userModel,
+                ],
+              );
+            }
+            // 문의 처리현황 게시물이 삭제되었다면?
+            else {
+              ToastUtil.showToastMessage('알림과 관련된 게시물이 삭제되었습니다.');
+            }
+          }
         }
         //
         else {
@@ -535,10 +630,7 @@ class NotificationController extends GetxController {
   }
 
   // Flutter Loal Notification을 show하는 method
-  Future<void> showGroupNotifications({
-    required String title,
-    required String body,
-  }) async {
+  Future<void> showGroupNotifications({required String title, required String body}) async {
     /* 그룹 알림으로 띄우기 위해서 필요한 변수 설정 */
     const String groupKey = 'com.android.example.help_Desk';
     const String groupChannelId = 'help_Desk ID';
@@ -574,10 +666,11 @@ class NotificationController extends GetxController {
       // notificationDetails
       notificationPlatformSpecifics,
       // payload
-      // 지금까지 왔던 요청 알림 또는 댓글 알림 등 여러 알림을 그룹화 해서 저장한 배열에서 사용자가 어떤 알림을 클릭했는지 index를 찾고 remove하고자 payload를 i로 설정했다.
-      payload: allNotificationModel.belongNotiPostUid,
+      // 스마트폰에 표시된 알림에서 알림이 어디 게시물과 연관되어있는지 알 수 있는 belongNotiPostUid와
+      // 연관된 게시물이 장애 처리현황인지 문의 처리현황인지 판단하는 belogNotiObsOrInq 속성을 payload로 보낸다.
+      payload:
+          '${allNotificationModel.belongNotiPostUid}:${allNotificationModel.belongNotiObsOrInq.toString()}',
     );
-
 
     /* 그룹화된 알림을 설정하고 보여준다. */
     InboxStyleInformation inboxStyleInformation = const InboxStyleInformation(

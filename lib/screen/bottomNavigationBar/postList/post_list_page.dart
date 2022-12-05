@@ -307,7 +307,8 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 장애 처리현황 게시물을 obsPostData에 추가하는 method
-  Widget prepareShowObsPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
+  Widget prepareShowObsPostData(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocObsPostDataInArray(ultimateData),
       builder: (context, snapshot) {
@@ -388,7 +389,8 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // Database에서 받은 문의 처리현황 게시물을 inqPostData에 추가하는 method
-  Widget prepareShowInqPostData(List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
+  Widget prepareShowInqPostData(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> allData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocInqPostDataInArray(allData),
       builder: (context, snapshot) {
@@ -850,34 +852,6 @@ class _PostListPageState extends State<PostListPage> {
                         ),
                       ],
                     ),
-
-                    // 시스템 분류 코드와 처리 상태 분류 코드 (차선책)
-                    // Column(
-                    //   crossAxisAlignment: CrossAxisAlignment.start,
-                    //   children: [
-                    //     // 시스템 분류 코드
-                    //     GFListTile(
-                    //       color: Colors.black12,
-                    //       title: const Text(
-                    //         '시스템',
-                    //         style: TextStyle(fontWeight: FontWeight.bold),
-                    //       ),
-                    //       subTitle: Text(postData.sysClassficationCode.asText),
-                    //     ),
-
-                    //     SizedBox(height: 20.h),
-
-                    //     // 처리 상태 분류 코드
-                    //     GFListTile(
-                    //       color: Colors.black12,
-                    //       title: const Text(
-                    //         '처리상태',
-                    //         style: TextStyle(fontWeight: FontWeight.bold),
-                    //       ),
-                    //       subTitle: Text(postData.proStatus.asText),
-                    //     ),
-                    //   ],
-                    // ),
                   ],
                 ),
               ),

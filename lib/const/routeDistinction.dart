@@ -28,4 +28,10 @@ enum RouteDistinction {
 
   // NotificationPage의 문의 처리현황 게시물을 Tab -> SpecificPostPage로 Routing할 떄 증명 상수값
   notificationPageInqToSpecifcPostPage,
+
+  // 스마트폰 환경에 표시된 알림을 Tab (알림과 관련된 게시물이 장애 처리현황 게시물일 떄 ) -> specificPostPage로 Routing할 떄 증명 상수값
+  smartPhoneNotificaitonObsToSpecificPostPage,
+
+  // 스마트폰 환경에 표시된 알림을 Tab (알림과 관련된 게시물이 문의 처리현황 게시물일 떄 ) -> specificPostPage로 Routing할 떄 증명 상수값
+  smartPhoneNotificaitonInqToSpecificPostPage,
 }
