@@ -23,8 +23,8 @@ class CommunicateFirebase {
 
   // Method
 
-  // _firebaseFirestore를 얻기 위한 method
-  // 여러 곳애서 다른 Instnace를 쓰지 말고 같은 Instance를 쓰게 하기 위함이다.
+  /* _firebaseFirestore를 얻기 위한 method
+     여러 곳애서 다른 Instnace를 쓰지 말고 같은 Instance를 쓰게 하기 위함이다. */
   static FirebaseFirestore getFirebaseFirestoreInstnace() {
     return _firebaseFirestore;
   }
@@ -158,16 +158,7 @@ class CommunicateFirebase {
   static Future<void> updatePhoneNumberInPost(UserModel userModel) async {
     // 사용자가 장애 처리현황, 문의 처리현황 게시글을 작성했다면, DataBase에 존재하는 게시물의 phoneNumber 속성을 업데이트 한다.
     QuerySnapshot<Map<String, dynamic>> data = await _firebaseFirestore
-        .collection('obsPosts')
-        .where('userUid', isEqualTo: userModel.userUid)
-        .get();
-
-    data.docs.forEach((QueryDocumentSnapshot<Map<String, dynamic>> element) {
-      element.reference.update({'phoneNumber': userModel.phoneNumber});
-    });
-
-    data = await _firebaseFirestore
-        .collection('inqPosts')
+        .collection('itRequestPosts')
         .where('userUid', isEqualTo: userModel.userUid)
         .get();
 
@@ -203,41 +194,6 @@ class CommunicateFirebase {
 
     // 일반 요청자가 작성한 IT 요청건 게시물만 반환한다.
     return ultimateData;
-  }
-
-  // 문서 처리현황 게시물을 postTime 내림차순 기준으로 가져오는 method
-  static Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
-      getInqPostData(UserClassification userType) async {
-    // 사용자가 일반 사용자이면?
-    //-> 사용자가 작성한 장애 처리현황 게시물만 가져온다.
-    if (userType == UserClassification.GENERALUSER) {
-      // postTime 속성을 내림차순으로 정렬한다.
-      QuerySnapshot<Map<String, dynamic>> data = await _firebaseFirestore
-          .collection('inqPosts')
-          .orderBy('postTime', descending: true)
-          .get();
-
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData =
-          data.docs;
-
-      // 자신이 쓴 게시물만 가져온다.
-      ultimateData.removeWhere(
-          (QueryDocumentSnapshot<Map<String, dynamic>> element) =>
-              element.data()['userUid'].toString() !=
-              SettingsController.to.settingUser!.userUid);
-
-      return ultimateData;
-    }
-    // 사용자가 IT 담당자이면?
-    // 모든 사용자가 작성한 장애 처리현황 게시물을 가져온다.
-    else {
-      QuerySnapshot<Map<String, dynamic>> data = await _firebaseFirestore
-          .collection('inqPosts')
-          .orderBy('postTime', descending: true)
-          .get();
-
-      return data.docs;
-    }
   }
 
   // Firebase DataBase에 IT 요청건 게시물을 set하는 method

@@ -146,7 +146,7 @@ class _WhatICommentPageState extends State<WhatICommentPage> {
     // 내가 댓글 작성한 IT 요청건 게시물이 5개 미만이면? -> Pager를 보여주지 않는다.
     else {
       return Column(
-        children: SettingsController.to.whatIWroteITRequestPosts
+        children: SettingsController.to.whatICommentITRequestPosts
             .asMap()
             .keys
             .toList()
@@ -456,22 +456,26 @@ class _WhatICommentPageState extends State<WhatICommentPage> {
           elevation: 0.5,
         ),
         // FloatingActionButton은 내가 댓글 작성한 IT 요청건 게시물을 새로고침 하는 역할을 한다.
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: Colors.grey,
-          onPressed: () {
-            // 전체 화면을 재랜더링 한다.
-            setState(() {
-              // PostListPage의 Pager의 현재 번호
-              pagerCurrentPage = 0;
+        floatingActionButton: Align(
+          alignment:
+              Alignment(Alignment.bottomRight.x, Alignment.bottomRight.y - 0.2),
+          child: FloatingActionButton(
+            backgroundColor: Colors.grey,
+            onPressed: () {
+              // 전체 화면을 재랜더링 한다.
+              setState(() {
+                // PostListPage의 Pager의 현재 번호
+                pagerCurrentPage = 0;
 
-              // PostListPage의 Pager 끝 번호
-              pagerLastPage = 0;
+                // PostListPage의 Pager 끝 번호
+                pagerLastPage = 0;
 
-              // Pager를 보여줄지 결정하는 변수
-              isShowPager = false;
-            });
-          },
-          child: const Icon(Icons.change_circle_outlined, size: 40),
+                // Pager를 보여줄지 결정하는 변수
+                isShowPager = false;
+              });
+            },
+            child: const Icon(Icons.change_circle_outlined, size: 40),
+          ),
         ),
         body: SizedBox(
           width: ScreenUtil().screenWidth,
