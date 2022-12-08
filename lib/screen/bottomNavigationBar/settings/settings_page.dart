@@ -195,7 +195,7 @@ class SettingsPage extends StatelessWidget {
 
             // 제목
             Text(
-              '내가 쓴 글',
+              '내가 작성한 IT 요청건',
               style: TextStyle(fontSize: 20.sp),
             ),
           ],
@@ -224,7 +224,7 @@ class SettingsPage extends StatelessWidget {
 
             // 제목
             Text(
-              '내가 댓글 단 글',
+              '내가 댓글 작성한 IT 요청건',
               style: TextStyle(fontSize: 20.sp),
             ),
           ],

@@ -6,7 +6,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:help_desk/const/causeObsClassification.dart';
-import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/proClassification.dart';
 import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/const/sysClassification.dart';
@@ -31,10 +30,7 @@ class SpecificPostPage extends StatefulWidget {
 }
 
 class _SpecificPostPageState extends State<SpecificPostPage> {
-  // PostListPage에서
-  // KeywordPostListPage에서
-  // WhatIWrotePage에서
-  // WhatICommentPage에서 Routing 됐는지 파악하는 변수
+  // 어디 페이지에서 SpecificPostPage로 전환됐는지 증명하는 enum값을 저장하는 변수
   RouteDistinction? whereRoute;
 
   // copy(clone)된 PostData와 UserData를 참조하는 변수
@@ -46,31 +42,31 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // 댓글 데이터에 대한 사용자 정보를 저장하는 배열
   List<UserModel> commentUserArray = [];
 
-  // Database에 Comment 데이터를 호출하는 것을 허락할지, 불허할지 판별하는 변수
-  // 맨 처음 SpecificPostPage에 접근할 떄는 위 변수가 false이나, 게시물이 삭제되지 않았다는 것을 확인하면 위 변수는 true로 전환된다.
+  /* Database에 Comment 데이터를 호출하는 것을 허락할지, 불허할지 판별하는 변수
+     맨 처음 SpecificPostPage에 접근할 떄는 위 변수가 false이나, 게시물이 삭제되지 않았다는 것을 확인하면 위 변수는 true로 전환된다. */
   bool isCallServerAboutCommentData = false;
 
   // 일반 사용자인지 IT 담당자인지 구별하는 변수
   UserClassification userType = SettingsController.to.settingUser!.userType;
 
-  // 이전 가기, 알림, 새로 고침, 삭제 버튼을 제공하는 Widget이다.
+  // 이전 가기, 알림, 새로 고침, 삭제 버튼을 제공한다.
   Widget topView() {
     return SizedBox(
       width: ScreenUtil().screenWidth,
       height: 50.h,
       child: Row(
         children: [
-          // 이전 가기 버튼을 제공하는 Widget이다.
+          // 이전 가기 버튼을 제공한다.
           backButton(),
 
-          // 알림, 새로 고침, 삭제 버튼을 제공하는 Widget이다.
+          // 알림, 새로 고침, 삭제 버튼을 제공한다.
           notifyAndRefreshAndDeleteButton(),
         ],
       ),
     );
   }
 
-  // 이전 가기 버튼을 제공하는 Widget이다.
+  // 이전 가기 버튼을 제공한다.
   Widget backButton() {
     return Container(
       margin: EdgeInsets.only(left: 5.w, top: 20.h),
@@ -87,7 +83,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 알림, 새로 고침, 삭제 버튼을 제공하는 Widget이다.
+  // 알림, 새로 고침, 삭제 버튼을 제공한다.
   Widget notifyAndRefreshAndDeleteButton() {
     return Container(
       width: ScreenUtil().screenWidth / 1.2,
@@ -124,10 +120,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             FocusManager.instance.primaryFocus!.unfocus();
 
             // 게시글이 삭제됐는지 확인한다.
-            bool isDeletePostResult = await isDeletePost(
-              postData!.obsOrInq,
-              postData!.postUid,
-            );
+            bool isDeletePostResult = await isDeletePost(postData!.postUid);
 
             // 게시글이 삭제됐으면?
             if (isDeletePostResult == true) {
@@ -185,10 +178,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         FocusManager.instance.primaryFocus!.unfocus();
 
         // 게시글이 삭제됐는지 확인한다.
-        bool isDeletePostResult = await isDeletePost(
-          postData!.obsOrInq,
-          postData!.postUid,
-        );
+        bool isDeletePostResult = await isDeletePost(postData!.postUid);
 
         // 게시글이 삭제됐으면?
         if (isDeletePostResult == true) {
@@ -201,7 +191,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         // 게시글이 삭제되지 않았으면?
         else {
           // SpecificPostPage에서 변경 가능성이 존재하는 데이터를 업데이트하는 method
-          await updateData();
+          await update();
 
           // Toast Message로 게시물이 새로고침 됐다는 것을 알린다.
           ToastUtil.showToastMessage('게시물이 새로고침 되었습니다 :)');
@@ -211,7 +201,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 삭제 버튼 입니다. (자신이 업로드한 게시물이 아니면 삭제 버튼이 보이지 않습니다.)
+  // 삭제 버튼 입니다.
   Widget deleteButton() {
     return postData!.userUid == SettingsController.to.settingUser!.userUid
         ? IconButton(
@@ -222,7 +212,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
               // AlertDialog를 통해 삭제할 것인지 묻는다.
               bool? isDeletePostResult = await clickDeletePostDialog(postData!);
 
-              // 작성자가 게시물을 삭제한다면?
+              // 작성자가 IT 요청건 게시물을 삭제한다면?
               if (isDeletePostResult == true) {
                 // 이전 가기로 돌아가기
                 Get.back();
@@ -236,57 +226,29 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           );
   }
 
-  // 장애 처리현황 또는 문의 처리현황 분류 코드, 시스템 분류 코드를 제공하는 Widget 입니다.
-  Widget showObsOrInqAndSysClassification() {
+  // 시스템 분류 코드와 처리상태 분류 코드를 제공한다.
+  Widget sysAndProClassification() {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(width: 20.w),
-
-        // 장애 처리현황 또는 문의 처리현황 분류 코드
-        obsOrInqClassification(),
-
-        SizedBox(width: 20.w),
-
-        // 시스템 분류 코드
         sysClassification(),
+
+        SizedBox(width: 20.w),
+
+        // 처리상태 분류 코드
+        proClassification(),
       ],
     );
   }
 
-  // 장애 처리현황 또는 문의 처리현황 분류 코드를 제공하는 Widget
-  Widget obsOrInqClassification() {
-    return Row(
-      children: [
-        // 시스템 Text
-        const Text('장애/문의'),
-
-        SizedBox(width: 6.w),
-
-        // 시스템 분류 코드
-        Container(
-          width: 100.w,
-          height: 20.h,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5.r),
-            color: Colors.grey[300],
-          ),
-          child: Align(
-            alignment: Alignment.center,
-            child: Text(postData!.obsOrInq.asText),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // 시스템 분류 코드를 제공하는 Widget
+  // 시스템 분류 코드를 제공한다.
   Widget sysClassification() {
     return Row(
       children: [
         // 시스템 Text
         const Text('시스템'),
 
-        SizedBox(width: 6.w),
+        SizedBox(width: 10.w),
 
         // 시스템 분류 코드
         Container(
@@ -305,24 +267,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 처리상태 분류 코드와 전화번호를 제공하는 Widget 입니다.
-  Widget proClassficationAndTel() {
-    return Row(
-      children: [
-        SizedBox(width: 20.w),
-
-        // 처리상태 분류 코드
-        proClassification(),
-
-        SizedBox(width: 20.w),
-
-        // 전화번호 분류 코드
-        tel(),
-      ],
-    );
-  }
-
-  // 처리상태 분류 코드를 제공하는 Widget
+  // 처리상태 분류 코드를 제공한다.
   Widget proClassification() {
     return Row(
       children: [
@@ -356,14 +301,16 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 전화번호를 제공하는 Widget
+  // 전화번호를 제공한다.
   Widget tel() {
     return Row(
       children: [
+        SizedBox(width: 20.w),
+
         // 전화번호 Text
         const Text('휴대폰'),
 
-        SizedBox(width: 6.w),
+        SizedBox(width: 10.w),
 
         // 전화번호를 표시한다.
         GetBuilder<PostListController>(
@@ -395,16 +342,16 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // Avatar와 UserName 그리고 PostTime을 제공하는 Widget 입니다.
+  // Avatar와 UserName 그리고 PostTime을 제공한다.
   Widget showAvatarAndUserNameAndPostTime() {
     return SizedBox(
       width: ScreenUtil().screenWidth,
       child: Row(
         children: [
-          // Avatar을 제공하는 Wiget 입니다.
+          // Avatar을 제공한다.
           showAvatar(),
 
-          // UserName과 PostTime을 제공하는 Widget 입니다.
+          // UserName과 PostTime을 제공한다.
           showUserNameAndPostTime(),
         ],
       ),
@@ -474,7 +421,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // PostTitle, PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostLikeNum, PostCommentNum를 보여주는 Widget 입니다.
+  /* PostTitle, PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostCommentNum를 보여준다. */
   Widget showTitleAndContentAndPhotoAndCommentNum() {
     return Container(
       margin: EdgeInsets.only(left: 5.w),
@@ -483,29 +430,29 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // PostTitle을 제공하는 Widget 입니다.
+          // PostTitle을 제공한다.
           showTextTitle(),
 
           SizedBox(height: 10.h),
 
-          // PostConent을 제공하는 Widget 입니다.
+          // PostConent을 제공한다.
           showTextContent(),
 
           SizedBox(height: 30.h),
 
-          // PostPhoto을 보여주는 Widget 입니다.
-          checkPhoto(),
+          // PostPhoto을 제공한다.
+          checkPhotos(),
 
           SizedBox(height: 10.h),
 
-          //PostLikeNum, PostCommentNum을 제공하는 Widget 입니다.
+          // PostLikeNum, PostCommentNum을 제공한다.
           showCommentNum(),
         ],
       ),
     );
   }
 
-  // PostTitle을 제공하는 Widget 입니다.
+  // PostTitle을 제공한다.
   Widget showTextTitle() {
     return Text(
       postData!.postTitle,
@@ -513,7 +460,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // PostConent을 제공하는 Widget 입니다.
+  // PostConent을 제공한다.
   Widget showTextContent() {
     return Container(
       margin: EdgeInsets.only(left: 3.w),
@@ -525,8 +472,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // PostPhoto을 보여주는 Widget 입니다.
-  Widget checkPhoto() {
+  // PostPhoto을 제공한다.
+  Widget checkPhotos() {
     return postData!.imageList.isNotEmpty
         ? SizedBox(
             width: ScreenUtil().screenWidth,
@@ -544,7 +491,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           );
   }
 
-  // PostPhoto을 보여주는 Widget 입니다.
+  // PostPhoto을 보여준다.
   Widget showPhotos(int imageIndex) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20.r), // Image border
@@ -554,9 +501,9 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         // 사진을 Tap하면?
         child: GestureDetector(
           onTap: () {
-            // SpecificPhotoViewPage로 Routing한다.
-            // argument 0번쨰 : PostData이다.
-            // argument 1번쨰 : PostData의 imageList 속성이 있고 그 중에서 몇번째 사진인지 알려주는 imageIndex이다.
+            /* SpecificPhotoViewPage로 Routing한다.
+                argument 0번쨰 : SpecificPostPage 필드의 postData를 의미한다.
+                argument 1번쨰 : SpecificPostPage 필드의 postData에 imageList 속성이 있다. 그 중에서 몇번째 사진인지 알려주는 imageIndex이다. */
             Get.to(
               () => const SpecificPhotoViewPage(),
               arguments: [postData, imageIndex],
@@ -582,7 +529,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // PostCommentNum을 제공하는 Widget 입니다.
+  // PostCommentNum을 제공한다.
   Widget showCommentNum() {
     return GetBuilder<PostListController>(
       id: 'showCommentNum',
@@ -613,20 +560,20 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 여러 comment를 보여주기 위해 ListView로 나타내는 Widget 입니다.
+  // 여러 comment를 보여주기 위해 ListView로 나타낸다.
   Widget showCommentListView() {
     return GetBuilder<PostListController>(
       id: 'showCommentListView',
       builder: (controller) {
-        // DataBase에서 여러 comment를 호출하기 위한 설정이 되었는지 확인한다.
-        // 설정과 관련된 변수는 isCallServerAboutCommentData 이다.
-        // 이 값이 true 상태이면 Database에서 여러 comment 를 받아서 commentArray 배열에 넣고, 화면에 뿌린다.
-        // false 상태이면, 기존에 존재하는 commentArray를 가지고 화면에 뿌린다. 즉 Database 호출을 하지 않는다.
+        /* DataBase에서 여러 comment를 호출하기 위한 설정이 되었는지 확인한다.
+          설정과 관련된 변수는 isCallServerAboutCommentData 이다.
+          이 값이 true 상태이면 Database에서 여러 comment 를 받아서 위 필드인 commentArray 배열에 넣고, 화면에 표시한다.
+          만약 이 값이 false 상태이면, 기존에 존재하는 commentArray를 가지고 화면에 표시한다. 즉 Database 호출을 하지 않는다. */
         print('showCommentListView - 재랜더링 호출');
 
         return isCallServerAboutCommentData == true
             ? FutureBuilder<Map<String, dynamic>>(
-                future: PostListController.to.getCommentAndUser(postData!),
+                future: PostListController.to.getComments(postData!),
                 builder: (context, snapshot) {
                   // 데이터를 기다리고 있다.
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -638,24 +585,22 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                     );
                   }
 
-                  // 데이터가 왔다.
-                  // 하지만 빈 값이다.
+                  // 데이터가 왔다. 하지만 빈 값인 경우...
                   if (List<CommentModel>.from(
-                    snapshot.data!['commentArray'] as List,
-                  ).isEmpty) {
+                          snapshot.data!['commentArray'] as List)
+                      .isEmpty) {
                     return const Visibility(
                         visible: false, child: Text('댓글이 없어서 화면에 표시하지 않습니다.'));
                   }
 
-                  // 데이터가 왔다.
-                  // 댓글 데이터가 있다.
+                  // 데이터가 왔고 빈 값이 아닌 경우...
 
-                  // 기존에 존재하는 CommentArray를 clear()한다.
-                  // 기존에 존재하는 CommentUserArray를 clear() 한다.
+                  /* SpecificPostPage 위 필드의 commentArray를 clear()한다.
+                     SpecificPostPage 위 필드의 commentUserArray를 clear() 한다. */
                   commentArray.clear();
                   commentUserArray.clear();
 
-                  // CommentArray와 CommentUserArray에 값을 업데이트 한다.
+                  // SpecificPostPage 위 필드의 commentArray와 commentUserArray에 값을 업데이트 한다.
                   commentArray.addAll(
                     List<CommentModel>.from(
                         snapshot.data!['commentArray'] as List),
@@ -671,7 +616,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                     shrinkWrap: true,
                     physics: const PageScrollPhysics(),
                     itemCount: commentArray.length,
-                    itemBuilder: (context, index) => showComment(index),
+                    itemBuilder: (context, index) => showComments(index),
                   );
                 },
               )
@@ -683,8 +628,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // comment을 보여주는 Widget 입니다.
-  Widget showComment(int index) {
+  // comment을 보여준다.
+  Widget showComments(int index) {
     // 로그
     print('SpecificPostPage - showComment() - 댓글 데이터를 가져옵니다.');
 
@@ -695,35 +640,35 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar와 UserName 그리고 처리상태를 제공하는 Widget 입니다.
+          // Avatar와 UserName 그리고 처리상태를 제공한다.
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Avatar와 UserName을 제공하는 Widget 입니다.
-              commentAvatarAndName(index),
+              // Avatar와 UserName을 제공한다.
+              commentAvatarAndUserName(index),
 
-              // 처리상태를 제공하는 Widget 입니다. (IT 담당자가 댓글을 쓴 경우에만 보여준다.)
+              // 처리상태를 제공한다.
               commentProclassification(index),
             ],
           ),
 
-          // CommentContent을 제공하는 Widget 입니다.
+          // commentContent을 제공한다.
           commentContent(index),
 
-          // 장애원인을 보여주는 Widget 입니다.
+          // IT 담당자가 댓글을 작성했을 떄 장애원인을 보여준다.
           commentCauseOfDisability(index),
 
-          // 실제 장애처리일시를 보여주는 Widget 입니다.
+          // IT 담당자가 댓글을 작성했을 떄 실제 장애처리일시를 보여준다.
           commentFailureProcessingdDateAndTime(index),
 
           SizedBox(height: 5.h),
 
-          // CommentPostTime를 제공하는 Widget 입니다.
+          // ㅊommentPostTime를 제공한다.
           commentUploadTime(index),
 
           SizedBox(height: 5.h),
 
-          // Comment에 대한 삭제 버튼을 제공하는 Widget 입니다.
+          // comment에 대한 삭제 버튼을 제공한다.
           commentDeleteButton(index),
 
           SizedBox(height: 10.h),
@@ -735,26 +680,28 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // Avatar와 UserName을 제공하는 Widget 입니다.
-  Widget commentAvatarAndName(int index) {
-    // 댓글과 관련된 게시물이
-    // commentUserArray[index].userName과 commentUserArray[index].image를 간단하게 명명한다.
+  // Avatar와 UserName을 제공한다.
+  Widget commentAvatarAndUserName(int index) {
+    /* commentArray[index].whoWriteUserUid,
+       commentUserArray[index].userName,
+       commentUserArray[index].image를 간단하게 명명한다. */
+
     String whoWriteUserUid = commentArray[index].whoWriteUserUid;
     String userName = commentUserArray[index].userName;
     String userImage = commentUserArray[index].image;
 
     return Row(
       children: [
-        // Avatar를 제공하는 Widget 입니다.
+        // Avatar를 제공한다.
         commentAvatar(userImage),
 
-        // UserName을 제공하는 Widget 입니다.
-        commentName(whoWriteUserUid, userName),
+        // UserName을 제공한다.
+        commentUserName(whoWriteUserUid, userName),
       ],
     );
   }
 
-  // Avatar를 제공하는 Widget 입니다.
+  // Avatar를 제공한다.
   Widget commentAvatar(String userImage) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -765,8 +712,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // UserName을 제공하는 Widget 입니다.
-  Widget commentName(String whoWriteUserUid, String userName) {
+  // UserName을 제공한다.
+  Widget commentUserName(String whoWriteUserUid, String userName) {
     return Container(
       margin: EdgeInsets.only(bottom: 5.h),
       child: whoWriteUserUid == postData!.userUid
@@ -787,7 +734,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // comment 처리상태를 제공하는 Widget 입니다. (IT 담당자가 작성한 댓글인 경우에만 보여진다.)
+  // comment 처리상태를 제공한다.
   Widget commentProclassification(int index) {
     return Container(
       margin: EdgeInsets.only(bottom: 5.h, right: 20.w),
@@ -801,7 +748,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // CommentContent을 제공하는 Widget 입니다.
+  // commentContent을 제공한다.
   Widget commentContent(int index) {
     return Container(
       margin: EdgeInsets.only(left: 20.w),
@@ -809,8 +756,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 장애 처리현황 게시물에 해당하는 댓글인 경우
-  // 장애원인을 보여주는 Widget 입니다.
+  // IT 담당자가 댓글을 작성했을 떄 장애원인을 보여준다.
   Widget commentCauseOfDisability(int index) {
     String text = CauseObsClassification.values
         .firstWhere(
@@ -832,8 +778,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 장애 처리현황 게시물에 해당하는 댓글인 경우
-  // 실제 장애처리일시를 보여주는 Widget 입니다.
+  // IT 담당자가 댓글을 작성햇을 떄  실제 장애처리일시를 보여준다.
   Widget commentFailureProcessingdDateAndTime(int index) {
     return Container(
       margin: EdgeInsets.only(top: 10.h, left: 20.w, bottom: 10.h),
@@ -850,7 +795,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // CommentPostTime를 제공하는 Widget 입니다.
+  // commentPostTime를 제공한다.
   Widget commentUploadTime(int index) {
     // commentArray[index].uploadTime를  간단하게 명명한다.
     String uploadTime = commentArray[index].uploadTime;
@@ -866,7 +811,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // Comment에 대한 삭제 버튼을 제공하는 Widget 입니다.
+  // comment에 대한 삭제 버튼을 제공한다.
   Widget commentDeleteButton(int index) {
     // comment를 쓴 사용자 uid와 계정 사용자 uid를 비교해서
     // 일치하면 삭제 버튼을 표시한다.
@@ -889,10 +834,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   FocusManager.instance.primaryFocus!.unfocus();
 
                   // 게시글이 삭제됐는지 확인한다.
-                  bool isDeletePostResult = await isDeletePost(
-                    postData!.obsOrInq,
-                    postData!.postUid,
-                  );
+                  bool isDeletePostResult =
+                      await isDeletePost(postData!.postUid);
 
                   // 게시글이 삭제됐으면?
                   if (isDeletePostResult == true) {
@@ -940,40 +883,20 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           ),
           content: Column(
             children: [
-              // 처리상태를 보여준다. -> 일반 사용자는 보여주지 않는다. IT 담당자만 보여줄 것...
-              userType == UserClassification.GENERALUSER
-                  ? const Visibility(
-                      visible: false,
-                      child: Text('일반 사용자의 경우 처리상태 칸을 보여주지 않습니다.'))
-                  : commentProClassification(),
-
-              // 장애원인, 처리일자, 처리시간을 보여준다.
-              // 일반 사용자는 당연히 보여주지 않는다.
-              // IT 담당자의 경우, 장애 처리현황 게시물이면 보여준다. 문의 처리현황 게시물은 보여주지 않는다.
+              // 답변 정보 입력의 처리상태, 장애원인, 처리일자, 처리시간을 보여준다. -> 일반 사용자는 당연히 보여주지 않는다. IT 담당자만 보여진다.
               userType == UserClassification.GENERALUSER
                   ? const Visibility(
                       visible: false,
                       child:
                           Text('일반 사용자의 경우 장애원인, 실제 처리일자, 실제 처리시간을 보여주지 않습니다.'))
-                  : postData!.obsOrInq ==
-                          ObsOrInqClassification.obstacleHandlingStatus
-                      ? obsCommentOption()
-                      : const Visibility(
-                          visible: false,
-                          child: Text(
-                              '문의 처리현황 게시물인 경우 장애 원인, 실제 처리일자, 실제 처리시간을 보여주지 않습니다.'),
-                        ),
+                  : onlyShowITUserInAnswerInformationInput(),
 
-              // 높이 빈칸을 설정한다.
+              // 일반 요청자라면 높이 빈칸을 20으로 설정하고, IT 담당자라면 높이 빈칸을 0으로 설정한다.
               userType == UserClassification.GENERALUSER
                   ? SizedBox(height: 20.h)
-                  : postData!.obsOrInq ==
-                          ObsOrInqClassification.obstacleHandlingStatus
-                      ? SizedBox(height: 0.h)
-                      : SizedBox(height: 20.h),
+                  : SizedBox(height: 0.h),
 
-              // 내용
-              // 일반 사용자와 IT 담당자 모두 보여진다.
+              // 댓글을 보여준다. -> 일반 사용자와 IT 담당자 모두 보여진다.
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1001,8 +924,35 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // comment에 대한 처리상태를 setting 한다. (IT 담당자 - 장애 처리현황, 문의 처리현황 게시글에 모두 적용)
-  Widget commentProClassification() {
+  // 답변 정보 입력에 처리상태, 장애원인, 처리일자, 처리시간을 보여준다. -> 일반 요청자는 보이지 않는다, IT 담당자에게만 보여진다.
+  Widget onlyShowITUserInAnswerInformationInput() {
+    return Column(
+      children: [
+        // 처리상태
+        answerInformationInputProClassification(),
+
+        SizedBox(height: 10.h),
+
+        // 장애원인
+        answerInformationInputCauseOfDisability(),
+
+        SizedBox(height: 10.h),
+
+        // 처리일자
+        answerInformationInputActualProcessDate(),
+
+        SizedBox(height: 10.h),
+
+        // 처리시간
+        answerInformationInputActualProcessTime(),
+
+        SizedBox(height: 10.h),
+      ],
+    );
+  }
+
+  // 답변 정보 입력에 대한 처리상태를 보여준다. -> IT 담당자에게만 보여진다.
+  Widget answerInformationInputProClassification() {
     return Row(
       children: [
         // 처리상태 Text
@@ -1013,9 +963,9 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
         SizedBox(width: 10.w),
 
-        // comment에 대한 처리상태를 setting하는 Dropdown
+        // 답변 정보 입력에 대한 처리상태를 setting하는 Dropdown
         GetBuilder<PostListController>(
-          id: 'commentProClassficationDropdown',
+          id: 'answerInformationInputProClassficationDropdown',
           builder: (controller) {
             return DropdownButton(
               value: PostListController.to.commentPSelectedValue.name,
@@ -1041,7 +991,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
                 // 해당 GetBuilder만 재랜더링 한다.
                 PostListController.to
-                    .update(['commentProClassficationDropdown']);
+                    .update(['answerInformationInputProClassficationDropdown']);
               },
             );
           },
@@ -1050,30 +1000,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 장애원인, 처리일자, 처리시간을 보여주는 Widget (IT 담당자 - 장애 처리현황 게시글에만 적용)
-  Widget obsCommentOption() {
-    return Column(
-      children: [
-        // 장애원인 (장애 처리현황에만 적용)
-        causeOfDisability(),
-
-        SizedBox(height: 10.h),
-
-        // 처리일자(장애 처리현황에만 적용)
-        actualProcessDate(),
-
-        SizedBox(height: 10.h),
-
-        // 처리시간(장애 처리현황에만 적용)
-        actualProcessTime(),
-
-        SizedBox(height: 10.h),
-      ],
-    );
-  }
-
-  // comment에 대한 장애원인을 setting 하는 Widget (IT 담당자 - 장애 처리현황 게시글에만 적용)
-  Widget causeOfDisability() {
+  // 답변 정보 입력에 대한 장애 원인을 보여준다. -> IT 담당자에게만 보여진다.
+  Widget answerInformationInputCauseOfDisability() {
     return Row(
       children: [
         // 장애원인 Text
@@ -1084,9 +1012,9 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
         SizedBox(width: 10.w),
 
-        // comment에 대한 장애원인을 setting하는 Dropdown
+        // 답변 정보 입력에 대한 장애 원인을 setting하는 Dropdown
         GetBuilder<PostListController>(
-          id: 'commentCauseObsClassificationDropdown',
+          id: 'answerInformationInputCauseObsClassificationDropdown',
           builder: (controller) {
             return DropdownButton(
               value: PostListController.to.commentCSelectedValue.name,
@@ -1109,8 +1037,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                         .firstWhere((enumValue) => enumValue.name == element);
 
                 // 해당 GetBuilder만 재랜더링 한다.
-                PostListController.to
-                    .update(['commentCauseObsClassificationDropdown']);
+                PostListController.to.update(
+                    ['answerInformationInputCauseObsClassificationDropdown']);
               },
             );
           },
@@ -1119,8 +1047,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // comment에 대한 처리일자를 setting하는 Widget (IT 담당자 - 장애 처리현황 게시글에만 적용)
-  Widget actualProcessDate() {
+  // 답변 정보 입력에 대한 처리 일자를 보여준다. -> IT 담당자에게만 보여진다.
+  Widget answerInformationInputActualProcessDate() {
     return Row(
       children: [
         // 처리일자
@@ -1131,7 +1059,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
         SizedBox(width: 10.w),
 
-        // 처리일자를 현재 시간에 맞게 판단한 다음 text로 표현한다.
+        // 답변 정보 입력의 처리일자를 현재 시간에 맞게 판단한 다음 text로 표현한다.
         Builder(builder: (context) {
           PostListController.to.commentActualProcessDate =
               DateFormat('yy/MM/dd').format(DateTime.now());
@@ -1146,8 +1074,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // comment에 대한 처리 시간을 setting 하는 Widget (IT 담당자 - 장애 처리현황 게시글에만 적용)
-  Widget actualProcessTime() {
+  // 답변 정보 입력에 대한 처리 시간을 setting 하는 Widget -> IT 담당자에게만 보여진다.
+  Widget answerInformationInputActualProcessTime() {
     return Row(
       children: [
         // 처리시간 Text
@@ -1158,7 +1086,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
         SizedBox(width: 10.w),
 
-        // 처리시간을 현재 시간에 맞게 판단한 다음 text로 표현한다.
+        // 답변 정보 입력에 따른 처리시간을 현재 시간에 맞게 판단한 다음 text로 표현한다.
         Builder(builder: (context) {
           PostListController.to.commentActualProcessTime =
               DateFormat('HH:mm').format(DateTime.now());
@@ -1173,7 +1101,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // comment 댓글 입력하기 창 입니다.
+  // 답변 정보 입력에서 댓글을 입력하는 곳 입니다.
   Widget writeComment() {
     return SizedBox(
       width: 200.w,
@@ -1191,21 +1119,18 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // comment 보내기 아이콘 입니다.
+  // 답변 정보 입력에서 댓글 보내는 곳 입니다.
   Widget sendComment() {
     return IconButton(
       onPressed: () async {
-        // comment에 입력한 텍스트 확인하기
-        String comment = PostListController.to.commentController.text;
-
         // 키보드 내리기
         FocusManager.instance.primaryFocus!.unfocus();
 
+        // 답변 정보 입력에서 댓글을 어떻게 입력했는가를 가져온다.
+        String comment = PostListController.to.commentController.text;
+
         // 게시글이 삭제됐는지 확인한다.
-        bool isDeletePostResult = await isDeletePost(
-          postData!.obsOrInq,
-          postData!.postUid,
-        );
+        bool isDeletePostResult = await isDeletePost(postData!.postUid);
 
         // 게시글이 삭제됐으면?
         if (isDeletePostResult == true) {
@@ -1234,207 +1159,107 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           // Database에 comment(댓글)을 추가한다.
           await PostListController.to.addComment(comment, postData!);
 
-          // Database에 게시물의 whoWriteCommentThePost 속성에 사용자 uid를 추가한다.
+          // Database에 IT 요청건 게시물(itRequestPosts)의 whoWriteCommentThePost 속성에 사용자 uid를 추가한다.
           await PostListController.to.addWhoWriteCommentThePost(
               postData!, SettingsController.to.settingUser!.userUid);
 
           // SpecificPostPage에 변경 사항이 존재하는 데이터를 업데이트 한다.
-          await updateData();
+          await update();
         }
       },
       icon: const Icon(Icons.send),
     );
   }
 
-  // Method
-  // PostListPage에서 Routing 됐는지
-  // KeyWordPostListPage에서 Routing 됐는지
-  // WhatIWrotePage에서 Routing 됐는지
-  // WhatICommentPage에서 Routing 됐는지 결정하는 method
+  /* 어디 페이지에서 SpecificPostPage로 Routing하였는지 증명하는 enum값을 확인하여 
+     위 필드인 whereRoute에 대입하는 method */
   void whereRouting() {
     switch (Get.arguments[1]) {
-      // PostListPage의 장애 처리현황 게시물을 Tab했다면?
-      case RouteDistinction.postListPageObsPostToSpecificPostPage:
-        whereRoute = RouteDistinction.postListPageObsPostToSpecificPostPage;
+      // PostListPage에서 SpecificPostPage로 Routing 했을 경우 ...
+      case RouteDistinction.POSTLISTPAGE_TO_SPECIFICPOSTPAGE:
+        whereRoute = RouteDistinction.POSTLISTPAGE_TO_SPECIFICPOSTPAGE;
         break;
-      // PostListPage의 문의 처리현황 게시물을 Tab했다면?
-      case RouteDistinction.postListPageInqPostToSpecificPostPage:
-        whereRoute = RouteDistinction.postListPageInqPostToSpecificPostPage;
+      // KeywordPostListPage에서 SpecificPostPage로 Routing 했을 경우 ...
+      case RouteDistinction.KEYWORDPOSTLISTPAGE_TO_SPECIFICPOSTPAGE:
+        whereRoute = RouteDistinction.KEYWORDPOSTLISTPAGE_TO_SPECIFICPOSTPAGE;
         break;
-      // KeywordPostListPage의 장애 처리현황 게시물을 Tab했다면?
-      case RouteDistinction.keywordPostListPageObsPostToSpecificPostPage:
-        whereRoute =
-            RouteDistinction.keywordPostListPageObsPostToSpecificPostPage;
+      // whatIWrotePage에서 SpecificPostPage로 Routing 했을 경우 ...
+      case RouteDistinction.WHATIWROTEPAGE_TO_SPECIFICPOSTPAGE:
+        whereRoute = RouteDistinction.WHATIWROTEPAGE_TO_SPECIFICPOSTPAGE;
         break;
-      // KeywordPostListPage의 문의 처리현황 게시물을 Tab했다면?
-      case RouteDistinction.keywordPostListPageInqPostToSpecificPostPage:
-        whereRoute =
-            RouteDistinction.keywordPostListPageInqPostToSpecificPostPage;
+      // whatICommentPage에서 SpecificPostPage로 Routing 했을 경우 ...
+      case RouteDistinction.WHATICOMMENTPAGE_TO_SPECIFICPOSTPAGE:
+        whereRoute = RouteDistinction.WHATICOMMENTPAGE_TO_SPECIFICPOSTPAGE;
         break;
-      // WhatIWrotePostPage의 장애 처리현황 게시물을 Tab했다면?
-      case RouteDistinction.whatIWrotePageObsPostToSpecificPostPage:
-        whereRoute = RouteDistinction.whatIWrotePageObsPostToSpecificPostPage;
+      // notificationPage에서 SpecificPostPage로 Routing 했을 경우 ...
+      case RouteDistinction.NOTIFICATIONPAGE_TO_SPECIFICPOSTPAGE:
+        whereRoute = RouteDistinction.NOTIFICATIONPAGE_TO_SPECIFICPOSTPAGE;
         break;
-      // WhatIWrotePostPage의 문의 처리현황 게시물을 Tab했다면?
-      case RouteDistinction.whatIWrotePageInqPostToSpecificPostPage:
-        whereRoute = RouteDistinction.whatIWrotePageInqPostToSpecificPostPage;
-        break;
-      // WhatICommentPage의 장애 처리현황 게시물을 Tab했다면?
-      case RouteDistinction.whatICommentPageObsPostToSpecificPostPage:
-        whereRoute = RouteDistinction.whatICommentPageObsPostToSpecificPostPage;
-        break;
-      // WhatICommentPage의 문의 처리현황 게시물을 Tab했다면?
-      case RouteDistinction.whatICommentPageInqPostToSpecificPostPage:
-        whereRoute = RouteDistinction.whatICommentPageInqPostToSpecificPostPage;
-        break;
-      // NotificationPage에서 알림과 관련된 장애 처리현황 게시물을 Tab했다면?
-      case RouteDistinction.notificationPageObsToSpecifcPostPage:
-        whereRoute = RouteDistinction.notificationPageObsToSpecifcPostPage;
-        break;
-      // NotificationPage에서 알림과 관련된 문의 처리현황 게시물을 Tab했다면?
-      case RouteDistinction.notificationPageInqToSpecifcPostPage:
-        whereRoute = RouteDistinction.notificationPageInqToSpecifcPostPage;
-        break;
-      // 스마트폰 환경에 표시된 알림을 Tab 했다면? (알림과 관련된 게시물이 장애 처리현황 게시물일 떄)
-      case RouteDistinction.smartPhoneNotificaitonObsToSpecificPostPage:
-        whereRoute =
-            RouteDistinction.smartPhoneNotificaitonObsToSpecificPostPage;
-        break;
-      // 스마트폰 환경에 표시된 알림을 Tab 했다면? (알림과 관련된 게시물이 문의 처리현황 게시물일 떄)
+      // 스마트폰 환경에 표시된 알림을 Tab해서 SpecificPostPage로 Routing 했을 경우...
       default:
         whereRoute =
-            RouteDistinction.smartPhoneNotificaitonInqToSpecificPostPage;
+            RouteDistinction.SMARTPHONENOTIFICATION_TO_SPECIFICPOSTPAGE;
         break;
     }
   }
 
-  // 이전 페이지에서 넘겨 받은 index를 통해
-  // 게시물 데이터와 사용자 정보 데이터를 copy(clone)하는 method
+  /* 이전 페이지에서 넘겨 받은 index를 통해
+     게시물 데이터와 사용자 정보 데이터를 copy(clone)하는 method */
   void copyPostAndUserData() {
     int index = Get.arguments[0];
 
-    // PostListPage의 장애 처리현황 게시물을 Tab해서 Routing 되었을 경우
-    if (whereRoute == RouteDistinction.postListPageObsPostToSpecificPostPage) {
-      // Tab했던 장애 처리현황 게시물을 copy(clone)한다.
-      postData = PostListController.to.obsPostData[index].copyWith();
-
-      // Tab했던 장애 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
-      userData = PostListController.to.obsUserData[index].copyWith();
+    // PostListPage에서 SpecificPostPage로 Routing 했을 경우 ...
+    if (whereRoute == RouteDistinction.POSTLISTPAGE_TO_SPECIFICPOSTPAGE) {
+      postData = PostListController.to.itRequestPosts[index].copyWith();
+      userData = PostListController.to.itRequestUsers[index].copyWith();
     }
-    // PostListPage의 문의 처리현황 게시물을 Tab해서 Routing 되었을 경우
+    // KeywordPostListPage에서 SpecificPostPage로 Routing 했을 경우 ...
     else if (whereRoute ==
-        RouteDistinction.postListPageInqPostToSpecificPostPage) {
-      // Tab했던 문의 처리현황 게시물을 copy(clone)한다.
-      postData = PostListController.to.inqPostData[index].copyWith();
-
-      // Tab했던 문의 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
-      userData = PostListController.to.inqUserData[index].copyWith();
+        RouteDistinction.KEYWORDPOSTLISTPAGE_TO_SPECIFICPOSTPAGE) {
+      postData = PostListController.to.keywordITRequestPosts[index].copyWith();
+      userData = PostListController.to.keywordITRequestUsers[index].copyWith();
     }
-    // KeywordPostListPage의 장애 처리현황 게시물을 Tab해서 Routing 되었을 경우
+    // whatIWrotePage에서 SpecificPostPage로 Routing 했을 경우 ...
     else if (whereRoute ==
-        RouteDistinction.keywordPostListPageObsPostToSpecificPostPage) {
-      // Tab했던 장애 처리현황 게시물을 copy(clone)한다.
-      postData = PostListController.to.conditionObsPostData[index].copyWith();
-
-      // Tab했던 장애 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
-      userData = PostListController.to.conditionObsUserData[index].copyWith();
-    }
-    // KeywordPostListPage의 문의 처리현황 게시물을 Tab해서 Routing 되었을 경우
-    else if (whereRoute ==
-        RouteDistinction.keywordPostListPageInqPostToSpecificPostPage) {
-      // Tab했던 문의 처리현황 게시물을 copy(clone)한다.
-      postData = PostListController.to.conditionInqPostData[index].copyWith();
-
-      // Tab했던 문의 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
-      userData = PostListController.to.conditionInqUserData[index].copyWith();
-    }
-    // WhatIWrotePostPage의 장애 처리현황 게시물을 Tab해서 Routing 되었을 경우
-    else if (whereRoute ==
-        RouteDistinction.whatIWrotePageObsPostToSpecificPostPage) {
-      // Tab했던 장애 처리현황 게시물을 copy(clone)한다.
-      postData = SettingsController.to.obsWhatIWrotePostDatas[index].copyWith();
-
-      // Tab했던 장애 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
-      userData = SettingsController.to.obsWhatIWroteUserDatas[index].copyWith();
-    }
-    // WhatIWrotePostPage의 문의 처리현황 게시물을 Tab해서 Routing 되었을 경우
-    else if (whereRoute ==
-        RouteDistinction.whatIWrotePageInqPostToSpecificPostPage) {
-      // Tab했던 문의 처리현황 게시물을 copy(clone)한다.
-      postData = SettingsController.to.inqWhatIWrotePostDatas[index].copyWith();
-
-      // Tab했던 문의 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
-      userData = SettingsController.to.inqWhatIWroteUserDatas[index].copyWith();
-    }
-    // WhatICommentPostPage의 장애 처리현황 게시물을 Tab해서 Routing 되었을 경우
-    else if (whereRoute ==
-        RouteDistinction.whatICommentPageObsPostToSpecificPostPage) {
-      // Tab했던 장애 처리현황 게시물을 copy(clone)한다.
+        RouteDistinction.WHATIWROTEPAGE_TO_SPECIFICPOSTPAGE) {
       postData =
-          SettingsController.to.obsWhatICommentPostDatas[index].copyWith();
-
-      // Tab했던 장애 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
+          SettingsController.to.whatIWroteITRequestPosts[index].copyWith();
       userData =
-          SettingsController.to.obsWhatICommentUserDatas[index].copyWith();
+          SettingsController.to.whatIWroteITRequestUsers[index].copyWith();
     }
-    // WhatICommentPostPage의 문의 처리현황 게시물을 Tab해서 Routing 되었을 경우
+    // whatIWrotePage에서 SpecificPostPage로 Routing 했을 경우 ...
     else if (whereRoute ==
-        RouteDistinction.whatICommentPageInqPostToSpecificPostPage) {
-      // Tab했던 문의 처리현황 게시물을 copy(clone)한다.
+        RouteDistinction.WHATICOMMENTPAGE_TO_SPECIFICPOSTPAGE) {
       postData =
-          SettingsController.to.inqWhatICommentPostDatas[index].copyWith();
+          SettingsController.to.whatICommentITRequestPosts[index].copyWith();
 
-      // Tab했던 문의 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
       userData =
-          SettingsController.to.inqWhatICommentUserDatas[index].copyWith();
+          SettingsController.to.whatICommentITRequestUsers[index].copyWith();
     }
-    // NotificationPage의 알림과 관련된 장애 처리현황 게시물을 Tab해서 Routing 되었을 경우
+    // notificationPage에서 SpecificPostPage로 Routing 했을 경우 ...
     else if (whereRoute ==
-        RouteDistinction.notificationPageObsToSpecifcPostPage) {
-      // Tab했던 장애 처리현황 게시물을 copy(clone)한다.
-      postData = PostListController.to.obsPostData[index].copyWith();
+        RouteDistinction.NOTIFICATIONPAGE_TO_SPECIFICPOSTPAGE) {
+      postData = PostListController.to.itRequestPosts[index].copyWith();
 
-      // Tab했던 장애 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
-      userData = PostListController.to.obsUserData[index].copyWith();
+      userData = PostListController.to.itRequestUsers[index].copyWith();
     }
-    // NotificationPage의 알림과 관련된 문의 처리현황 게시물을 Tab해서 Routing 되었을 경우
+    // 스마트폰 환경에 표시된 알림을 Tab해서 SpecificPostPage로 Routing 했을 경우...
     else if (whereRoute ==
-        RouteDistinction.notificationPageInqToSpecifcPostPage) {
-      // Tab했던 문의 처리현황 게시물을 copy(clone)한다.
-      postData = PostListController.to.inqPostData[index].copyWith();
-
-      // Tab했던 문의 처리현황 게시물에 대한 사용자 정보를 copy(clone)한다.
-      userData = PostListController.to.inqUserData[index].copyWith();
-    }
-    // smartPhone 환경의 알림을 Tab 해서 Routing 되었을 경우(알림과 관련된 게시물이 장애 처리현황 게시물일 떄)
-    else if (whereRoute ==
-        RouteDistinction.smartPhoneNotificaitonObsToSpecificPostPage) {
-      // print('postData runtimeType : ${Get.arguments[2].runtimeType}');
-      // print('userData runtimeType : ${Get.arguments[3].runtimeType}');
-      postData = (Get.arguments[2] as PostModel).copyWith();
-      userData = (Get.arguments[3] as UserModel).copyWith();
-    }
-
-    // smartPhone 환경의 알림을 Tab 해서 Routing 되었을 경우(알림과 관련된 게시물이 문의 처리현황 게시물일 떄)
-    else {
+        RouteDistinction.SMARTPHONENOTIFICATION_TO_SPECIFICPOSTPAGE) {
       postData = (Get.arguments[2] as PostModel).copyWith();
       userData = (Get.arguments[3] as UserModel).copyWith();
     }
   }
 
   // 게시물이 삭제되었는지 확인하는 method
-  Future<bool> isDeletePost(
-      ObsOrInqClassification obsOrInq, String postUid) async {
+  Future<bool> isDeletePost(String postUid) async {
     print('SpecificPostPage - isDeletePost() 호출');
 
     // 게시물이 삭제됐으면 isDeletePostResult는 true
     // 게시물이 삭제되지 않았으면 isDeletePostResult는 false를 반환한다.
-    bool isDeletePostResult = await PostListController.to.isDeletePost(
-      obsOrInq,
-      postUid,
-    );
+    bool isDeletePostResult = await PostListController.to.isDeletePost(postUid);
 
-    print('SpecificPostPage - isDeletePost() - ${isDeletePostResult}');
+    print('SpecificPostPage - isDeletePost() - $isDeletePostResult');
 
     return isDeletePostResult;
   }
@@ -1478,7 +1303,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 게시물에 대한 삭제를 클릭했을 떄 나타나는 AlertDialog 입니다.
+  // IT 요청건 게시물에 대한 삭제 아이콘을 클릭했을 떄 나타나는 AlertDialog 입니다.
   Future<bool?> clickDeletePostDialog(PostModel postData) async {
     return showDialog<bool?>(
       context: context,
@@ -1523,7 +1348,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                     maskType: EasyLoadingMaskType.black,
                   );
 
-                  // DataBase에 게시물을 delete 한다.
+                  // DataBase에 IT 요청건 게시물(itRequestPosts)을 delete 한다.
                   await PostListController.to.deletePost(postData);
 
                   // 로딩 바 끝
@@ -1590,7 +1415,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                       .deleteComment(commentArray[index], postData!);
 
                   // SpecificPostPage에 변경 사항 가능성이 있는 데이터를 업데이트한다.
-                  await updateData();
+                  await update();
 
                   // 로딩바 끝(필요하면 추가하기로)
                   EasyLoading.dismiss();
@@ -1606,30 +1431,26 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // SpecificPostPage에서 변경 가능성이 존재하는 데이터를 업데이트하는 method
-  Future<void> updateData() async {
-    // DataBase에서
-    // 게시글 작성한 사람(User)에 대한 image, userName에 대한 데이터를 받아와서
-    // 위 필드인 userData에 업데이트 한다.
-    await updateUserData();
+  Future<void> update() async {
+    // DataBase에서 게시글 작성한 사람(Users)에 대한 image, userName에 대한 데이터를 받아와서 위 필드인 userData에 업데이트 한다.
+    await updateUser();
 
-    // DataBase에서
-    // 게시물(obsPosts, inqPosts)에 대한 proStatus, phoneNumber, whoWriteCommentThePost에 대한 데이터를 받아와서
-    // 위 필드인 postData에 업데이트한다.
-    await updatePostData();
+    /* DataBase에서 게시물(itRequestPosts)에 대한 proStatus, phoneNumber, whoWriteCommentThePost에 대한 데이터를 받아와서
+       위 필드인 postData에 업데이트한다. */
+    await updatePost();
 
     // 답변 정보 입력에 대한 정보 초기화 작업 한다.
     resetAnswerInformationInput();
 
-    // 전체 화면을 재랜더링 하지 않는다. 비효율적이다.
-    // 필요한 부분만 재랜더링 한다.
-    // 1. 게시물에 대한 처리상태가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
-    // 2. 게시물을 작성한 사용자의 전화번호가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
-    // 3. 사용자 Avatar와 이름이 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
-    // 4. 게시물에 대한 댓글 수가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
-    // 5. 댓글 데이터가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
-    // 6. 답변 정보 입력에 댓글 입력하는 부분을 빈칸으로 다시 만든다.
-    //    IT 담당자가 장애 처리현황 게시물에 대한 답변 정보 입력을 하고, 바로 답변 정보 입력을 해야할 떄
-    //    처리일자, 처리시간이 현재 일자, 시간으로 업데이트 되어야 한다. 그렇게 하기 위해서 재랜더링 하는 이유도 있다.
+    /* 전체 화면을 재랜더링 하지 않는다. 필요한 부분만 재랜더링 한다.
+      1. 게시물에 대한 처리상태가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
+      2. 게시물을 작성한 사용자의 전화번호가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
+      3. 사용자 Avatar와 이름이 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
+      4. 게시물에 대한 댓글 수가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
+      5. 댓글 데이터가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
+      6. 답변 정보 입력에 댓글 입력하는 부분을 빈칸으로 다시 만든다.
+        IT 담당자가 장애 처리현황 게시물에 대한 답변 정보 입력을 하고, 바로 답변 정보 입력을 해야할 떄
+        처리일자, 처리시간이 현재 일자, 시간으로 업데이트 되어야 한다. 그렇게 하기 위해서 재랜더링 하는 이유도 있다. */
     PostListController.to.update([
       'showProclassification',
       'showTel',
@@ -1641,29 +1462,26 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     ]);
   }
 
-  // DataBase에서
-  // 게시글 작성한 사람(User)에 대한 image, userName 속성에 접근한다.
-  // 접근한 다음 위 필드 userData에 업데이트 한다.
-  Future<void> updateUserData() async {
+  /* DataBase에서 게시글 작성한 사람(User)에 대한 image, userName 속성에 접근한다.
+     그 다음 위 필드 userData에 업데이트 한다. */
+  Future<void> updateUser() async {
     print('SpecificPostPage - updateUserData() 호출');
 
     // DataBase에 게시글 작성한 사람(User) 정보를 가져온다.
-    UserModel user = await PostListController.to.getUserData(userData!.userUid);
+    UserModel user = await PostListController.to.getUser(userData!.userUid);
 
     // UserData의 image, userName 속성에 값을 업데이트 한다.
     userData!.image = user.image;
     userData!.userName = user.userName;
   }
 
-  // DataBase에서
-  // 게시물(obsPosts, inqPosts)에 대해서 변경 가능성이 존재하는 속성에 접근한다.
-  // 변경 가능성이 존재하는 속성 : proStatus, phoneNumber, whoWriteCommentThePost
-  // 접근한 다음 위 필드 postData에 업데이트 한다.
-  Future<void> updatePostData() async {
+  /* DataBase에서 게시물(itRequestPosts)에 대해서 변경 가능성이 존재하는 속성에 접근한다.
+    변경 가능성이 존재하는 속성 : proStatus, phoneNumber, whoWriteCommentThePost 속성에 접근한 다음 위 필드 postData에 업데이트 한다. */
+  Future<void> updatePost() async {
     print('SpecificPostPage - updatePostData() 호출');
 
-    // DataBase에 게시글(obsPosts, inqPosts) 정보를 가져온다.
-    PostModel post = await PostListController.to.getPostData(postData!);
+    // DataBase에 게시글(itRequestPosts) 정보를 가져온다.
+    PostModel post = await PostListController.to.getPost(postData!);
 
     // postData의 proStatus, phoneNumber, whoWriteCommentThePost 속성에 값을 업데이트 한다.
     postData!.proStatus = post.proStatus;
@@ -1673,17 +1491,17 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
   // 답변 정보 입력에 대한 내용을 초기화 하는 method
   void resetAnswerInformationInput() {
-    // 답변 정보 입력에서 IT 담당자에게만 보이는 처리상태, 장애원인을 초기화한다.
-    // 즉, 처리상태는 대기(WAITING), 장애원인은 사용자(USER)로 초기화한다.
+    /* 답변 정보 입력에서 IT 담당자에게만 보이는 처리상태, 장애원인을 초기화한다.
+       즉, 처리상태는 대기(WAITING), 장애원인은 사용자(USER)로 초기화한다. */
     PostListController.to.commentPSelectedValue = ProClassification.WAITING;
     PostListController.to.commentCSelectedValue = CauseObsClassification.USER;
 
-    // 답변 정보 입력에서 IT 담당자에게만 보이는 처리일자, 처리시간을 초기화한다.
-    // 즉 처리일자와 처리시간을 빈값으로 초기화한다.
+    /* 답변 정보 입력에서 IT 담당자에게만 보이는 처리일자, 처리시간을 초기화한다.
+       즉 처리일자와 처리시간을 빈값으로 초기화한다. */
     PostListController.to.commentActualProcessDate = '';
     PostListController.to.commentActualProcessTime = '';
 
-    // comment Text를 관리하는 controller의 값을 빈값을 초기화한다.
+    // commentText를 관리하는 controller의 값을 빈값을 초기화한다.
     PostListController.to.commentController.text = '';
   }
 
@@ -1716,7 +1534,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     copyPostAndUserData();
 
     // 게시글이 삭제됐는지 확인한다.
-    isDeletePost(postData!.obsOrInq, postData!.postUid).then(
+    isDeletePost(postData!.postUid).then(
       (bool isDeletePostResult) async {
         print('SpecificPostPage - isDeletePost() 호출 후');
 
@@ -1731,7 +1549,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         // 게시글이 삭제되지 않으면?
         else {
           // SpecificPostPage에서 변경 가능성이 존재하는 데이터를 업데이트하는 method
-          await updateData();
+          await update();
 
           // Database에 Comment 데이터를 호출하는 것을 허락한다.
           isCallServerAboutCommentData = true;
@@ -1769,25 +1587,25 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 이전 가기, 알림, 새로 고침, 삭제 버튼을 제공하는 Widget이다.
+              // 이전 가기, 알림, 새로 고침, 삭제 버튼을 제공한다.
               topView(),
 
               SizedBox(height: 20.h),
 
-              // 장애 처리현황 또는 문의 처리현황 분류 코드, 시스템 분류 코드를 제공하는 Widget 입니다.
-              showObsOrInqAndSysClassification(),
+              // 시스템 분류 코드와 처리 상태 분류 코드를 제공한다.
+              sysAndProClassification(),
 
               SizedBox(height: 10.h),
 
-              // 처리상태 분류 코드와 전화번호를 제공하는 Widget 입니다.
-              proClassficationAndTel(),
+              // 전화번호를 제공한다.
+              tel(),
 
               SizedBox(height: 10.h),
 
-              // Avatar와 UserName, PostTime을 표시하는 Widget이다.
+              // Avatar와 UserName, PostTime을 표시한다.
               showAvatarAndUserNameAndPostTime(),
 
-              // PostTitle, PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostCommentNum를 보여주는 Widget 입니다.
+              // PostTitle, PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostCommentNum를 보여준다.
               showTitleAndContentAndPhotoAndCommentNum(),
 
               SizedBox(height: 20.h),
@@ -1797,7 +1615,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
               SizedBox(height: 40.h),
 
-              // 답변 정보 입력을 보여주는 Widget
+              // 답변 정보 입력을 보여준다.
               answerInformationInput(),
 
               SizedBox(height: 20.h),

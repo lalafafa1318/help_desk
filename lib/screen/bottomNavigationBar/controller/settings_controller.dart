@@ -5,7 +5,6 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
-import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/userClassification.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
@@ -14,14 +13,17 @@ import 'package:help_desk/utils/toast_util.dart';
 import 'package:image_picker/image_picker.dart';
 
 class SettingsController extends GetxController {
-  // **** 기타 설정 **** //
+  /* 사용자가 회원가입 절차를 거쳤는지 아닌지 판단, 사용자 계정 정보를 담는 데이터  */
+
   // 사용자가 회원가입 절차를 거쳤는지 아닌지를 판별하는 상태 변수
   bool didSignUp = true;
   // 사용자 계정을 나타내는 인스턴스
   // AuthController의 사용자 정보를 복제했다.
   UserModel? settingUser;
+  
 
-  // **** 프로필 수정 페이지에서 관리하는 데이터 **** //
+  /* EditProfilePage에서 활용되는 데이터 */
+
   // 수정한 이미지에 대한 Field
   ImagePicker imagePicker = ImagePicker();
   File? editImage;
@@ -32,27 +34,17 @@ class SettingsController extends GetxController {
   // 전화번호와 관련된 TextFormField Text를 저장하는 Field
   TextEditingController? telTextController;
 
-  // **** 내가 쓴 글 페이지, 내가 댓글 단 글 페이지에서 관리하는 데이터 **** //
-  // whatIWrotePage, whatICommentPage 장애/게시물 선택에서
-  // 장애 처리현황을 선택했는가? 문의 처리현황을 선택했는가?
-  ObsOrInqClassification selectObsOrInq =
-      ObsOrInqClassification.obstacleHandlingStatus;
-  // 장애 처리현황과 관련해서 사용자가 쓴 게시물을 담는 배열
-  List<PostModel> obsWhatIWrotePostDatas = [];
-  // 장애 처리현황과 관련해서 사용자가 쓴 게시물에 대한 사용자 정보를 담는 배열
-  List<UserModel> obsWhatIWroteUserDatas = [];
-  // 문의 처리현황과 관련해서 사용자가 쓴 게시물을 담는 배열
-  List<PostModel> inqWhatIWrotePostDatas = [];
-  // 문의  처리현황과 관련해서 사용자가 쓴 게시물에 대한 사용자 정보를 담는 배열
-  List<UserModel> inqWhatIWroteUserDatas = [];
-  // 장애 처리현황과 관련해서 사용자가 댓글 작성한 게시물을 담는 배열
-  List<PostModel> obsWhatICommentPostDatas = [];
-  // 장애 처리현황과 관련해서 사용자가 댓글 작성한 게시물에 대한 사용자 정보를 담는 배열
-  List<UserModel> obsWhatICommentUserDatas = [];
-  // 문의 처리현황과 관련해서 사용자가 댓글 작성한 게시물을 담는 배열
-  List<PostModel> inqWhatICommentPostDatas = [];
-  // 문의 처리현황과 관련해서 사용자가 댓글 작성한 게시물에 대한 사용자 정보를 담는 배열
-  List<UserModel> inqWhatICommentUserDatas = [];
+
+  /* whatIWrotePage, whatICommentPage에서 관리하는 데이터 */
+
+  // 사용자가 작성한 IT 요청건 게시물을 담는 배열
+  List<PostModel> whatIWroteITRequestPosts = [];
+  // 사용자가 작성한 IT 요청건 게시물에 대한 사용자 정보를 담는 배열
+  List<UserModel> whatIWroteITRequestUsers = [];
+  // 사용자가 댓글 작성한 IT 요청건 게시물을 담는 배열
+  List<PostModel> whatICommentITRequestPosts = [];
+  // 사용자가 댓글 작성한 IT 요청건 게시물에 대한 사용자 정보를 담는 배열
+  List<UserModel> whatICommentITRequestUsers = [];
 
   // Method
   // Settings를 쉽게 사용할 수 있도록 하는 method
@@ -162,118 +154,50 @@ class SettingsController extends GetxController {
     telTextController!.text = '';
   }
 
-  // 장애 처리현황 또는 문의 처리현황 게시물을 가져오는 method
-  void changePost() {
-    // SettingsController의 selectObsOrInq 변수를 업데이트한다.
-    if (selectObsOrInq == ObsOrInqClassification.obstacleHandlingStatus) {
-      selectObsOrInq = ObsOrInqClassification.inqueryHandlingStatus;
-    }
-    //
-    else {
-      selectObsOrInq = ObsOrInqClassification.obstacleHandlingStatus;
-    }
+  // 내가 작성한 IT 요청건 게시물을 가져오는 method
+  Future<List<PostModel>> getWhatIWroteITRequestPosts() async {
+    // SettingsController의 whatIWroteITRequestPosts와 whatIWrotetITRequestUsers를 clear한다.
+    whatIWroteITRequestPosts.clear();
+    whatIWroteITRequestUsers.clear();
 
-    // GetBuilder를 통해 장애 처리현황 게시물 또는 문의 처리현황 게시물을 보여준다.
-    SettingsController.to.update(['getObsOrInqPost']);
+    /* PostListController.to.itRequestPosts
+       PostListController.to.itRequestUser를 간단히 명명하고자 참조변수를 설정한다. */
+    List<PostModel> itRequestPosts = PostListController.to.itRequestPosts;
+    List<UserModel> itRequestUsers = PostListController.to.itRequestUsers;
 
-    // 보여주는 게시물이 장애 처리현황인지 문의 처리현황인지 보여준다.
-    SettingsController.to.update(['getObsOrInqText']);
-  }
-
-  // 장애 처리현황 게시물과 관련해서 내가 작성한 글을 가져오는 method
-  Future<List<PostModel>> getObsWhatIWrotePostData() async {
-    // PostData들과 UserData들을 담고 있는 배열을 clear한다.
-    obsWhatIWrotePostDatas.clear();
-    obsWhatIWroteUserDatas.clear();
-
-    // PostListController.to.obsPostData,
-    // PostListController.to.obsUserData를
-    // 짧게 명명하고자 참조변수를 설정한다.
-    List<PostModel> obsPostDatas = PostListController.to.obsPostData;
-    List<UserModel> obsUserDatas = PostListController.to.obsUserData;
-
-    // 장애 처리현황 게시물과 관련해서 내가 작성한 글을 찾는다.
-    for (int i = 0; i < obsPostDatas.length; i++) {
-      if (obsPostDatas[i].userUid == settingUser!.userUid) {
-        obsWhatIWrotePostDatas.add(obsPostDatas[i]);
-        obsWhatIWroteUserDatas.add(obsUserDatas[i]);
+    // for문을 통해 내가 작성한 IT 요청건 게시물을 찾는다.
+    for (int i = 0; i < itRequestPosts.length; i++) {
+      if (itRequestPosts[i].userUid == settingUser!.userUid) {
+        whatIWroteITRequestPosts.add(itRequestPosts[i]);
+        whatIWroteITRequestUsers.add(itRequestUsers[i]);
       }
     }
 
-    return obsWhatIWrotePostDatas;
-  }
-
-  // 문의 처리현황 게시물과 관련해서 내가 작성한 글을 가져오는 method
-  Future<List<PostModel>> getInqWhatIWrotePostData() async {
-    // PostData들과 UserData들을 담고 있는 배열을 clear한다.
-    inqWhatIWrotePostDatas.clear();
-    inqWhatIWroteUserDatas.clear();
-
-    // PostListController.to.inqPostData,
-    // PostListController.to.inqUserData를
-    // 짧게 명명하고자 참조변수를 설정한다.
-    List<PostModel> inqPostDatas = PostListController.to.inqPostData;
-    List<UserModel> inqUserDatas = PostListController.to.inqUserData;
-
-    // 문의 처리현황 게시물과 관련해서 내가 작성한 글을 찾는다.
-    for (int i = 0; i < inqPostDatas.length; i++) {
-      if (inqPostDatas[i].userUid == settingUser!.userUid) {
-        inqWhatIWrotePostDatas.add(inqPostDatas[i]);
-        inqWhatIWroteUserDatas.add(inqUserDatas[i]);
-      }
-    }
-
-    return inqWhatIWrotePostDatas;
+    return whatIWroteITRequestPosts;
   }
 
   // 장애 처리현황 게시물과 관련해서 내가 댓글 작성한 글을 가져오는 method
-  Future<List<PostModel>> getObsWhatICommentPostData() async {
-    // PostData들과 UserData들을 담고 있는 배열을 clear한다.
-    obsWhatICommentPostDatas.clear();
-    obsWhatICommentUserDatas.clear();
+  Future<List<PostModel>> getWhatICommentITRequestPosts() async {
+    // SettingsController의 whatICommentITRequestPosts와 whatICommentITRequestUsers를 clear한다.
+    whatICommentITRequestPosts.clear();
+    whatICommentITRequestUsers.clear();
 
-    // PostListController.to.obsPostData,
-    // PostListController.to.obsUserData를
-    // 짧게 명명하고자 참조변수를 설정한다.
-    List<PostModel> obsPostDatas = PostListController.to.obsPostData;
-    List<UserModel> obsUserDatas = PostListController.to.obsUserData;
+    /* PostListController.to.itRequestPosts
+       PostListController.to.itRequestUser를 간단히 명명하고자 참조변수를 설정한다. */
+    List<PostModel> itRequestPosts = PostListController.to.itRequestPosts;
+    List<UserModel> itRequestUsers = PostListController.to.itRequestUsers;
 
-    // 장애 처리현황 게시물과 관련해서 내가 댓글 작성한 글을 찾는다.
-    for (int i = 0; i < obsPostDatas.length; i++) {
-      if (obsPostDatas[i]
+    // for문을 통해 내가 댓글 작성한 IT 요청건 게시물을 찾는다.
+    for (int i = 0; i < itRequestPosts.length; i++) {
+      if (itRequestPosts[i]
           .whoWriteCommentThePost
           .contains(settingUser!.userUid)) {
-        obsWhatICommentPostDatas.add(obsPostDatas[i]);
-        obsWhatICommentUserDatas.add(obsUserDatas[i]);
+        whatICommentITRequestPosts.add(itRequestPosts[i]);
+        whatICommentITRequestUsers.add(itRequestUsers[i]);
       }
     }
 
-    return obsWhatICommentPostDatas;
-  }
-
-  // 문의 처리현황 게시물과 관련해서 내가 댓글 작성한 글을 가져오는 method
-  Future<List<PostModel>> getInqWhatICommentPostData() async {
-    // PostData들과 UserData들을 담고 있는 배열을 clear한다.
-    inqWhatICommentPostDatas.clear();
-    inqWhatICommentUserDatas.clear();
-
-    // PostListController.to.inqPostData,
-    // PostListController.to.inqUserData를
-    // 짧게 명명하고자 참조변수를 설정한다.
-    List<PostModel> inqPostDatas = PostListController.to.inqPostData;
-    List<UserModel> inqUserDatas = PostListController.to.inqUserData;
-
-    // 장애 처리현황 게시물과 관련해서 내가 작성한 글을 찾는다.
-    for (int i = 0; i < inqPostDatas.length; i++) {
-      if (inqPostDatas[i]
-          .whoWriteCommentThePost
-          .contains(settingUser!.userUid)) {
-        inqWhatICommentPostDatas.add(inqPostDatas[i]);
-        inqWhatICommentUserDatas.add(inqUserDatas[i]);
-      }
-    }
-
-    return inqWhatICommentPostDatas;
+    return whatICommentITRequestPosts;
   }
 
   // SettingsController가 메모리에 처음 올라갔을 떄 호출되는 method
@@ -299,17 +223,10 @@ class SettingsController extends GetxController {
     settingUser = null;
     editImage = null;
 
-    obsWhatIWrotePostDatas.clear();
-    obsWhatIWroteUserDatas.clear();
-
-    inqWhatICommentPostDatas.clear();
-    inqWhatICommentUserDatas.clear();
-
-    obsWhatICommentPostDatas.clear();
-    obsWhatICommentUserDatas.clear();
-
-    inqWhatICommentPostDatas.clear();
-    inqWhatICommentUserDatas.clear();
+    whatIWroteITRequestPosts.clear();
+    whatIWroteITRequestUsers.clear();
+    whatICommentITRequestPosts.clear();
+    whatICommentITRequestUsers.clear();
 
     super.onClose();
   }

@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/const/notificationClassification.dart';
-import 'package:help_desk/const/obsOrInqClassification.dart';
 import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/const/userClassification.dart';
 import 'package:help_desk/model/notification_model.dart';
@@ -83,7 +82,7 @@ class NotificationPage extends StatelessWidget {
     );
   }
 
-  // 알림 데이터를 준비하는 Widget 입니다.
+  // DataBase에서 요청 알림 또는 댓글 알림을 가져온다.
   Widget prepareNotifications() {
     return Expanded(
       flex: 1,
@@ -91,10 +90,10 @@ class NotificationPage extends StatelessWidget {
         id: 'getNotifications',
         builder: (NotificationController controller) {
           return FutureBuilder<List<NotificationModel>>(
-            // DataBase에 requestNotifications에 있는 알림 기록을 가져올지, commentNotifications에 있는 알림 기록을 가져올지 결정한다.
+            /* DataBase에 requestNotifications에 있는 알림 기록을 가져올지 (요청 알림),
+               commentNotifications에 있는 알림 기록 (댓글 알림)을 가져올지 결정한다. */
             future: controller.getRequestORCommentNotificationModelList(
-              SettingsController.to.settingUser!.userUid,
-            ),
+                SettingsController.to.settingUser!.userUid),
             builder: (context, snapshot) {
               // snapshot을 기다립니다.
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -103,7 +102,7 @@ class NotificationPage extends StatelessWidget {
 
               // snapshot이 도착했으나 데이터가 empty인 경우
               if (snapshot.data!.isEmpty) {
-                return noNotificationData();
+                return noNotifications();
               }
 
               return ListView.builder(
@@ -118,8 +117,8 @@ class NotificationPage extends StatelessWidget {
     );
   }
 
-  // Notification Data가 없음을 보여주는 Widget
-  Widget noNotificationData() {
+  // Notification이 없음을 보여주는 Widget
+  Widget noNotifications() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -150,29 +149,14 @@ class NotificationPage extends StatelessWidget {
 
     // index를 통해 해당하는 NotificationModel을 가져온다.
     NotificationModel notificationModel = notificationModelList[index];
+    // PostListController.to.itRequestPosts를 간단하게 명명한다.
+    List<PostModel> itRequestPosts = PostListController.to.itRequestPosts;
 
-    // NotifcationModel이 장애 처리현황 게시물과 관련이 있다.
-    if (notificationModel.belongNotiObsOrInq ==
-        ObsOrInqClassification.obstacleHandlingStatus) {
-      // PostListController.to.obsPostData를 간단하게 명명한다.
-      List<PostModel> obsPostDatas = PostListController.to.obsPostData;
-      // NotificationModel과 관련된 장애 처리현황 게시물과 그에 따른 사용자(user) 데이터의 index를 찾는다.
-      for (int i = 0; i < obsPostDatas.length; i++) {
-        if (obsPostDatas[i].postUid == notificationModel.belongNotiPostUid) {
-          idx = i;
-          break;
-        }
-      }
-    }
-    // NotificationModel이 문의 처리현황 게시물과 관련이 있다.
-    else {
-      List<PostModel> inqPostDatas = PostListController.to.inqPostData;
-      // NotificationModel과 관련된 문의 처리현황 게시물과 그에 따른 사용자(user) 데이터의 index를 찾는다.
-      for (int i = 0; i < inqPostDatas.length; i++) {
-        if (inqPostDatas[i].postUid == notificationModel.belongNotiPostUid) {
-          idx = i;
-          break;
-        }
+    // NotificationModel과 관련된 IT 요청건 게시물이 어떤 것인지 확인한다. 이는 index를 통해 확인한다.
+    for (int i = 0; i < itRequestPosts.length; i++) {
+      if (itRequestPosts[i].postUid == notificationModel.belongNotiPostUid) {
+        idx = i;
+        break;
       }
     }
 
@@ -200,40 +184,37 @@ class NotificationPage extends StatelessWidget {
                               .to.commentNotificationModelList
                               .removeAt(index);
 
-                  // 알림 메시지 view가 댓글 알림 목록일 떄만 이하 if문 작업을 한다.
-                  // 일반 요청자의 경우 항상 댓글 알림 목록이므로 이하 if문을 타게 된다.
-                  // IT 담당자의 경우, 댓글 알림 목록이면 이하 if문을 타게 된다.
+                  /* 알림 메시지 view가 댓글 알림 목록일 떄만 이하 if문 작업을 한다.
+                     일반 요청자의 경우 항상 댓글 알림 목록이므로 이하 if문을 타게 된다.
+                     IT 담당자의 경우, 댓글 알림 목록이면 이하 if문을 타게 된다. */
                   if (SettingsController.to.settingUser!.userType ==
                           UserClassification.GENERALUSER ||
                       NotificationController.to.notificationClassification ==
                           NotificationClassification.COMMENTNOTIFICATION) {
-                    // 댓글 알림과 관련된 장애 처리현황 또는 문의 처리현황 게시물이 Database에 삭제되었는지 확인한다.
-                    bool isDeletePostResult =
-                        await PostListController.to.isDeletePost(
-                      notificationModel.belongNotiObsOrInq,
-                      notificationModel.belongNotiPostUid,
-                    );
+                    // 댓글 알림과 관련된 IT 요청건 게시물이 Database에 삭제되었는지 확인한다.
+                    bool isDeletePostResult = await PostListController.to
+                        .isDeletePost(notificationModel.belongNotiPostUid);
 
-                    // 댓글 알림과 관련된 장애 처리현황 또는 문의 처리현황 게시물이 삭제되었다면?
-                    // -> 더이상 알림 받을 필요성이 없다.
-                    // -> 해당 게시물에 대해서 알림 받기 위해 설정했던 모든 것을 해제한다.
+                    /* 댓글 알림과 관련된 IT 요청건 게시물이 삭제되었다면?
+                       -> 더이상 알림 받을 필요성이 없다.
+                       -> 해당 IT 요청건 게시물에 대해서 알림 받기 위해 설정했던 모든 것을 해제한다. */
                     if (isDeletePostResult == true) {
                       // 댓글 알림과 관련된 게시물 Uid가 commentNotificationPostUidList의 몇번째 index에 있는지 확인한다.
-                      int commentNotificationPostUidIndex = NotificationController
-                          .to.commentNotificationPostUidList
-                          .indexOf(notificationModel.belongNotiPostUid);
+                      int commentNotificationPostUidIndex =
+                          NotificationController
+                              .to.commentNotificationPostUidList
+                              .indexOf(notificationModel.belongNotiPostUid);
 
-                      // notiPostIndex == -1 이라면 이하 if문은 실행할 필요 없다.
-                      // ex) 사용자가 알림 신청한 게시물에 대한 댓글 알림을 2개 이상 받았다고 하자...
-                      // 그런데, 알림 신청한 게시물 작성자가 게시물을 삭제했다고 하자..
-                      // 그 다음 사용자가 알림 신청한 게시물(2개로 가정한다.)를 삭제하려고 한다...
-                      // 첫번쨰 댓글 알림을 삭제할 떄는 이하 if문을 타고가서 해당 게시물에 대해 알림 받기 위해 했던 여러 설정을 해제한다.
-                      // 두번쨰 댓글 알림을 삭제할 떄는 해당 게시물에 대한 알림 받기 위해 했던 여러 설정을 해제한 상태이므로 이하 if문을 수행하지 않는다.
+                      /* notiPostIndex == -1 이라면 이하 if문은 실행할 필요 없다.
+                         ex) 사용자가 알림 신청한 게시물에 대한 댓글 알림을 2개 이상 받았다고 하자...
+                         그런데, 알림 신청한 게시물 작성자가 게시물을 삭제했다고 하자..
+                         그 다음 사용자가 알림 신청한 게시물(2개로 가정한다.)를 삭제하려고 한다...
+                         첫번쨰 댓글 알림을 삭제할 떄는 이하 if문을 타고가서 해당 게시물에 대해 알림 받기 위해 했던 여러 설정을 해제한다.
+                         두번쨰 댓글 알림을 삭제할 떄는 해당 게시물에 대한 알림 받기 위해 했던 여러 설정을 해제한 상태이므로 이하 if문을 수행하지 않는다. */
                       commentNotificationPostUidIndex != -1
                           ? NotificationController.to
                               .clearCommentNotificationSettings(
-                              notificationModel.belongNotiPostUid,
-                            )
+                                  notificationModel.belongNotiPostUid)
                           : null;
                     }
 
@@ -279,33 +260,16 @@ class NotificationPage extends StatelessWidget {
               }
               //
               else {
-                // NotificationModel이 장애 처리현황과 관련이 있다.
-                if (notificationModel.belongNotiObsOrInq ==
-                    ObsOrInqClassification.obstacleHandlingStatus) {
-                  // SpecificPostPage로 Routing
-                  // argument 0번쨰 : PostListController의 obsPostData와 obsUserData들을 담고 있는 배열의 index
-                  // argument 1번쨰 : NotificationPage에서 Routing 되었다는 것을 알려준다.
-                  Get.to(
-                    () => const SpecificPostPage(),
-                    arguments: [
-                      idx,
-                      RouteDistinction.notificationPageObsToSpecifcPostPage,
-                    ],
-                  );
-                }
-                // NotificationModel이 문의 처리현황과 관련이 있다.
-                else {
-                  // SpecificPostPage로 Routing
-                  // argument 0번쨰 : PostListController의 PostData와 UserData들을 담고 있는 배열의 index
-                  // argument 1번쨰 : NotificationPage에서 Routing 되었다는 것을 알려준다.
-                  Get.to(
-                    () => const SpecificPostPage(),
-                    arguments: [
-                      idx,
-                      RouteDistinction.notificationPageInqToSpecifcPostPage,
-                    ],
-                  );
-                }
+                /* SpecificPostPage로 Routing
+                    argument 0번쨰 : PostListController의 itRequestPosts와 itRequestUsers들을 담고 있는 배열의 index
+                    argument 1번쨰 : NotificationPage에서 Routing 되었다는 것을 알려준다. */
+                Get.to(
+                  () => const SpecificPostPage(),
+                  arguments: [
+                    idx,
+                    RouteDistinction.NOTIFICATIONPAGE_TO_SPECIFICPOSTPAGE,
+                  ],
+                );
               }
             },
 
@@ -314,9 +278,9 @@ class NotificationPage extends StatelessWidget {
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Notificaiton과 관련된 게시물이 장애 처리현황인지 문의 처리현황인지 표시한다.
+                // IT 요청건이라는 이름을 보여준다.
                 Text(
-                  notificationModel.belongNotiObsOrInq.asText,
+                  'IT 요청건',
                   style:
                       TextStyle(fontSize: 12.5.sp, fontWeight: FontWeight.bold),
                 ),
@@ -355,8 +319,8 @@ class NotificationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // 일반 요청자는 댓글 알림 목록만 보인다.
-      // IT 담당자는 요청 알림 목록과 댓글 알림 목록 총 2가지를 FlatingActionButton를 통해 볼 수 있다.
+      /* 일반 요청자는 댓글 알림 목록만 보인다.
+         IT 담당자는 요청 알림 목록과 댓글 알림 목록 총 2가지를 FlatingActionButton를 통해 볼 수 있다. */
       floatingActionButton: SettingsController.to.settingUser!.userType ==
               UserClassification.GENERALUSER
           ? null
@@ -365,8 +329,8 @@ class NotificationPage extends StatelessWidget {
                   Alignment.bottomRight.x, Alignment.bottomRight.y - 0.2),
               child: FloatingActionButton(
                 backgroundColor: Colors.grey,
-                // IT 담당자가 요청 알림 목록을 보고 있다가 FloatingButton을 클릭하면 댓글 알림 목록으로 전환된다.
-                // 그 반대도 똑같이 적용된다.
+                /* IT 담당자가 요청 알림 목록을 보고 있다가 FloatingButton을 클릭하면 댓글 알림 목록으로 전환된다.
+                   그 반대도 똑같이 적용된다. */
                 onPressed: () {
                   NotificationController.to.notificationClassification ==
                           NotificationClassification.REQUESTNOTIFICATION

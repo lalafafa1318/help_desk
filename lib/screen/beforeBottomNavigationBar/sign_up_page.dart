@@ -249,7 +249,7 @@ class _SignUpPageState extends State<SignUpPage> {
     );
 
     // Firebase DataBase에 User 정보를 upload하는 method
-    await CommunicateFirebase.setUserData(user);
+    await CommunicateFirebase.setUser(user);
 
     // AuthController에 있는 상태 변수에 User 정보를 대입한다.
     AuthController.to.user(user);
