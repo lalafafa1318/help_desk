@@ -20,7 +20,7 @@ import 'package:help_desk/utils/uuid_util.dart';
 import 'package:intl/intl.dart';
 
 // 알림 목록을 관리하는 controller 입니다.
-class NotificationController extends FullLifeCycleController {
+class NotificationController extends GetxController {
   /* 일반 요청자, IT 담당자(IT 1실, 2실)가 댓글 알림 신청했을 떄 바탕이 되는 데이터 */
 
   // 사용자가 알림 신청한 게시물 Uid를 담는 배열
@@ -197,7 +197,31 @@ class NotificationController extends FullLifeCycleController {
   }
 
   // DataBase에서 IT 2실 담당자가 처리해야 하는 시스템이 명시된 IT 요청건 게시물 총 개수를 가져오는 method
-  Future<void> getIT2UserProcessITRequestPostsSize() async {}
+  Future<void> getIT2UserProcessITRequestPostsSize() async {
+    // DataBase에서 IT 2실 관리자가 처리해야 하는 시스템이 명시된 IT 요청거 게시물 총 개수를 가져온다.
+    QuerySnapshot<Map<String, dynamic>> result =
+        await firebaseFirestore.collection('itRequestPosts').where(
+      'sysClassficationCode',
+      whereIn: [
+        'SysClassification.HOMEPAGE',
+        'SysClassification.NSCS',
+        'SysClassification.ARM',
+        'SysClassification.SERVER',
+        'SysClassification.NETWORK',
+        'SysClassification.CALL_INFRASTRUCTURE',
+        'SysClassification.SECURITY',
+        'SysClassification.DOC_CENTRALIZATION',
+        'SysClassification.PERSONAL_EQUIPMENT',
+        'SysClassification.ETC',
+      ],
+    ).get();
+
+    it2UserProcessITRequestPostsSize = result.size;
+
+    // log
+    print(
+        'it2UserProcessITRequestPostsSize : $it2UserProcessITRequestPostsSize');
+  }
 
   /* 사용자 자격이 IT 1실 관리자이다.
      일반 요청자가 IT 1실 관리자가 담당하는 시스템을 적용한 게시물을 업로드할 떄 listen한다. */
@@ -233,15 +257,15 @@ class NotificationController extends FullLifeCycleController {
             );
 
             // 가장 최근 postTime을 가진 게시물을 가져온다.
-            QueryDocumentSnapshot<Map<String, dynamic>> recentObsPost =
+            QueryDocumentSnapshot<Map<String, dynamic>> recentITRequestPost =
                 docs.last;
 
             /* 그럴 일은 가능성이 낮겠지만 IT 1실 담당자 자격의 자신이 IT 1실 담당자가 관리하는 시스템 관련 게시물을 올렸을 떄는 이하 if문을 실행하지 않도록 한다.
                즉 나 자신 말고 다른 사람이 IT 1실 담당자가 관리하는 시스템 관련 게시물을 올렸을 때, 이하 if문을 실행한다. */
-            if (recentObsPost.data()['userUid'] !=
+            if (recentITRequestPost.data()['userUid'] !=
                 SettingsController.to.settingUser!.userUid) {
               // Flutter Local Notification을 띄울 떄 title에 게시물 업로드한 사용자를 보여주기 위해서 DataBase에 사용자 정보를 가져온다.
-              String userUid = recentObsPost.data()['userUid'].toString();
+              String userUid = recentITRequestPost.data()['userUid'].toString();
               DocumentSnapshot<Map<String, dynamic>> user =
                   await firebaseFirestore
                       .collection('users')
@@ -251,11 +275,12 @@ class NotificationController extends FullLifeCycleController {
               // NotificationModel을 만든다.
               NotificationModel noti = NotificationModel(
                 title:
-                    '${user.data()!['userName'].toString()} - ${recentObsPost.data()['postTitle'].toString()}',
+                    '${user.data()!['userName'].toString()} - ${recentITRequestPost.data()['postTitle'].toString()}',
                 body:
-                    'IT1실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentObsPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
+                    'IT1실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentITRequestPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
                 notiUid: UUidUtil.getUUid(),
-                belongNotiPostUid: recentObsPost.data()['postUid'].toString(),
+                belongNotiPostUid:
+                    recentITRequestPost.data()['postUid'].toString(),
                 notiTime:
                     DateFormat('yy/MM/dd - HH:mm:ss').format(DateTime.now()),
               );
@@ -267,10 +292,10 @@ class NotificationController extends FullLifeCycleController {
               await showGroupNotifications(
                 // 게시물 작성자 - 댓글이 작성된 게시물 제목
                 title:
-                    '${user.data()!['userName'].toString()} - ${recentObsPost.data()['postTitle'].toString()}',
+                    '${user.data()!['userName'].toString()} - ${recentITRequestPost.data()['postTitle'].toString()}',
                 // 게시물 시스템 분류 코드를 나타낸다.
                 body:
-                    'IT1실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentObsPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
+                    'IT1실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentITRequestPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
               );
 
               // Database에 requestNotifications에 알림 데이터를 저장한다.
@@ -289,7 +314,95 @@ class NotificationController extends FullLifeCycleController {
 
   /* 사용자 자격이 IT 2실 관리자이다.
      일반 요청자가 IT 2실 관리자가 담당하는 시스템과 관련된 게시물을 업로드할 떄 listen한다. */
-  Future<void> it2UserListenITRequestPosts() async {}
+  Future<void> it2UserListenITRequestPosts() async {
+    it2UserListen = firebaseFirestore
+        .collection('itRequestPosts')
+        .where('sysClassficationCode', whereIn: [
+          'SysClassification.HOMEPAGE',
+          'SysClassification.NSCS',
+          'SysClassification.ARM',
+          'SysClassification.SERVER',
+          'SysClassification.NETWORK',
+          'SysClassification.CALL_INFRASTRUCTURE',
+          'SysClassification.SECURITY',
+          'SysClassification.DOC_CENTRALIZATION',
+          'SysClassification.PERSONAL_EQUIPMENT',
+          'SysClassification.ETC',
+        ])
+        .snapshots()
+        .listen((QuerySnapshot<Map<String, dynamic>> event) async {
+          // 일반 요청자가 IT 1실이 담당하는 시스템을 적용한 게시물을 업로드할 떄 알림을 보낸다.
+          if (it2UserProcessITRequestPostsSize < event.size) {
+            // sort를 하기 위해 데이터 타입을 List<QueryDocumentSnapshot<Map<String, dynamic>>> 으로 만든다.
+            List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = event.docs;
+
+            /* DataBase에 있는 obsPosts에 대한 postTime 속성을 오름차순으로 정렬한다.
+               즉, 가장 오래된 postTime은 맨 앞에, 가장 최근 postTime은 맨 뒤에 배치될 것이다. */
+            docs.sort(
+              (
+                QueryDocumentSnapshot<Map<String, dynamic>> a,
+                QueryDocumentSnapshot<Map<String, dynamic>> b,
+              ) =>
+                  a.data()['postTime'].toString().compareTo(
+                        b.data()['postTime'].toString(),
+                      ),
+            );
+
+            // 가장 최근 postTime을 가진 게시물을 가져온다.
+            QueryDocumentSnapshot<Map<String, dynamic>> recentITRequestPost =
+                docs.last;
+
+            /* 그럴 일은 가능성이 낮겠지만 IT 2실 담당자 자격의 자신이 IT 1실 담당자가 관리하는 시스템 관련 게시물을 올렸을 떄는 이하 if문을 실행하지 않도록 한다.
+               즉 나 자신 말고 다른 사람이 IT 2실 담당자가 관리하는 시스템 관련 게시물을 올렸을 때, 이하 if문을 실행한다. */
+            if (recentITRequestPost.data()['userUid'] !=
+                SettingsController.to.settingUser!.userUid) {
+              // Flutter Local Notification을 띄울 떄 title에 게시물 업로드한 사용자를 보여주기 위해서 DataBase에 사용자 정보를 가져온다.
+              String userUid = recentITRequestPost.data()['userUid'].toString();
+              DocumentSnapshot<Map<String, dynamic>> user =
+                  await firebaseFirestore
+                      .collection('users')
+                      .doc(userUid)
+                      .get();
+
+              // NotificationModel을 만든다.
+              NotificationModel noti = NotificationModel(
+                title:
+                    '${user.data()!['userName'].toString()} - ${recentITRequestPost.data()['postTitle'].toString()}',
+                body:
+                    'IT2실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentITRequestPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
+                notiUid: UUidUtil.getUUid(),
+                belongNotiPostUid:
+                    recentITRequestPost.data()['postUid'].toString(),
+                notiTime:
+                    DateFormat('yy/MM/dd - HH:mm:ss').format(DateTime.now()),
+              );
+
+              // 요청 알림 또는 댓글 알림이 왔을 떄 가장 최근 시간에 온 알림을 저장하는 변수
+              allNotificationModel = noti;
+
+              // Flutter Local Notification을 띄운다.
+              await showGroupNotifications(
+                // 게시물 작성자 - 댓글이 작성된 게시물 제목
+                title:
+                    '${user.data()!['userName'].toString()} - ${recentITRequestPost.data()['postTitle'].toString()}',
+                // 게시물 시스템 분류 코드를 나타낸다.
+                body:
+                    'IT2실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentITRequestPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
+              );
+
+              // Database에 requestNotifications에 알림 데이터를 저장한다.
+              await firebaseFirestore
+                  .collection('users')
+                  .doc(SettingsController.to.settingUser!.userUid)
+                  .collection('requestNotifications')
+                  .doc(noti.notiUid)
+                  .set(NotificationModel.toMap(noti));
+            }
+          }
+          // it2UserProcessITRequestPostsSize의 값을 최신의 값으로 업데이트 한다.
+          it2UserProcessITRequestPostsSize = event.size;
+        });
+  }
 
   /* Database에 User의 commentNotificationPostUid 속성에
      사용자가 알림 신청한 게시물 uid를 추가한다. */
@@ -422,9 +535,11 @@ class NotificationController extends FullLifeCycleController {
       // 사용자 스마트폰에 있는 알림을 선택할 떄 호출되는 callBack Method
       onSelectNotification: ((String? payload) async {
         if (payload != null && payload.isNotEmpty) {
-          /* 사용자가 SpecificPostPage에 있고, 알림을 클릭했을 떄 알림과 관련된 게시물이 나오지 않는 것을 대비해서
-             Get.back()을 사용하고 다시 SpecificPostPage로 전환되는 방향으로 기조를 가진다. */
-          Get.back();
+          
+          // 사용자 현재 페이지가 /Auth가 아니라면 Get.back()를 해주고 SpecificPostPage로 전환한다.
+          if (Get.currentRoute != '/Auth') {
+            Get.back();
+          }
 
           // payload를 log로 찍는다.
           print('payload : $payload');
@@ -479,7 +594,8 @@ class NotificationController extends FullLifeCycleController {
   }
 
   // Flutter Loal Notification을 show하는 method
-  Future<void> showGroupNotifications({required String title, required String body}) async {
+  Future<void> showGroupNotifications(
+      {required String title, required String body}) async {
     /* 그룹 알림으로 띄우기 위해서 필요한 변수 설정 */
     const String groupKey = 'com.android.example.help_Desk';
     const String groupChannelId = 'help_Desk ID';
@@ -605,7 +721,9 @@ class NotificationController extends FullLifeCycleController {
 
     /* 사용자 자격이 IT 2실 담당자이면,
        장애 처리현황 게시물에서 IT 2실이 담당하는 시스템을 가진 게시물이 업로드 되는지 listen 하던 것을 cancel 한다. */
-    if (AuthController.to.user.value.userType == UserClassification.IT2USER) {}
+    if (AuthController.to.user.value.userType == UserClassification.IT2USER) {
+      it2UserListen.cancel();
+    }
 
     // 사용자가 알림 신청 했던 게시물의 변동 사항을 실시간으로 listen 하던 것을 취소한다.
     commentNotificationListenList.map(

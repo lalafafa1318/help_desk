@@ -41,7 +41,7 @@ class Auth extends GetView<AuthController> {
       child: StreamBuilder(
         // FirebaseAuth 상태가 로고인인지 확인하는 stream이다.
         stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
+        builder: (BuildContext context, AsyncSnapshot<User?> snapshot)  {
           // Loading Bar를 멈춘다.
           EasyLoading.dismiss();
 
@@ -58,15 +58,16 @@ class Auth extends GetView<AuthController> {
                 BuildContext context,
                 AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>>
                     innerSnapshot,
-              ) {
+              )  {
                 // snapshot data가 아직 오지 않았다면 Circular Indicator을 작동시킨다.
                 if (innerSnapshot.connectionState == ConnectionState.waiting) {
                   return authVerifyLodaingBar();
                 }
+
                 // snapshot data가 왔을 떄
                 else {
-                  // FirebaseAuth 상태가 로고인이고
-                  // FirebaseDataBase에서 useruid가 있는 경우
+                  /* FirebaseAuth 상태가 로고인이고
+                     FirebaseDataBase에서 useruid가 있는 경우 */
                   if (innerSnapshot.data!.size != 0) {
                     // MainPage로 가기 위해 해야 할 작업 method 호출
                     AuthController.to.taskPriorMainPage(innerSnapshot);
@@ -74,8 +75,8 @@ class Auth extends GetView<AuthController> {
                     return MainPage();
                   }
 
-                  // Firebase Auth 상태가 로고인이나
-                  // Firebase DataBase에서 User uid가 없는 경우
+                  /* Firebase Auth 상태가 로고인이나
+                     Firebase DataBase에서 UserUid가 없는 경우 */
                   else {
                     return SignUpPage(userUid: snapshot.data!.uid);
                   }

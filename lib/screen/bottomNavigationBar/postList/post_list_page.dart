@@ -187,6 +187,7 @@ class _PostListPageState extends State<PostListPage> {
   // IT 요청건 게시물을 가져온다.
   Widget getITRequestPosts() {
     print('PostListPage - IT 요청건 게시물 가져오기');
+
     return FutureBuilder<List<QueryDocumentSnapshot<Map<String, dynamic>>>>(
       future: PostListController.to
           .getITRequestPosts(SettingsController.to.settingUser!.userType),
@@ -569,9 +570,11 @@ class _PostListPageState extends State<PostListPage> {
 
     /* PostListPage 상단에 시스템 분류 코드는 "시스템 전체"가 default로 보이게끔 한다.
                          처리상태 분류 코드는 "처리상태 전체가" default로 보이게끔 한다. */
-
     PostListController.to.sSelectedValue = SysClassification.ALL;
     PostListController.to.pSelectedValue = ProClassification.ALL;
+
+    // 키워드 입력창에 있는 text를 빈 값으로 설정한다.
+    PostListController.to.searchTextController.text = '';
   }
 
   @override
@@ -595,15 +598,15 @@ class _PostListPageState extends State<PostListPage> {
         child: FloatingActionButton(
           backgroundColor: Colors.grey,
           onPressed: () {
-            // 전체적으로 화면을 재랜더링 한다.
+            // 전체 화면을 재랜더링 한다.
             setState(() {
-              // PostListPage의 Pager의 현재 번호
+              // PostListPage의 Pager의 현재 번호를 0으로 설정한다.
               pagerCurrentPage = 0;
 
-              // PostListPage의 Pager 끝 번호
+              // PostListPage의 Pager 끝 번호를 0으로 설정한다.
               pagerLastPage = 0;
 
-              // Pager를 보여줄지 결정하는 변수
+              // Pager를 보여줄지 결정하는 변수를 false로 설정한다.
               isShowPager = false;
             });
           },

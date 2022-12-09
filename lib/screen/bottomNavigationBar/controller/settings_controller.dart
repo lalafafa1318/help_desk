@@ -75,7 +75,8 @@ class SettingsController extends GetxController {
     UploadTask? updateFileEvent;
     String? imageUrl;
 
-    // 1. 검증 작업(validation)
+    /* 프로필을 수정할 수 있는지 없는지에 따른 검증 작업(validation)  
+       (81번쨰 줄 ~ 88번쨰 줄) */
 
     // 사용자가 입력한 이름과 전화번호를 검증한다.
     bool validResult = editFormKey.currentState!.validate();
@@ -87,14 +88,16 @@ class SettingsController extends GetxController {
       return false;
     }
 
-    // 2. 테스트 용도 서버에 User 정보를 바꾼다.
+    /* DataBase에 사용자 정보(Users) 정보를 바꾸고 로컬에도 사용자 정보를 변경한다. 
+          (90번째 줄 ~ 131번쨰 줄) */
+
     // 로딩 준비
     EasyLoading.show(
       status: '프로필 정보를\n수정하고 있습니다.',
       maskType: EasyLoadingMaskType.black,
     );
 
-    // "프로필 수정 페이지" image를 Firebase Storage에 upload하는 method
+    // EditProfilePage에 있는 image를 Firebase Storage에 upload하는 method
     updateFileEvent = await CommunicateFirebase.editUploadImage(
       imageFile: editImage!,
       userUid: settingUser!.userUid.toString(),
@@ -121,17 +124,17 @@ class SettingsController extends GetxController {
     // Firebase DataBase에 User 정보를 update하는 method
     await CommunicateFirebase.updateUser(updateUser);
 
-    // 3. AuthController user에 값을 바꾼다.
+    // AuthController user에 값을 바꾼다.
     AuthController.to.user(updateUser);
 
-    // 4. SettingsController user에 값을 바꾼다.
+    // SettingsController user에 값을 바꾼다.
     settingUser = updateUser;
 
-    // 5. 사용자가 프로필을 수정하기 전, 업로드한 게시물이 있을 경우...
-    // DataBase에 게시물(obsPosts, inqPosts)에 phoneNumber 속성을 최신 상태로 update 한다.
+    /* 3. 사용자가 프로필을 수정하기 전, 업로드한 게시물이 있을 경우...
+          DataBase에 IT 요청건 게시물(itRequestPosts)에 phoneNumber 속성을 최신 상태로 update 한다. */
     await CommunicateFirebase.updatePhoneNumberInPost(settingUser!);
 
-    // 6. 초기화 작업
+    // EditProfilePage에서 사용했던 데이터를 초기화한다.
     clearEditProfileData();
 
     // 로딩 중지
@@ -146,7 +149,7 @@ class SettingsController extends GetxController {
     return true;
   }
 
-  // 프로필 수정할 페이지에서 사용했던 데이터를 초기화하는 method
+  // EditProfilePage에서 사용했던 데이터를 초기화하는 method
   void clearEditProfileData() {
     // 이미지와 이름, 전화번호를 초기화 한다.
     editImage = null;

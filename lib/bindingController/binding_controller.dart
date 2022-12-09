@@ -13,11 +13,11 @@ class BindingController implements Bindings {
     Get.put(AuthController(), permanent: true);
   }
 
-  // BottomNavigationBar controller 등록하는 method
-  // PostList controller를 등록하는 method
-  // Posting controller를 등록하는 method
-  // Notification Controller를 등록하는 method
-  // Settings controller를 등록하는 method
+  /* BottomNavigationBarConntroller,
+     PostListController,
+     PostingController,
+     NotificationController,
+     SettingsController를 등록하는 method */
   static addServalController() {
     Get.put(BottomNavigationBarController());
     Get.put(PostListController());

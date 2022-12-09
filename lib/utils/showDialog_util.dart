@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class ShowDialogUtil {
@@ -24,13 +25,14 @@ class ShowDialogUtil {
       ),
       btnOkText: '종료',
       btnCancelText: '취소',
-      btnOkOnPress: () {
+      btnOkOnPress: () async {
         print('Ok을 눌렀습니다.');
-        exit(0);
+
+        // 시스템 종료
+        await SystemNavigator.pop();
       },
       btnCancelOnPress: () {
         print('Cancel을 눌렀습니다.');
-        Get.back();
       },
     ).show();
   }

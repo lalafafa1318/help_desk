@@ -42,7 +42,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   // 댓글 데이터에 대한 사용자 정보를 저장하는 배열
   List<UserModel> commentUserArray = [];
 
-  /* Database에 Comment 데이터를 호출하는 것을 허락할지, 불허할지 판별하는 변수
+  /* Database에 comment 데이터를 호출하는 것을 허락할지, 불허할지 판별하는 변수
      맨 처음 SpecificPostPage에 접근할 떄는 위 변수가 false이나, 게시물이 삭제되지 않았다는 것을 확인하면 위 변수는 true로 전환된다. */
   bool isCallServerAboutCommentData = false;
 
@@ -231,6 +231,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        // 시스템 분류 코드
         sysClassification(),
 
         SizedBox(width: 20.w),
@@ -292,7 +293,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
               child: Align(
                 alignment: Alignment.center,
                 child: Text(postData!.proStatus.asText),
-                // child: Text(),
               ),
             );
           },
@@ -421,7 +421,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  /* PostTitle, PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostCommentNum를 보여준다. */
+  // PostTitle, PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostCommentNum를 보여준다.
   Widget showTitleAndContentAndPhotoAndCommentNum() {
     return Container(
       margin: EdgeInsets.only(left: 5.w),
@@ -778,7 +778,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // IT 담당자가 댓글을 작성햇을 떄  실제 장애처리일시를 보여준다.
+  // IT 담당자가 댓글을 작성햇을 떄 실제 장애처리 일시를 보여준다.
   Widget commentFailureProcessingdDateAndTime(int index) {
     return Container(
       margin: EdgeInsets.only(top: 10.h, left: 20.w, bottom: 10.h),
@@ -936,17 +936,17 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         // 장애원인
         answerInformationInputCauseOfDisability(),
 
-        SizedBox(height: 10.h),
+        SizedBox(height: 20.h),
 
         // 처리일자
         answerInformationInputActualProcessDate(),
 
-        SizedBox(height: 10.h),
+        SizedBox(height: 20.h),
 
         // 처리시간
         answerInformationInputActualProcessTime(),
 
-        SizedBox(height: 10.h),
+        SizedBox(height: 20.h),
       ],
     );
   }
@@ -968,7 +968,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           id: 'answerInformationInputProClassficationDropdown',
           builder: (controller) {
             return DropdownButton(
-              value: PostListController.to.commentPSelectedValue.name,
+              value: PostListController
+                  .to.answerInformationInputPSelectedValue.name,
               style: TextStyle(color: Colors.black, fontSize: 13.sp),
               items: ProClassification.values
                   .where((element) =>
@@ -985,9 +986,9 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
               }).toList(),
               onChanged: (element) {
                 // PostListController의 commentPSelectedValue 값을 바꾼다.
-                PostListController.to.commentPSelectedValue = ProClassification
-                    .values
-                    .firstWhere((enumValue) => enumValue.name == element);
+                PostListController.to.answerInformationInputPSelectedValue =
+                    ProClassification.values
+                        .firstWhere((enumValue) => enumValue.name == element);
 
                 // 해당 GetBuilder만 재랜더링 한다.
                 PostListController.to
@@ -1017,7 +1018,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           id: 'answerInformationInputCauseObsClassificationDropdown',
           builder: (controller) {
             return DropdownButton(
-              value: PostListController.to.commentCSelectedValue.name,
+              value: PostListController
+                  .to.answerInformationInputCSelectedValue.name,
               style: TextStyle(color: Colors.black, fontSize: 13.sp),
               items: CauseObsClassification.values
                   .where((element) => element != CauseObsClassification.NONE)
@@ -1032,7 +1034,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
               }).toList(),
               onChanged: (element) {
                 // PostListController의 commentCSelectedValue 값을 바꾼다.
-                PostListController.to.commentCSelectedValue =
+                PostListController.to.answerInformationInputCSelectedValue =
                     CauseObsClassification.values
                         .firstWhere((enumValue) => enumValue.name == element);
 
@@ -1061,13 +1063,14 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
         // 답변 정보 입력의 처리일자를 현재 시간에 맞게 판단한 다음 text로 표현한다.
         Builder(builder: (context) {
-          PostListController.to.commentActualProcessDate =
+          PostListController.to.answerInformationInputActualProcessDate =
               DateFormat('yy/MM/dd').format(DateTime.now());
           return Container(
             alignment: Alignment.centerLeft,
             margin: EdgeInsets.symmetric(horizontal: 2.w, vertical: 3.h),
             height: 25.h,
-            child: Text(PostListController.to.commentActualProcessDate),
+            child: Text(
+                PostListController.to.answerInformationInputActualProcessDate),
           );
         }),
       ],
@@ -1088,13 +1091,14 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
         // 답변 정보 입력에 따른 처리시간을 현재 시간에 맞게 판단한 다음 text로 표현한다.
         Builder(builder: (context) {
-          PostListController.to.commentActualProcessTime =
+          PostListController.to.answerInformationInputActualProcessTime =
               DateFormat('HH:mm').format(DateTime.now());
           return Container(
             alignment: Alignment.centerLeft,
             margin: EdgeInsets.symmetric(horizontal: 2.w, vertical: 3.h),
             height: 25.h,
-            child: Text(PostListController.to.commentActualProcessTime),
+            child: Text(
+                PostListController.to.answerInformationInputActualProcessTime),
           );
         }),
       ],
@@ -1107,9 +1111,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       width: 200.w,
       height: 40.h,
       child: TextField(
-        controller: PostListController.to.commentController,
+        controller: PostListController.to.answerInformationInputTextController,
         onChanged: ((value) {
-          print('comment 내용 : ${PostListController.to.commentController.text}');
+          print(
+              '답변 정보 입력의 text 내용 : ${PostListController.to.answerInformationInputTextController.text}');
         }),
         decoration: const InputDecoration(
           border: InputBorder.none,
@@ -1127,7 +1132,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         FocusManager.instance.primaryFocus!.unfocus();
 
         // 답변 정보 입력에서 댓글을 어떻게 입력했는가를 가져온다.
-        String comment = PostListController.to.commentController.text;
+        String text =
+            PostListController.to.answerInformationInputTextController.text;
 
         // 게시글이 삭제됐는지 확인한다.
         bool isDeletePostResult = await isDeletePost(postData!.postUid);
@@ -1143,7 +1149,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         // 게시글이 삭제되지 않으면?
         else {
           // 댓글이 빈 값이면, 게시하지 않는다.
-          if (comment.isEmpty) {
+          if (text.isEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 duration: Duration(milliseconds: 500),
@@ -1157,7 +1163,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           // 일반 사용자, IT 담당자가 답변 정보 입력 할 수 있는 모든 조건을 충족한다. -> 검증 완료
 
           // Database에 comment(댓글)을 추가한다.
-          await PostListController.to.addComment(comment, postData!);
+          await PostListController.to.addComment(text, postData!);
 
           // Database에 IT 요청건 게시물(itRequestPosts)의 whoWriteCommentThePost 속성에 사용자 uid를 추가한다.
           await PostListController.to.addWhoWriteCommentThePost(
@@ -1205,7 +1211,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
   /* 이전 페이지에서 넘겨 받은 index를 통해
      게시물 데이터와 사용자 정보 데이터를 copy(clone)하는 method */
-  void copyPostAndUserData() {
+  void copyWithPostDataAndUserData() {
     int index = Get.arguments[0];
 
     // PostListPage에서 SpecificPostPage로 Routing 했을 경우 ...
@@ -1476,7 +1482,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   /* DataBase에서 게시물(itRequestPosts)에 대해서 변경 가능성이 존재하는 속성에 접근한다.
-    변경 가능성이 존재하는 속성 : proStatus, phoneNumber, whoWriteCommentThePost 속성에 접근한 다음 위 필드 postData에 업데이트 한다. */
+     변경 가능성이 존재하는 속성 : proStatus, phoneNumber, whoWriteCommentThePost 속성에 접근한 다음 위 필드 postData에 업데이트 한다. */
   Future<void> updatePost() async {
     print('SpecificPostPage - updatePostData() 호출');
 
@@ -1493,16 +1499,18 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   void resetAnswerInformationInput() {
     /* 답변 정보 입력에서 IT 담당자에게만 보이는 처리상태, 장애원인을 초기화한다.
        즉, 처리상태는 대기(WAITING), 장애원인은 사용자(USER)로 초기화한다. */
-    PostListController.to.commentPSelectedValue = ProClassification.WAITING;
-    PostListController.to.commentCSelectedValue = CauseObsClassification.USER;
+    PostListController.to.answerInformationInputPSelectedValue =
+        ProClassification.WAITING;
+    PostListController.to.answerInformationInputCSelectedValue =
+        CauseObsClassification.USER;
 
     /* 답변 정보 입력에서 IT 담당자에게만 보이는 처리일자, 처리시간을 초기화한다.
        즉 처리일자와 처리시간을 빈값으로 초기화한다. */
-    PostListController.to.commentActualProcessDate = '';
-    PostListController.to.commentActualProcessTime = '';
+    PostListController.to.answerInformationInputActualProcessDate = '';
+    PostListController.to.answerInformationInputActualProcessTime = '';
 
-    // commentText를 관리하는 controller의 값을 빈값을 초기화한다.
-    PostListController.to.commentController.text = '';
+    // 답변 정보 입력에서 text를 관리하는 controller의 값을 빈값을 초기화한다.
+    PostListController.to.answerInformationInputTextController.text = '';
   }
 
   // SpecificPostPage에 사용했던 데이터를 초기화 하는 method
@@ -1524,14 +1532,12 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
     print('SpecificPostPage - initState() 호출');
 
-    // PostListPage에서 Routing 됐는지
-    // KeyWordPostListPage에서 Routing 됐는지
-    // WhatIWrotePage에서 Routing 됐는지
-    // WhatICommentPage에서 Routing 됐는지 결정하는 method
+    /* 어디 페이지에서 SpecificPostPage로 Routing하였는지 증명하는 enum값을 확인하여 
+       위 필드인 whereRoute에 대입하는 method */
     whereRouting();
 
     // 이전 페이지에서 넘겨 받은 index를 통해 postData와 userData를 확인하고 copy(clone)하는 method
-    copyPostAndUserData();
+    copyWithPostDataAndUserData();
 
     // 게시글이 삭제됐는지 확인한다.
     isDeletePost(postData!.postUid).then(

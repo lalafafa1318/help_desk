@@ -37,15 +37,15 @@ class PostListController extends GetxController {
   /* SpecificPostPage에서 할용되는 Field 입니다. */
 
   // 사용자가 입력한 댓글과 대댓글을 control 하는 Field
-  TextEditingController commentController = TextEditingController();
-  // SpecificPostPage의 comment 처리상태를 관리하는 변수 (IT 담당자에 한해서 답변 정보를 입력할 떄 처리상태가 보여진다.)
-  ProClassification commentPSelectedValue = ProClassification.WAITING;
+  TextEditingController answerInformationInputTextController = TextEditingController();
+  // SpecificPostPage의 답변 정보 입력의 처리상태를 관리하는 변수 (IT 담당자에 한해서 답변 정보를 입력할 떄 처리상태가 보여진다.)
+  ProClassification answerInformationInputPSelectedValue = ProClassification.WAITING;
   // SpecificPostPage의 comment 장애원인을 관리하는 변수 (IT 담당자에 한해서 답변 정보를 입력할 떄 장애원인이 보여진다.)
-  CauseObsClassification commentCSelectedValue = CauseObsClassification.USER;
+  CauseObsClassification answerInformationInputCSelectedValue = CauseObsClassification.USER;
   // SpecificPostPage의 처리일자를 관리하는 변수 (IT 담당자에 한해서 답변 정보를 입력할 떄 처리일자가 보여진다.)
-  String commentActualProcessDate = '';
+  String answerInformationInputActualProcessDate = '';
   // SpecificPostPage의 처리시간을 관리하는 변수 (IT 담당자에 한해서 답변 정보를 입력할 떄 처리시간이 보여진다.)
-  String commentActualProcessTime = '';
+  String answerInformationInputActualProcessTime = '';
 
   // Method
   // PostListController를 쉽게 사용하도록 도와주는 method
@@ -156,8 +156,7 @@ class PostListController extends GetxController {
     else if (PostListController.to.searchTextController.text.length == 1) {
       ToastUtil.showToastMessage('두 글자 이상 입력해주세요 :)');
     }
-    // PostListPage 검색창에 입력한 text가 두 글자 이상인 경우
-    // KeywordPostListPage로 Routing 한다.
+    // PostListPage 검색창에 입력한 text가 두 글자 이상인 경우 KeywordPostListPage로 Routing 한다.
     else {
       Get.to(() => const KeywordPostListPage());
     }
@@ -231,25 +230,25 @@ class PostListController extends GetxController {
       proStatus: SettingsController.to.settingUser!.userType ==
               UserClassification.GENERALUSER
           ? ProClassification.NONE
-          : commentPSelectedValue,
+          : answerInformationInputPSelectedValue,
 
       // 장애원인
       causeOfDisability: SettingsController.to.settingUser!.userType ==
               UserClassification.GENERALUSER
           ? CauseObsClassification.NONE
-          : commentCSelectedValue,
+          : answerInformationInputCSelectedValue,
 
       // 실제 처리일자
       actualProcessDate: SettingsController.to.settingUser!.userType ==
               UserClassification.GENERALUSER
           ? null
-          : PostListController.to.commentActualProcessDate,
+          : PostListController.to.answerInformationInputActualProcessDate,
 
       // 실제 처리시간
       actualProcessTime: SettingsController.to.settingUser!.userType ==
               UserClassification.GENERALUSER
           ? null
-          : PostListController.to.commentActualProcessTime,
+          : PostListController.to.answerInformationInputActualProcessTime,
     );
 
     // Database에 comment(댓글)을 추가한다.

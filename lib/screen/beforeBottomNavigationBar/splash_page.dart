@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -21,7 +20,7 @@ class _SplashState extends State<Splash> {
   @override
   void initState() {
     super.initState();
-    
+
     print('splash - initState() 호출');
 
     // Timer
@@ -39,7 +38,7 @@ class _SplashState extends State<Splash> {
         // Wi-Fi 또는 Mobile 상태이면?
         else {
           // Splash 화면을 지우고, Auth 화면으로 이동
-          Get.offAll(
+          Get.to(
             () => const Auth(),
           );
         }
@@ -79,8 +78,6 @@ class _SplashState extends State<Splash> {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = ScreenUtil().screenWidth;
-
     return SafeArea(
       child: WillPopScope(
         // 뒤로 가기 허용 x
@@ -110,15 +107,14 @@ class _SplashState extends State<Splash> {
                     "© Copyright 2022, 김영우(wwkler)",
                     style: TextStyle(
                       color: Colors.black,
-                      fontSize: screenWidth * (14 / 360),
+                      fontSize: ScreenUtil().screenWidth * (14 / 360).sp,
                       fontWeight: FontWeight.bold,
-                      // color: Color.fromRGBO(255, 255, 255, 0.6),
                     ),
                   ),
                 ),
 
                 SizedBox(
-                  height: ScreenUtil().screenHeight * 0.0625,
+                  height: ScreenUtil().screenHeight * 0.0625.h,
                 ),
               ],
             ),

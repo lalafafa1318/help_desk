@@ -11,6 +11,7 @@ import 'package:help_desk/bindingController/binding_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/const/userClassification.dart';
 import 'package:help_desk/model/user_model.dart';
+import 'package:help_desk/screen/beforeBottomNavigationBar/splash_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/main_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
@@ -267,12 +268,18 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
+    print('현재 페이지 : ${Get.currentRoute}');
     // 뒤로 가기 거부
     return SafeArea(
+      // 사용자가 이전 가기를 눌렀을 떄
       child: WillPopScope(
         onWillPop: () async {
-          ToastUtil.showToastMessage('이전가기가 불가능합니다.');
-          return false;
+          await CommunicateFirebase.logout();
+
+          // Splash를 다시 보여줘서 앱을 시작한다.
+          await Get.offAll(() => const Splash());
+
+          return true;
         },
         child: Scaffold(
           backgroundColor: Colors.white,
