@@ -9,8 +9,6 @@ import 'package:help_desk/screen/beforeBottomNavigationBar/splash_page.dart';
 import 'package:help_desk/firebase_options.dart';
 import 'package:oktoast/oktoast.dart';
 
-import 'screen/beforeBottomNavigationBar/login_page.dart';
-
 void main() async {
   // Firebase 설정 준비
   WidgetsFlutterBinding.ensureInitialized();

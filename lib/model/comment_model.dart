@@ -18,16 +18,16 @@ class CommentModel {
   // 댓글을 작성한 사용자 Uid
   String whoWriteUserUid;
 
-  // 처리상태
+  // 처리상태 
   ProClassification proStatus;
 
-  // 장애원인 (장애 처리현황 게시물인 경우에만 값이 들어간다.)
+  // 장애원인 
   CauseObsClassification causeOfDisability;
 
-  // 실제 처리일자 (장애 처리현황 게시물인 경우에만 값이 들어간다.)
+  // 실제 처리일자
   String? actualProcessDate;
 
-  // 실제 처리시간 (장애 처리현황 게시물인 경우에만 값이 들어간다.)
+  // 실제 처리시간 
   String? actualProcessTime;
 
   // Default Constructor
@@ -43,7 +43,7 @@ class CommentModel {
     required this.actualProcessTime,
   });
 
-  // Model class를 Map으로 바꾼다.
+  // 일반 클래스 형식을 Map으로 바꾼다.
   static Map<String, dynamic> toMap(CommentModel commentModel) {
     return {
       'content': commentModel.content,
@@ -51,38 +51,38 @@ class CommentModel {
       'belongCommentPostUid': commentModel.belongCommentPostUid,
       'commentUid': commentModel.commentUid,
       'whoWriteUserUid': commentModel.whoWriteUserUid,
-      // 처리상태
+      // 처리상태 
       'proStatus': commentModel.proStatus.toString(),
-      // 장애원인 (장애 처리현황 게시물에 한함)
+      // 장애원인 
       'causeOfDisability': commentModel.causeOfDisability.toString(),
-      // 실제 처리일자 (장애 처리현황 게시물에 한함)
+      // 실제 처리일자 
       'actualProcessDate': commentModel.actualProcessDate,
-      // 실제 처리시간 (장애 처리현황 게시물에 한함)
+      // 실제 처리시간 
       'actualProcessTime': commentModel.actualProcessTime,
     };
   }
 
-  // map을 Model class로 변환한다.
+  // map을 일반 클래스 형식으로 변환한다.
   factory CommentModel.fromMap(Map<String, dynamic> comment) => CommentModel(
         content: comment['content'].toString(),
         uploadTime: comment['uploadTime'].toString(),
         belongCommentPostUid: comment['belongCommentPostUid'].toString(),
         commentUid: comment['commentUid'].toString(),
         whoWriteUserUid: comment['whoWriteUserUid'].toString(),
-        // 처리상태
+        // 처리상태 
         proStatus: ProClassification.values.firstWhere(
           (element) => element.toString() == comment['proStatus'].toString(),
         ),
-        // 장애원인 (장애 처리현황 게시물에 한함)
+        // 장애원인 
         causeOfDisability: CauseObsClassification.values.firstWhere(
           (element) =>
               element.toString() == comment['causeOfDisability'].toString(),
         ),
-        // 실제 처리일자 (장애 처리현황 게시물에 한함)
+        // 실제 처리일자 
         actualProcessDate: comment['actualProcessDate'].toString() == 'null'
             ? null
             : comment['actualProcessDate'].toString(),
-        // 실제 처리시간 (장애 처리현황 게시물에 한함)
+        // 실제 처리시간 
         actualProcessTime: comment['actualProcessTime'].toString() == 'null'
             ? null
             : comment['actualProcessTime'].toString(),

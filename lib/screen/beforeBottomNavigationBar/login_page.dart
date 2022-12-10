@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/utils/toast_util.dart';
 
@@ -37,7 +36,7 @@ class LoginPage extends StatelessWidget {
         icon: Image.asset(
             'assets/images/facebook-logo-2019.png'), //icon data for elevated button
         label: const Text('Facebook Login',
-            style: const TextStyle(color: Colors.white)),
+            style: TextStyle(color: Colors.white)),
         style: ElevatedButton.styleFrom(
           primary: Colors.blueAccent, //elevated btton background color
         ),
@@ -107,11 +106,17 @@ class LoginPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               googleLoginButton(),
+
               SizedBox(height: 50.0.h),
+
               facebookLoginButton(),
+
               SizedBox(height: 50.0.h),
+
               // appleLoginButton(),
+
               // SizedBox(height: 50.0.h),
+              
               twitterLoginButton(),
             ],
           ),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
@@ -83,10 +84,11 @@ class ConnectUtil {
                   '앱 종료하기',
                   style: TextStyle(color: Colors.red),
                 ),
-                onPressed: () {
+                onPressed: () async {
                   cancel();
 
-                  exit(0);
+                  // 시스템 종료
+                  await SystemNavigator.pop();
                 },
               ),
             ],

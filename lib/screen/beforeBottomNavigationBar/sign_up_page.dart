@@ -32,7 +32,8 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  // Image를 위한 Field
+  /* Image를 위한 Field 
+    (37 ~ 38 줄) */
   final ImagePicker imagePicker = ImagePicker();
   File? imageFile;
 
@@ -105,6 +106,7 @@ class _SignUpPageState extends State<SignUpPage> {
           // 이미지 변경하는 Button 입니다.
           ElevatedButton(
             onPressed: () async {
+              // 스마트폰 갤러리를 연다다.
               XFile? xFile =
                   await imagePicker.pickImage(source: ImageSource.gallery);
 
@@ -112,6 +114,7 @@ class _SignUpPageState extends State<SignUpPage> {
               if (xFile != null) {
                 setState(() {
                   imageFile = File(xFile.path);
+
                   print('imageFile : $imageFile');
                 });
               }
@@ -168,8 +171,8 @@ class _SignUpPageState extends State<SignUpPage> {
                 if (value!.isEmpty) {
                   return '전화번호가 빈값 입니다.';
                 }
-                // 사용자가 입력한 text가 핸드폰 전화번호, 일반 전화번호 형식에 만족하지 않는 경우...
-                // 또는 핸드폰 전화번호, 일반 전화번호 형식을 만족하지만 하이픈(-)이 있는 경우 ...
+                /* 사용자가 입력한 text가 핸드폰 전화번호, 일반 전화번호 형식에 만족하지 않는 경우...
+                   핸드폰 전화번호, 일반 전화번호 형식을 만족하지만 하이픈(-)이 있는 경우 ... */
                 else if (!value.isPhoneNumber || value.contains('-')) {
                   return '전화번호 정규식에 적합하지 않습니다.';
                 }
@@ -205,7 +208,7 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  // "회원가입 하기" 내부 작동 코드 입니다.
+  // signUpButton 내부 작동 코드 입니다.
   void signButton() {
     // 사용자가 입력한 이름과 전화번호를 검증한다.
     bool validResult = _formKey.currentState!.validate();
@@ -222,13 +225,13 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
-  // User 정보를 Firebase Storage와 Firebase Database에 저장하는 method
+  // User 정보를 Firebase Storage와 Database에 저장하는 method
   Future<void> registerUser() async {
     EasyLoading.show(
         status: '사용자 정보를\n등록하고 있습니다.', maskType: EasyLoadingMaskType.black);
 
-    // "회원가입" image를 Firebase Storage에 upload하는 method
-    UploadTask uploadFileEvent = CommunicateFirebase.signInUploadImage(
+    // SignUpPage에 image를 Firebase Storage에 upload하는 method
+    UploadTask uploadFileEvent = CommunicateFirebase.signUpPageImageToStroage(
       imageFile: imageFile!,
       userUid: widget.userUid,
     );
@@ -255,8 +258,8 @@ class _SignUpPageState extends State<SignUpPage> {
     // AuthController에 있는 상태 변수에 User 정보를 대입한다.
     AuthController.to.user(user);
 
-    // MainPage로 Routing 한다.
-    // BottomNaviagtionBarController, PostListController, PostingController, SettingsController를 등록한다. (메모리에 올린다)
+    /* MainPage로 Routing 한다.
+      BottomNaviagtionBarController, PostListController, PostingController, SettingsController를 등록한다. */
     Get.to(() => MainPage(), binding: BindingController.addServalController());
 
     // 로딩 없앤다.

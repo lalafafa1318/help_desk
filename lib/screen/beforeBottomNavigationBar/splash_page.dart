@@ -37,7 +37,7 @@ class _SplashState extends State<Splash> {
         }
         // Wi-Fi 또는 Mobile 상태이면?
         else {
-          // Splash 화면을 지우고, Auth 화면으로 이동
+          // Auth 화면으로 이동
           Get.to(
             () => const Auth(),
           );

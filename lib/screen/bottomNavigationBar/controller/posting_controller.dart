@@ -27,7 +27,7 @@ class PostingController extends GetxController {
   // 내용 String
   RxString contentString = ''.obs;
 
-  // Gallery에서 image를 가져오기 위한 변수
+  // Camera,Gallery에서 image를 가져오기 위한 변수
   final ImagePicker imagePicker = ImagePicker();
 
   // Method
@@ -40,8 +40,8 @@ class PostingController extends GetxController {
     XFile? xFile;
     File? file;
 
-    // 이미지를 가져올 떄
-    // 스마트폰 카메라를 가져올지, 갤러리를 가져올지 선택하는 dialog를 띄운다.
+    /* 이미지를 가져올 떄
+       스마트폰 카메라를 가져올지, 갤러리를 가져올지 선택하는 dialog를 띄운다. */
     await showDialog(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -145,7 +145,7 @@ class PostingController extends GetxController {
       // 업로드한 이미지가 최소 1개인 경우
       else {
         // Firebase Storage에 이미지를 저장하는 method
-        postMap = CommunicateFirebase.postUploadImage(
+        postMap = CommunicateFirebase.postingPageImageToStorage(
           imageList: imageList,
           userUid: AuthController.to.user.value.userUid,
         );
@@ -168,7 +168,6 @@ class PostingController extends GetxController {
 
       // 업로드한 이미지가 0개이든, 1개 이상이든 이하 공통 작업
       print('게시물 업로드 Validation 통과');
-
 
       // PostModel을 생성한다.
       PostModel post = PostModel(

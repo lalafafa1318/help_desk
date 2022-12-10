@@ -6,14 +6,13 @@ import 'package:help_desk/utils/showDialog_util.dart';
 import 'package:help_desk/utils/toast_util.dart';
 
 class BottomNavigationBarController extends GetxController {
-  // Field
-  // BottomNavigationBar selectedIndex
+  /* BottomNavigationBar selectedIndex 
+     0 : PostListPage, 1 : PostingPage, 2 : NotificationPage, 3 : SettingsPage */
   RxInt selectedIndex = 0.obs;
 
   // BottomNaviagtionBar History 적용
   List<int> bottomNaviBarHistory = [0];
 
-  // Method
   // BottomNavigationBar controller를 쉽게 사용할 수 있는 get method
   static BottomNavigationBarController get to => Get.find();
 
@@ -24,17 +23,17 @@ class BottomNavigationBarController extends GetxController {
       // 토스트 메시지를 띄운다.
       ToastUtil.showToastMessage('같은 페이지를 click 했습니다.');
     }
-    // 최신 BottomNavigationBar History가 "Post List"인 경우 처리
+    // 최신 BottomNavigationBar History가 PostListPage 인 경우 처리
     else if (bottomNaviBarHistory.last == 0) {
       // 검색창에 Keyword를 입력했으면 빈칸으로 만든다.
-      if (PostListController.to.searchTextController.text.isNotEmpty) {
-        PostListController.to.searchTextController.text = '';
-      }
+      // if (PostListController.to.searchTextController.text.isNotEmpty) {
+      //   PostListController.to.searchTextController.text = '';
+      // }
 
       // 다음 페이지를 BottomNavigationBar History에 기록한다.
       addBottomNaviBarHistory(index);
     }
-    // 최신 BottomNavigationBar History가 "Posting"인 경우 처리
+    // 최신 BottomNavigationBar History가 PostingPage 인 경우 처리
     else if (bottomNaviBarHistory.last == 1) {
       // PostingController에 관리되고 있는 상태 변수 초기화 한다.
       PostingController.to.initPostingElement();
@@ -67,10 +66,12 @@ class BottomNavigationBarController extends GetxController {
       ShowDialogUtil.showDialog();
 
       return true;
-    } else {
+    } 
+    //
+    else {
       bottomNaviBarHistory.removeLast();
 
-      print('BottomNaviBarHistory : ${bottomNaviBarHistory}');
+      print('BottomNaviBarHistory : $bottomNaviBarHistory');
 
       // selectedIndex 상태 변화 감지
       selectedIndex(bottomNaviBarHistory.last);

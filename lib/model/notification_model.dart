@@ -24,7 +24,7 @@ class NotificationModel {
     required this.notiTime,
   });
 
-  // Model class를 Map으로 바꾸는 method
+  // 일반 클래스 형식을 Map으로 바꾸는 method
   static Map<String, dynamic> toMap(NotificationModel noti) {
     return {
       'title': noti.title,
@@ -35,7 +35,7 @@ class NotificationModel {
     };
   }
 
-  // Map을 Model class로 변환하는 method
+  // Map을 일반 클래스 형식으로 변환하는 method
   factory NotificationModel.fromMap(Map<String, dynamic> noti) =>
       NotificationModel(
         title: noti['title'].toString(),

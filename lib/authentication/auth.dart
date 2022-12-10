@@ -66,8 +66,8 @@ class Auth extends GetView<AuthController> {
 
                 // snapshot data가 왔을 떄
                 else {
-                  /* FirebaseAuth 상태가 로고인이고
-                     FirebaseDataBase에서 useruid가 있는 경우 */
+                  /* Firebase Auth 상태가 로고인이고
+                     DataBase에서 useruid가 있는 경우 */
                   if (innerSnapshot.data!.size != 0) {
                     // MainPage로 가기 위해 해야 할 작업 method 호출
                     AuthController.to.taskPriorMainPage(innerSnapshot);
@@ -76,7 +76,7 @@ class Auth extends GetView<AuthController> {
                   }
 
                   /* Firebase Auth 상태가 로고인이나
-                     Firebase DataBase에서 UserUid가 없는 경우 */
+                     DataBase에서 UserUid가 없는 경우 */
                   else {
                     return SignUpPage(userUid: snapshot.data!.uid);
                   }

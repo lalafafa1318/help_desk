@@ -31,8 +31,8 @@ class EditProfilePage extends StatelessWidget {
                   borderType: BorderType.RRect,
                   radius: Radius.circular(10.r),
 
-                  // 첫번쨰는 Network를 통해 이미지를 보여주고
-                  // 다음부터는 스마트폰 갤러리를 통해 이미지를 보여준다.
+                  /* 첫번쨰는 Network를 통해 이미지를 보여주고
+                     다음부터는 스마트폰 갤러리를 통해 이미지를 보여준다. */
                   child: controller.editImage == null
                       ? getNetworkImage()
                       : getGalleryImage(150.w, 150.h),
@@ -46,7 +46,7 @@ class EditProfilePage extends StatelessWidget {
           // 프로필 사진 변경하는 Button 입니다.
           ElevatedButton(
             onPressed: () async {
-              XFile? xFile = await SettingsController.to.imagePicker!
+              XFile? xFile = await SettingsController.to.imagePicker
                   .pickImage(source: ImageSource.gallery);
 
               // 이미지를 올바르게 가져온 경우 처리

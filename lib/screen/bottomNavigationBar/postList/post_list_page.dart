@@ -245,8 +245,7 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // snapshot.data!로 받은 IT 요청건 게시물을 PostListController의 itRequestPosts, itRequestUsers에 대입한다.
-  Widget prepareShowITRequestPosts(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
+  Widget prepareShowITRequestPosts(List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocITRequestPostsAndUsers(ultimateData),
       builder: (context, snapshot) {
@@ -587,6 +586,7 @@ class _PostListPageState extends State<PostListPage> {
   // 전체적으로 화면을 build
   @override
   Widget build(BuildContext context) {
+    print('dd : ${Get.currentRoute}');
     print('PostListPage - build() 실행');
     print('PostListPage userType : ${AuthController.to.user.value.userType}');
 

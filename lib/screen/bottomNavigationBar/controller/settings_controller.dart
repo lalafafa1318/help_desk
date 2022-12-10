@@ -17,10 +17,8 @@ class SettingsController extends GetxController {
 
   // 사용자가 회원가입 절차를 거쳤는지 아닌지를 판별하는 상태 변수
   bool didSignUp = true;
-  // 사용자 계정을 나타내는 인스턴스
-  // AuthController의 사용자 정보를 복제했다.
+  // 사용자 계정을 나타내는 인스턴스  AuthController의 사용자 정보를 복제했다.
   UserModel? settingUser;
-  
 
   /* EditProfilePage에서 활용되는 데이터 */
 
@@ -34,7 +32,6 @@ class SettingsController extends GetxController {
   // 전화번호와 관련된 TextFormField Text를 저장하는 Field
   TextEditingController? telTextController;
 
-
   /* whatIWrotePage, whatICommentPage에서 관리하는 데이터 */
 
   // 사용자가 작성한 IT 요청건 게시물을 담는 배열
@@ -46,11 +43,11 @@ class SettingsController extends GetxController {
   // 사용자가 댓글 작성한 IT 요청건 게시물에 대한 사용자 정보를 담는 배열
   List<UserModel> whatICommentITRequestUsers = [];
 
-  // Method
-  // Settings를 쉽게 사용할 수 있도록 하는 method
+  
+  // SettingsController를 쉽게 사용할 수 있도록 하는 method
   static SettingsController get to => Get.find();
 
-  // 프로필 수정 페이지에서 이전 가기를 눌렀을 떄 호출되는 method
+  // EditProfilePage 에서 이전 가기를 눌렀을 떄 호출되는 method
   void getBackEditProfilePage() {
     // 프로필 수정할 페이지에서 사용했던 데이터를 초기화한다.
     clearEditProfileData();
@@ -76,7 +73,7 @@ class SettingsController extends GetxController {
     String? imageUrl;
 
     /* 프로필을 수정할 수 있는지 없는지에 따른 검증 작업(validation)  
-       (81번쨰 줄 ~ 88번쨰 줄) */
+       (78번쨰 줄 ~ 86번쨰 줄) */
 
     // 사용자가 입력한 이름과 전화번호를 검증한다.
     bool validResult = editFormKey.currentState!.validate();
@@ -89,7 +86,7 @@ class SettingsController extends GetxController {
     }
 
     /* DataBase에 사용자 정보(Users) 정보를 바꾸고 로컬에도 사용자 정보를 변경한다. 
-          (90번째 줄 ~ 131번쨰 줄) */
+          (92번째 줄 ~ 128번쨰 줄) */
 
     // 로딩 준비
     EasyLoading.show(
@@ -98,7 +95,7 @@ class SettingsController extends GetxController {
     );
 
     // EditProfilePage에 있는 image를 Firebase Storage에 upload하는 method
-    updateFileEvent = await CommunicateFirebase.editUploadImage(
+    updateFileEvent = await CommunicateFirebase.editProfilePageImageToStorage(
       imageFile: editImage!,
       userUid: settingUser!.userUid.toString(),
     );
@@ -106,7 +103,7 @@ class SettingsController extends GetxController {
     // Firebase Storage에 저장된 image를 download하는 method
     imageUrl = await CommunicateFirebase.imageDownloadUrl(updateFileEvent);
 
-    // Firebase Database에 업데이트 칠 UserModel 객체
+    // Database에 업데이트 칠 UserModel 객체
     UserModel updateUser = UserModel(
       // 사용자가 일반 사용자인지 IT 담당자인지에 따라 userType을 다르게 설정한다.
       userType: settingUser!.userType == UserClassification.GENERALUSER

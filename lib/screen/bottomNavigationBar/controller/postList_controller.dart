@@ -47,7 +47,7 @@ class PostListController extends GetxController {
   // SpecificPostPage의 처리시간을 관리하는 변수 (IT 담당자에 한해서 답변 정보를 입력할 떄 처리시간이 보여진다.)
   String answerInformationInputActualProcessTime = '';
 
-  // Method
+  
   // PostListController를 쉽게 사용하도록 도와주는 method
   static PostListController get to => Get.find();
 
@@ -176,8 +176,8 @@ class PostListController extends GetxController {
 
       return false;
     }
-    // PostListPage 검색창에 입력한 text가 두 글자인 경우
-    // 업데이트된 text를 가지고 KeywordPostListPage를 재랜더링 합니다.
+    /* PostListPage 검색창에 입력한 text가 두 글자인 경우
+       업데이트된 text를 가지고 KeywordPostListPage를 재랜더링 합니다. */
     else {
       return true;
     }
@@ -206,7 +206,6 @@ class PostListController extends GetxController {
   Future<PostModel> getPost(PostModel postModel) async {
     PostModel postData = await CommunicateFirebase.getPost(postModel);
 
-    // Map을 Model class로 변환하여 반환한다.
     return postData;
   }
 

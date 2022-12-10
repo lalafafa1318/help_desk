@@ -44,7 +44,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
   /* Database에 comment 데이터를 호출하는 것을 허락할지, 불허할지 판별하는 변수
      맨 처음 SpecificPostPage에 접근할 떄는 위 변수가 false이나, 게시물이 삭제되지 않았다는 것을 확인하면 위 변수는 true로 전환된다. */
-  bool isCallServerAboutCommentData = false;
+  bool isCallDataBaseAboutComments = false;
 
   // 일반 사용자인지 IT 담당자인지 구별하는 변수
   UserClassification userType = SettingsController.to.settingUser!.userType;
@@ -566,12 +566,12 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       id: 'showCommentListView',
       builder: (controller) {
         /* DataBase에서 여러 comment를 호출하기 위한 설정이 되었는지 확인한다.
-          설정과 관련된 변수는 isCallServerAboutCommentData 이다.
+          설정과 관련된 변수는 isCallDataBaseAboutComments 이다.
           이 값이 true 상태이면 Database에서 여러 comment 를 받아서 위 필드인 commentArray 배열에 넣고, 화면에 표시한다.
           만약 이 값이 false 상태이면, 기존에 존재하는 commentArray를 가지고 화면에 표시한다. 즉 Database 호출을 하지 않는다. */
         print('showCommentListView - 재랜더링 호출');
 
-        return isCallServerAboutCommentData == true
+        return isCallDataBaseAboutComments == true
             ? FutureBuilder<Map<String, dynamic>>(
                 future: PostListController.to.getComments(postData!),
                 builder: (context, snapshot) {
@@ -593,7 +593,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                         visible: false, child: Text('댓글이 없어서 화면에 표시하지 않습니다.'));
                   }
 
-                  // 데이터가 왔고 빈 값이 아닌 경우...
+                  /* 데이터가 왔고 빈 값이 아닌 경우에 대한 설정 
+                     (599 ~ 621줄) */
 
                   /* SpecificPostPage 위 필드의 commentArray를 clear()한다.
                      SpecificPostPage 위 필드의 commentUserArray를 clear() 한다. */
@@ -813,8 +814,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
   // comment에 대한 삭제 버튼을 제공한다.
   Widget commentDeleteButton(int index) {
-    // comment를 쓴 사용자 uid와 계정 사용자 uid를 비교해서
-    // 일치하면 삭제 버튼을 표시한다.
+    // comment를 쓴 사용자 uid와 계정 사용자 uid를 비교해서 일치하면 삭제 버튼을 표시한다.
     return commentArray[index].whoWriteUserUid ==
             SettingsController.to.settingUser!.userUid
         ? Align(
@@ -1160,7 +1160,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             return;
           }
 
-          // 일반 사용자, IT 담당자가 답변 정보 입력 할 수 있는 모든 조건을 충족한다. -> 검증 완료
+          /* 일반 사용자, IT 담당자가 답변 정보 입력 할 수 있는 모든 조건을 충족한다. -> 검증 완료
+             (1166 ~ 1174줄) */
 
           // Database에 comment(댓글)을 추가한다.
           await PostListController.to.addComment(text, postData!);
@@ -1261,8 +1262,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   Future<bool> isDeletePost(String postUid) async {
     print('SpecificPostPage - isDeletePost() 호출');
 
-    // 게시물이 삭제됐으면 isDeletePostResult는 true
-    // 게시물이 삭제되지 않았으면 isDeletePostResult는 false를 반환한다.
+    /* 게시물이 삭제됐으면 isDeletePostResult는 true
+       게시물이 삭제되지 않았으면 isDeletePostResult는 false를 반환한다. */
     bool isDeletePostResult = await PostListController.to.isDeletePost(postUid);
 
     print('SpecificPostPage - isDeletePost() - $isDeletePostResult');
@@ -1558,7 +1559,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           await update();
 
           // Database에 Comment 데이터를 호출하는 것을 허락한다.
-          isCallServerAboutCommentData = true;
+          isCallDataBaseAboutComments = true;
         }
       },
     );

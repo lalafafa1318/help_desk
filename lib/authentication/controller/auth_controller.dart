@@ -9,7 +9,6 @@ import 'package:help_desk/bindingController/binding_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
 import 'package:help_desk/const/userClassification.dart';
 import 'package:help_desk/model/user_model.dart';
-import 'package:help_desk/screen/beforeBottomNavigationBar/splash_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/notification_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
@@ -22,7 +21,6 @@ import 'package:twitter_login/entity/auth_result.dart';
 import 'package:twitter_login/twitter_login.dart';
 
 class AuthController extends GetxController {
-  // Field
   // User 정보를 관리하는 Field
   Rx<UserModel> user = UserModel(
     userType: UserClassification.GENERALUSER,
@@ -33,20 +31,18 @@ class AuthController extends GetxController {
     phoneNumber: '',
   ).obs;
 
-  // Method
   // AuthController를 쉽게 사용할 수 있도록 하는 method
   static AuthController get to => Get.find();
 
   // MainPage로 가기 전에 해야 하는 작업을 수행하는 method
-  void taskPriorMainPage(
-      AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> innerSnapshot) {
+  void taskPriorMainPage(AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> innerSnapshot) {
     // innerSnapshot에서 Database에 저장된 Map 형식 User를 가져온다.
     Map<String, dynamic> mapUser = innerSnapshot.data!.docs.first.data();
 
-    // Map구조 user를 Model class구조 user 로 바꾼다.
+    // Map 형식의 mapUser를 일반 클래스 형식의 user로 바꾼다.
     UserModel classUser = UserModel.fromMap(mapUser);
 
-    // Model class구조의 user를 대입한다.
+    // 일반 클래스 형식의 user를 대입한다.
     user(classUser);
 
     // BottomNavigationBar, Posting, PostList, Notification, SettingsController를 등록한다.
@@ -55,14 +51,11 @@ class AuthController extends GetxController {
     // 회원가입을 이미 했다는 의미로 false를 대입한다.
     SettingsController.to.didSignUp = false;
 
-    
-    print('userType : ${AuthController.to.user.value.userType}');
-
     // 로그
     print('SettingsController- didSignUp : ${SettingsController.to.didSignUp}');
   }
 
-  // FirebaseDataBase에서 useruid 있는지 확인하는 method
+  // DataBase에서 userUid가 있는지 확인하는 method
   Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(
       String uid) async {
     QuerySnapshot<Map<String, dynamic>> userData =
@@ -197,9 +190,9 @@ class AuthController extends GetxController {
     }
   }
 
-  // Google, Facebook, Twitter, Apple로 로고인했을 떄 Logout 진행하는 method
+  // Google, Facebook, Twitter Logout 진행하는 method
   Future<void> logout() async {
-    // 이전 페이지가 SignUpPage인 경우
+    // Widget Tree 상에서 이전 페이지가 SignUpPage인 경우
     if (SettingsController.to.didSignUp) {
       // 기존 controller들을 메모리에서 내리고 계정을 Logout하는 method
       await initControllerAndLogout();
@@ -207,7 +200,7 @@ class AuthController extends GetxController {
       // 이전 페이지로 가기
       Get.back();
     }
-    // 이전 페이지가 SignUpPage가 아닌 경우
+    // Widget Tree 상에서 이전 페이지가 SignUpPage가 아닌 경우
     else {
       // 기존 controller들을 메모리에서 내리고 계정을 Logout하는 method
       await initControllerAndLogout();

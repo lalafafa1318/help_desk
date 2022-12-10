@@ -53,7 +53,7 @@ class NotificationController extends GetxController {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   // 요청 알림 또는 댓글 알림이 왔을 떄 가장 최근 시간에 온 알림을 저장하는 변수
-  late NotificationModel allNotificationModel;
+  late NotificationModel recentNotificationModel;
 
   /* 각종 기타 설정 */
 
@@ -64,7 +64,6 @@ class NotificationController extends GetxController {
   final FirebaseFirestore firebaseFirestore =
       CommunicateFirebase.getFirebaseFirestoreInstnace();
 
-  // Method
   // Controller를 더 쉽게 사용할 수 있도록 하는 get method
   static NotificationController get to => Get.find();
 
@@ -144,7 +143,7 @@ class NotificationController extends GetxController {
               );
 
               // 요청 알림 또는 댓글 알림이 왔을 떄 가장 최근 시간에 온 알림을 저장하는 변수
-              allNotificationModel = noti;
+              recentNotificationModel = noti;
 
               // Flutter Local Notification 전송
               await showGroupNotifications(
@@ -286,7 +285,7 @@ class NotificationController extends GetxController {
               );
 
               // 요청 알림 또는 댓글 알림이 왔을 떄 가장 최근 시간에 온 알림을 저장하는 변수
-              allNotificationModel = noti;
+              recentNotificationModel = noti;
 
               // Flutter Local Notification을 띄운다.
               await showGroupNotifications(
@@ -331,7 +330,7 @@ class NotificationController extends GetxController {
         ])
         .snapshots()
         .listen((QuerySnapshot<Map<String, dynamic>> event) async {
-          // 일반 요청자가 IT 1실이 담당하는 시스템을 적용한 게시물을 업로드할 떄 알림을 보낸다.
+          // 일반 요청자가 IT 2실이 담당하는 시스템을 적용한 게시물을 업로드할 떄 알림을 보낸다.
           if (it2UserProcessITRequestPostsSize < event.size) {
             // sort를 하기 위해 데이터 타입을 List<QueryDocumentSnapshot<Map<String, dynamic>>> 으로 만든다.
             List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = event.docs;
@@ -378,7 +377,7 @@ class NotificationController extends GetxController {
               );
 
               // 요청 알림 또는 댓글 알림이 왔을 떄 가장 최근 시간에 온 알림을 저장하는 변수
-              allNotificationModel = noti;
+              recentNotificationModel = noti;
 
               // Flutter Local Notification을 띄운다.
               await showGroupNotifications(
@@ -535,8 +534,7 @@ class NotificationController extends GetxController {
       // 사용자 스마트폰에 있는 알림을 선택할 떄 호출되는 callBack Method
       onSelectNotification: ((String? payload) async {
         if (payload != null && payload.isNotEmpty) {
-          
-          // 사용자 현재 페이지가 /Auth가 아니라면 Get.back()를 해주고 SpecificPostPage로 전환한다.
+          // 사용자 현재 페이지가 /Auth가 아니라면 Get.back()를 해주고 SpecificPostPage로 전환한다. (Widget Tree를 참고한다.)
           if (Get.currentRoute != '/Auth') {
             Get.back();
           }
@@ -597,7 +595,7 @@ class NotificationController extends GetxController {
   Future<void> showGroupNotifications(
       {required String title, required String body}) async {
     /* 그룹 알림으로 띄우기 위해서 필요한 변수 설정 */
-    const String groupKey = 'com.android.example.help_Desk';
+    const String groupKey = 'com.example.help_Desk';
     const String groupChannelId = 'help_Desk ID';
     const String groupChannelName = 'help_Desk Name';
     const String groupChannelDescription = 'help_Desk Description';
@@ -623,19 +621,20 @@ class NotificationController extends GetxController {
     // 알림을 보여준다.
     await flutterLocalNotificationsPlugin.show(
       // id -> 랜덤값을 줘서 id를 결정한다.
-      Random().nextInt(1000000),
+      Random().nextInt(10000000),
       // title
-      allNotificationModel.title,
+      recentNotificationModel.title,
       // body
-      allNotificationModel.body,
+      recentNotificationModel.body,
       // notificationDetails
       notificationPlatformSpecifics,
-      // payload
-      // 스마트폰에 표시된 알림에서 알림이 어디 게시물과 연관되어있는지 알 수 있는 belongNotiPostUid으로 전달한다.
-      payload: allNotificationModel.belongNotiPostUid,
+      /* payload
+         스마트폰에 표시된 알림에서 알림이 어디 게시물과 연관되어있는지 알 수 있는 belongNotiPostUid으로 전달한다. */
+      payload: recentNotificationModel.belongNotiPostUid,
     );
 
-    /* 그룹화된 알림을 설정하고 보여준다. */
+    /* 그룹화된 알림을 설정하고 보여준다.
+       (638번 ~ 664번 줄) */
     InboxStyleInformation inboxStyleInformation = const InboxStyleInformation(
       [],
       contentTitle: '',
@@ -712,7 +711,12 @@ class NotificationController extends GetxController {
 
   // NotificationController가 메모리에 내려갈 떄 호출되는 method
   @override
-  void onClose() {
+  void onClose() async {
+    /* 사용자에게 주어졌던 모든 알림을 삭제하고 이를 ToastMessage로 전달한다. 
+       (716 ~ 717번) */
+    await flutterLocalNotificationsPlugin.cancelAll();
+    ToastUtil.showToastMessage('모든 알림을 삭제했습니다.');
+
     /* 사용자 자격이 IT 1실 담당자이면,
        IT 요청건 게시물에서 IT 1실이 담당하는 시스템을 가진 게시물이 업로드 되는지 listen 하던 것을 cancel 한다. */
     if (AuthController.to.user.value.userType == UserClassification.IT1USER) {
