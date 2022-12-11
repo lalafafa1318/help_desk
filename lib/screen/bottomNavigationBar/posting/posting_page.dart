@@ -202,14 +202,14 @@ class PostingPage extends StatelessWidget {
 
           // 사용자의 전화번호를 보여준다.
           Container(
-            width: ScreenUtil().screenWidth / 2.5,
+            width: ScreenUtil().screenWidth / 2.8,
             margin: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
             child: GFBorder(
               color: Colors.black12,
               dashedLine: const [2, 0],
               type: GFBorderType.rect,
               child: Container(
-                alignment: Alignment.center,
+                alignment: Alignment.centerLeft,
                 height: 20.h,
                 child: Text(
                   SettingsController.to.settingUser!.phoneNumber,

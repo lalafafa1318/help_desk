@@ -231,6 +231,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        SizedBox(width: 5.w),
+
         // 시스템 분류 코드
         sysClassification(),
 
@@ -324,7 +326,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                     postData!.phoneNumber);
               },
               child: Container(
-                width: 100.w,
+                width: 120.w,
                 height: 20.h,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(5.r),
