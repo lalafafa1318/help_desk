@@ -9,9 +9,6 @@ class PostModel {
   // 이미지
   List<String> imageList;
 
-  // 글 제목
-  String postTitle;
-
   // 글 내용
   String postContent;
 
@@ -37,7 +34,6 @@ class PostModel {
   PostModel({
     required this.sysClassficationCode,
     required this.imageList,
-    required this.postTitle,
     required this.postContent,
     required this.phoneNumber,
     required this.proStatus,
@@ -52,7 +48,6 @@ class PostModel {
     return {
       'sysClassficationCode': post.sysClassficationCode.toString(),
       'imageList': post.imageList.isNotEmpty ? post.imageList : [],
-      'postTitle': post.postTitle,
       'postContent': post.postContent,
       'phoneNumber': post.phoneNumber,
       'proStatus': post.proStatus.toString(),
@@ -74,7 +69,6 @@ class PostModel {
               enumValue.toString() == mapData['sysClassficationCode'].toString(),
         ),
         imageList = List<String>.from(mapData['imageList'] as List),
-        postTitle = mapData['postTitle'].toString(),
         postContent = mapData['postContent'].toString(),
         phoneNumber = mapData['phoneNumber'].toString(),
         proStatus = ProClassification.values.firstWhere(
@@ -103,7 +97,6 @@ class PostModel {
     return PostModel(
       sysClassficationCode: sysClassficationCode ?? this.sysClassficationCode,
       imageList: imageList ?? this.imageList,
-      postTitle: postTitle ?? this.postTitle,
       postContent: postContent ?? this.postContent,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       proStatus: proStatus ?? this.proStatus,

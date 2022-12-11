@@ -421,8 +421,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // PostTitle, PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostCommentNum를 보여준다.
-  Widget showTitleAndContentAndPhotoAndCommentNum() {
+  // PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostCommentNum를 보여준다.
+  Widget showContentAndPhotoAndCommentNum() {
     return Container(
       margin: EdgeInsets.only(left: 5.w),
       width: ScreenUtil().screenWidth,
@@ -430,11 +430,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // PostTitle을 제공한다.
-          showTextTitle(),
-
-          SizedBox(height: 10.h),
-
           // PostConent을 제공한다.
           showTextContent(),
 
@@ -452,14 +447,6 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // PostTitle을 제공한다.
-  Widget showTextTitle() {
-    return Text(
-      postData!.postTitle,
-      style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
-    );
-  }
-
   // PostConent을 제공한다.
   Widget showTextContent() {
     return Container(
@@ -467,7 +454,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       child: Text(
         postData!.postContent,
         style: TextStyle(
-            color: Colors.grey, fontSize: 15.sp, fontWeight: FontWeight.bold),
+            color: Colors.black, fontSize: 15.sp, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -1612,8 +1599,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
               // Avatar와 UserName, PostTime을 표시한다.
               showAvatarAndUserNameAndPostTime(),
 
-              // PostTitle, PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostCommentNum를 보여준다.
-              showTitleAndContentAndPhotoAndCommentNum(),
+              // PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostCommentNum를 보여준다.
+              showContentAndPhotoAndCommentNum(),
 
               SizedBox(height: 20.h),
 

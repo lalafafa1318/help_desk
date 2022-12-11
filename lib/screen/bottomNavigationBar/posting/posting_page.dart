@@ -189,54 +189,39 @@ class PostingPage extends StatelessWidget {
     );
   }
 
-  // 글 제목 입니다.
-  Widget textTitle() {
-    return Container(
-      width: ScreenUtil().screenWidth,
-      margin: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
-      child: GFBorder(
-        color: Colors.black12,
-        dashedLine: const [2, 0],
-        type: GFBorderType.rect,
-        child: SizedBox(
-          height: 40.h,
-          child: TextField(
-            onChanged: (value) {
-              PostingController.to.titleString(value);
-              print('title : ${PostingController.to.titleString}');
-            },
-            maxLength: 30,
-            decoration: const InputDecoration(
-              counterText: "",
-              border: InputBorder.none,
-              hintText: '제목을 입력해주세요',
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   // 전화번호를 보여주는 Widget
   Widget showYourPhoneNumber() {
     return Container(
-      width: ScreenUtil().screenWidth,
-      margin: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
-      child: GFBorder(
-        color: Colors.black12,
-        dashedLine: const [2, 0],
-        type: GFBorderType.rect,
-        child: Container(
-          alignment: Alignment.centerLeft,
-          height: 40.h,
-          child: Text(
-            SettingsController.to.settingUser!.phoneNumber,
-            style: TextStyle(
-              color: Colors.black45,
-              fontSize: 15.sp,
+      margin: EdgeInsets.only(left: 20.w),
+      child: Row(
+        children: [
+          // 전화번호 text를 보여준다.
+          Text('전화번호', style: TextStyle(fontSize: 13.sp)),
+
+          SizedBox(width: 70.w),
+
+          // 사용자의 전화번호를 보여준다.
+          Container(
+            width: ScreenUtil().screenWidth / 2.5,
+            margin: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
+            child: GFBorder(
+              color: Colors.black12,
+              dashedLine: const [2, 0],
+              type: GFBorderType.rect,
+              child: Container(
+                alignment: Alignment.center,
+                height: 20.h,
+                child: Text(
+                  SettingsController.to.settingUser!.phoneNumber,
+                  style: TextStyle(
+                    color: Colors.black45,
+                    fontSize: 15.sp,
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -251,13 +236,13 @@ class PostingPage extends StatelessWidget {
         dashedLine: const [2, 0],
         type: GFBorderType.rect,
         child: SizedBox(
-          height: 200.h,
+          height: 100.h,
           child: TextField(
             onChanged: (value) {
               PostingController.to.contentString(value);
               print('content : ${PostingController.to.contentString}');
             },
-            maxLength: 300,
+            maxLength: 100,
             maxLines: 10,
             decoration: const InputDecoration(
               border: InputBorder.none,
@@ -332,22 +317,17 @@ class PostingPage extends StatelessWidget {
               // 시스템 분류 코드를 결정하는 Dropdown을 담는 Widget
               sysClassification(),
 
-              SizedBox(height: 50.h),
-
-              // 사진 추가하는 곳
-              imageContainer(context),
-
-              SizedBox(height: 50.h),
-
-              // 글 제목(Text Title)
-              textTitle(),
-
               SizedBox(height: 10.h),
 
               // 전화번호를 보여주는 Widget
               showYourPhoneNumber(),
 
-              SizedBox(height: 10.h),
+              SizedBox(height: 30.h),
+
+              // 사진 추가하는 곳
+              imageContainer(context),
+
+              SizedBox(height: 50.h),
 
               // 글 내용(Text Content)
               textContent(),

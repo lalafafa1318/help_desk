@@ -252,7 +252,7 @@ class _WhatIWrotePageState extends State<WhatIWrotePage> {
                     titlePosition: GFPosition.start,
                     showImage: false,
                     title: GFListTile(
-                      color: Colors.black12,
+                      color: Colors.white,
                       padding: EdgeInsets.all(16.r),
 
                       // User 이미지
@@ -264,9 +264,6 @@ class _WhatIWrotePageState extends State<WhatIWrotePage> {
 
                       // User 이름
                       titleText: userData.userName,
-
-                      // 게시물 제목
-                      subTitleText: postData.postTitle,
 
                       // 게시물 올린 날짜
                       description: Container(

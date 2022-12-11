@@ -430,7 +430,7 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
                     titlePosition: GFPosition.start,
                     showImage: false,
                     title: GFListTile(
-                      color: Colors.black12,
+                      color: Colors.white,
                       padding: EdgeInsets.all(16.r),
 
                       // User 이미지
@@ -442,9 +442,6 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
 
                       // 사용자 이름
                       titleText: userModel.userName,
-
-                      // 게시물 제목
-                      subTitleText: postModel.postTitle,
 
                       // 게시물 올린 날짜
                       description: Container(

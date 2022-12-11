@@ -37,45 +37,63 @@ class PostListController extends GetxController {
   /* SpecificPostPage에서 할용되는 Field 입니다. */
 
   // 사용자가 입력한 댓글과 대댓글을 control 하는 Field
-  TextEditingController answerInformationInputTextController = TextEditingController();
+  TextEditingController answerInformationInputTextController =
+      TextEditingController();
   // SpecificPostPage의 답변 정보 입력의 처리상태를 관리하는 변수 (IT 담당자에 한해서 답변 정보를 입력할 떄 처리상태가 보여진다.)
-  ProClassification answerInformationInputPSelectedValue = ProClassification.WAITING;
+  ProClassification answerInformationInputPSelectedValue =
+      ProClassification.WAITING;
   // SpecificPostPage의 comment 장애원인을 관리하는 변수 (IT 담당자에 한해서 답변 정보를 입력할 떄 장애원인이 보여진다.)
-  CauseObsClassification answerInformationInputCSelectedValue = CauseObsClassification.USER;
+  CauseObsClassification answerInformationInputCSelectedValue =
+      CauseObsClassification.USER;
   // SpecificPostPage의 처리일자를 관리하는 변수 (IT 담당자에 한해서 답변 정보를 입력할 떄 처리일자가 보여진다.)
   String answerInformationInputActualProcessDate = '';
   // SpecificPostPage의 처리시간을 관리하는 변수 (IT 담당자에 한해서 답변 정보를 입력할 떄 처리시간이 보여진다.)
   String answerInformationInputActualProcessTime = '';
 
-  
   // PostListController를 쉽게 사용하도록 도와주는 method
   static PostListController get to => Get.find();
 
   // DataBase에 존재하는 IT 요청건 게시물의 postTime 속성을 내림차순 기준으로 비교하여 배열로 가져오는 method
-  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> getITRequestPosts(UserClassification userType) async {
+  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> getITRequestPosts(
+      UserClassification userType) async {
     return await CommunicateFirebase.getITRequestPosts(userType);
   }
 
   // snapshot.data!로 받은 IT 요청건 게시물을 PostListController의 itRequestPosts, itRequestUsers에 대입하는 method
-  Future<List<PostModel>> allocITRequestPostsAndUsers(List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) async {
+  Future<List<PostModel>> allocITRequestPostsAndUsers(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) async {
     // IT 요청건 게시물과 사용자 정보를 담는 배열을 clear한다.
     itRequestPosts.clear();
     itRequestUsers.clear();
+    // IT 요청건 게시물에 대한 사용자 정보를 비동기 처리로 한번에 받는 배열
+    List<Future<Map<String, dynamic>>> userDataFuture = [];
 
+    // Map 형식의 IT 요청건 게시물 일반 클래스 형식으로 전환하고, itRequestPosts 배열에 추가하는 for문
     for (var doc in ultimateData) {
       // 하나 하나의 게시물을 일반 클래스 형식으로 전환한다.
       PostModel postModel = PostModel.fromMap(doc.data());
 
       // IT 요청건의 게시물을 담고 있는 itReqeustPosts에 일반 클래스 형식의 postModel를 추가한다.
       itRequestPosts.add(postModel);
-
-      // postModel의 userUid 속성을 이용해 Database에서 IT 요청건 게시물에 대한 사용자 정보를 가져온다.
-      Map<String, dynamic> userData =
-          await CommunicateFirebase.getUser(postModel.userUid);
-
-      // IT 요청건 게시물에 대한 사용자 정보를 담고 있는 itRequestUsers에 사용자 정보를 추가한다.
-      itRequestUsers.add(UserModel.fromMap(userData));
     }
+
+    // 비동기 처리로 IT 요청건 게시물에 대한 사용자 정보를 동시에 요청하고 userDataFutures 배열에 추가하는 for문
+    for (int i = 0; i < itRequestPosts.length; i++) {
+      // itRequestPosts의 userUid 속성을 이용해 Database에서 IT 요청건 게시물에 대한 사용자 정보를 가져온다.
+      userDataFuture
+          .add(CommunicateFirebase.getUser(itRequestPosts[i].userUid));
+    }
+
+    // IT 요청건 게시물에 대한 사용자 정보를 동시에 요청해서 받은 것을 순서대로 저장한다.
+    List<Map<String, dynamic>> userDataSequential =
+        await Future.wait<Map<String, dynamic>>(userDataFuture);
+
+    // 순서대로 저장한 userDataSequential 배열을 바탕으로 itRequestUsers 배열을 추가하는 for문
+    for (int i = 0; i < userDataSequential.length; i++) {
+      // IT 요청건 게시물에 대한 사용자 정보를 담고 있는 itRequestUsers에 사용자 정보를 추가한다.
+      itRequestUsers.add(UserModel.fromMap(userDataSequential[i]));
+    }
+
     return itRequestPosts;
   }
 
@@ -132,8 +150,7 @@ class PostListController extends GetxController {
       /* 2차 검증
          입력한 kewywordText가 글 제목, 설명 그리고 작성자 중에 포함되는 것이 있는지 확인한다. */
       if (isFirstVerified == true &&
-          (itRequestPosts[i].postTitle.contains(keyword) ||
-              itRequestPosts[i].postContent.contains(keyword) ||
+          (itRequestPosts[i].postContent.contains(keyword) ||
               itRequestUsers[i].userName.contains(keyword))) {
         // 1차 검증과 2차 검증을 모두 통과한다면 비로소 kwywordITRequestPosts와 keywordITRequestUsers에 element를 추가한다.
         keywordITRequestPosts.add(itRequestPosts[i]);
@@ -195,8 +212,7 @@ class PostListController extends GetxController {
 
   // DataBase에 사용자 정보(Users) 정보에 접근하는 method
   Future<UserModel> getUser(String userUid) async {
-    Map<String, dynamic> userData =
-        await CommunicateFirebase.getUser(userUid);
+    Map<String, dynamic> userData = await CommunicateFirebase.getUser(userUid);
 
     // Map을 일반 클래스 형식으로 변환하여 반환한다.
     return UserModel.fromMap(userData);

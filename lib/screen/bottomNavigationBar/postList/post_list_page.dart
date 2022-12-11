@@ -212,7 +212,7 @@ class _PostListPageState extends State<PostListPage> {
   // IT 요청건 게시물을 기다리고 있으면 Loading Bar를 띄운다.
   Widget waitITRequestPosts() {
     return Container(
-      margin: EdgeInsets.only(top: 200.h),
+      margin: EdgeInsets.only(top: 150.h),
       child: const Center(
         child: CircularProgressIndicator(),
       ),
@@ -245,7 +245,8 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // snapshot.data!로 받은 IT 요청건 게시물을 PostListController의 itRequestPosts, itRequestUsers에 대입한다.
-  Widget prepareShowITRequestPosts(List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
+  Widget prepareShowITRequestPosts(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocITRequestPostsAndUsers(ultimateData),
       builder: (context, snapshot) {
@@ -425,7 +426,7 @@ class _PostListPageState extends State<PostListPage> {
                     showImage: false,
 
                     title: GFListTile(
-                      color: Colors.black12,
+                      color: Colors.white,
                       padding: EdgeInsets.all(16.r),
 
                       // User 이미지
@@ -437,9 +438,6 @@ class _PostListPageState extends State<PostListPage> {
 
                       // User 이름
                       titleText: userData.userName,
-
-                      // 게시물 제목
-                      subTitleText: postData.postTitle,
 
                       // 게시물 올린 날짜
                       description: Container(

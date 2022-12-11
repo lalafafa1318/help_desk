@@ -21,9 +21,6 @@ class PostingController extends GetxController {
   // 이미지를 담는 List
   RxList<File> imageList = <File>[].obs;
 
-  // 제목 String
-  RxString titleString = ''.obs;
-
   // 내용 String
   RxString contentString = ''.obs;
 
@@ -119,12 +116,12 @@ class PostingController extends GetxController {
     // 여러 개 UploadTask와 게시물 Uuid가 저장된 map
     Map<String, dynamic> postMap = {};
     // 동시에 image에 대한 url를 요청해서, 순서대로 저장하는 List
-    List<Future> imageUrlFuture = [];
+    List<Future<String>> imageUrlFuture = [];
     // 여러 개 imageUrl을 저장하는 List
     List<String> imageUrlList = [];
 
-    // 제목을 입력하지 않았거나 내용을 입력하지 않았으면 게시물에 대한 upload validation을 통과하지 못한다.
-    if (titleString.isEmpty || contentString.isEmpty) {
+    // 내용을 입력하지 않았으면 게시물에 대한 upload validation을 통과하지 못한다.
+    if (contentString.isEmpty) {
       // 그냥 찍어놓은 로그
       print('게시물 업로드 Validation 미통과');
 
@@ -158,7 +155,7 @@ class PostingController extends GetxController {
         }
 
         // 동시에 image에 대한 url를 요청한 것을 순서대로 저장한다.
-        final result = await Future.wait(imageUrlFuture);
+        List<String> result = await Future.wait<String>(imageUrlFuture);
 
         // 여러 개 imagesUrl을 저장하는 배열에 추가한다.
         for (int i = 0; i < result.length; i++) {
@@ -166,14 +163,14 @@ class PostingController extends GetxController {
         }
       }
 
-      // 업로드한 이미지가 0개이든, 1개 이상이든 이하 공통 작업
+      /* 업로드한 이미지가 0개이든, 1개 이상이든 이하 공통 작업
+         (168 ~ 196줄) */
       print('게시물 업로드 Validation 통과');
 
       // PostModel을 생성한다.
       PostModel post = PostModel(
         sysClassficationCode: sSelectedValue,
         imageList: imageUrlList,
-        postTitle: titleString.toString(),
         postContent: contentString.toString(),
         phoneNumber: AuthController.to.user.value.phoneNumber,
         // 사용자가 게시물을 올릴 떄 처리상태는 WAITING(대기)이다.
@@ -206,7 +203,6 @@ class PostingController extends GetxController {
 
     // PostingController에서 쓰이는 상태 변수를 clear한다.
     imageList.clear();
-    titleString('');
     contentString('');
   }
 
