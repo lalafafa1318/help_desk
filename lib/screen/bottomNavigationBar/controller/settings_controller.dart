@@ -22,7 +22,8 @@ class SettingsController extends GetxController {
 
   /* EditProfilePage에서 활용되는 데이터 */
 
-  // 수정한 이미지에 대한 Field
+  /* 수정한 이미지에 대한 Field 
+     (27 ~ 28줄) */
   ImagePicker imagePicker = ImagePicker();
   File? editImage;
   // 이름, 전화번호 관련된 TextFormField Validation을 위한 Field
@@ -43,7 +44,6 @@ class SettingsController extends GetxController {
   // 사용자가 댓글 작성한 IT 요청건 게시물에 대한 사용자 정보를 담는 배열
   List<UserModel> whatICommentITRequestUsers = [];
 
-  
   // SettingsController를 쉽게 사용할 수 있도록 하는 method
   static SettingsController get to => Get.find();
 
@@ -68,18 +68,19 @@ class SettingsController extends GetxController {
 
   // 프로필이 수정되면 호출되는 method
   Future<bool> changeUserInfo() async {
-    // 필요한 변수 준비
+    /* 프로필 수정 페이지에서 이미지와 관련된 변수 
+       (76 ~ 77줄) */
     UploadTask? updateFileEvent;
     String? imageUrl;
 
     /* 프로필을 수정할 수 있는지 없는지에 따른 검증 작업(validation)  
-       (78번쨰 줄 ~ 86번쨰 줄) */
+       (82번쨰 줄 ~ 90번쨰 줄) */
 
     // 사용자가 입력한 이름과 전화번호를 검증한다.
     bool validResult = editFormKey.currentState!.validate();
 
-    // 이미지를 게시하지 않거나, 이름과 전화번호에 대해서 검증 실패한 경우...
-    if (!(editImage != null && validResult)) {
+    // 프로필 수정 페이지에서 필수 입력값인 이름과 전화번호에 대해서 검증 실패한 경우...
+    if (validResult == false) {
       // Toast Message 띄우기
       ToastUtil.showToastMessage('검증을 통과하지 못했습니다.\n다시 입력해주세요');
       return false;
@@ -94,14 +95,18 @@ class SettingsController extends GetxController {
       maskType: EasyLoadingMaskType.black,
     );
 
-    // EditProfilePage에 있는 image를 Firebase Storage에 upload하는 method
-    updateFileEvent = await CommunicateFirebase.editProfilePageImageToStorage(
-      imageFile: editImage!,
-      userUid: settingUser!.userUid.toString(),
-    );
+    // 프로필 수정 페이지에서 이미지를 수정했을 떄 관한 이하 if문
+    if (editImage != null) {
+      // EditProfilePage에 있는 image를 Firebase Storage에 upload하는 method
+      updateFileEvent = await CommunicateFirebase.editProfilePageImageToStorage(
+        imageFile: editImage!,
+        image : settingUser!.image,
+        userUid: settingUser!.userUid.toString(),
+      );
 
-    // Firebase Storage에 저장된 image를 download하는 method
-    imageUrl = await CommunicateFirebase.imageDownloadUrl(updateFileEvent);
+      // Firebase Storage에 저장된 image를 download하는 method
+      imageUrl = await CommunicateFirebase.imageDownloadUrl(updateFileEvent);
+    }
 
     // Database에 업데이트 칠 UserModel 객체
     UserModel updateUser = UserModel(
@@ -112,7 +117,9 @@ class SettingsController extends GetxController {
               ? UserClassification.IT1USER
               : UserClassification.IT2USER,
       userName: nameTextController!.text,
-      image: imageUrl.toString(),
+      /* 프로필 수정 페이지에서 사용자가 이미지를 변경했다면 변경한 이미지로 들어간다.
+         만약 변경하지 않았다면 원래대로 들어간다. */
+      image: editImage == null ? settingUser!.image : imageUrl.toString(),
       userUid: settingUser!.userUid,
       commentNotificationPostUid: settingUser!.commentNotificationPostUid,
       phoneNumber: telTextController!.text,
@@ -121,13 +128,12 @@ class SettingsController extends GetxController {
     // Firebase DataBase에 User 정보를 update하는 method
     await CommunicateFirebase.updateUser(updateUser);
 
-    // AuthController user에 값을 바꾼다.
+    /*  AuthController user에 값을 바꾼다.
+        SettingsController user에 값을 바꾼다. */
     AuthController.to.user(updateUser);
-
-    // SettingsController user에 값을 바꾼다.
     settingUser = updateUser;
 
-    /* 3. 사용자가 프로필을 수정하기 전, 업로드한 게시물이 있을 경우...
+    /* 3. 프로필 수정 페이지에서 사용자가 전화번호를 변경했다면
           DataBase에 IT 요청건 게시물(itRequestPosts)에 phoneNumber 속성을 최신 상태로 update 한다. */
     await CommunicateFirebase.updatePhoneNumberInPost(settingUser!);
 

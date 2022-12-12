@@ -11,10 +11,11 @@ import 'package:image_picker/image_picker.dart';
 class EditProfilePage extends StatelessWidget {
   const EditProfilePage({Key? key}) : super(key: key);
 
-  // Image + 프로필 사진 변경하는 Button을 관리하는 Widget
-  Widget imageBox() {
+  /* 현재 프로필 사진을 보여주고 
+     프로필 사진 변경하는 Button을 클릭하도록 제공한다.*/
+  Widget imageAndChangeImageButton() {
     return Container(
-      margin: EdgeInsets.only(top: 40.h),
+      margin: EdgeInsets.only(top: 30.h),
       child: Column(
         children: [
           // Image를 보여준다.
@@ -30,18 +31,25 @@ class EditProfilePage extends StatelessWidget {
                   dashPattern: const [5, 3],
                   borderType: BorderType.RRect,
                   radius: Radius.circular(10.r),
-
-                  /* 첫번쨰는 Network를 통해 이미지를 보여주고
-                     다음부터는 스마트폰 갤러리를 통해 이미지를 보여준다. */
                   child: controller.editImage == null
-                      ? getNetworkImage()
-                      : getGalleryImage(150.w, 150.h),
+                      ? SettingsController.to.settingUser!.image == null
+                          ? getOriginalImage()
+                          : getNetworkImage()
+                      : getGalleryImage(125.w, 125.h),
                 ),
               );
             },
           ),
 
           SizedBox(height: 20.h),
+
+          // 프로필 수정 페이지에서 이미지는 선택 입력 값이다. 따라서 이를 사용자에게 알려주기 위해 Text로 표시한다.
+          Text(
+            '* 선택 입력값 입니다.',
+            style: TextStyle(color: Colors.grey[600], fontSize: 12.sp),
+          ),
+
+          SizedBox(height: 10.h),
 
           // 프로필 사진 변경하는 Button 입니다.
           ElevatedButton(
@@ -60,9 +68,22 @@ class EditProfilePage extends StatelessWidget {
                 );
               }
             },
-            child: const Text('대표사진 변경하기'),
+            child: const Text('활동사진 변경하기'),
           ),
         ],
+      ),
+    );
+  }
+
+  /* 사용자가 회원가입할 떄 이미지를 넣지 않았을 떄   
+     즉 이미지 값이 null 값일 떄 어떻게 image에 대한 처리 */
+  Widget getOriginalImage() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10.r),
+      child: Image.asset(
+        'assets/images/default_image.png',
+        height: 125.h,
+        fit: BoxFit.cover,
       ),
     );
   }
@@ -90,7 +111,7 @@ class EditProfilePage extends StatelessWidget {
   Widget getGalleryImage(double width, double height) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.r),
+        borderRadius: BorderRadius.circular(10.r),
         image: DecorationImage(
           fit: BoxFit.cover,
           image: Image.file(
@@ -126,7 +147,7 @@ class EditProfilePage extends StatelessWidget {
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: '이름',
-                hintText: 'Name 입니다.',
+                helperText: '* 필수 입력값 입니다.',
               ),
             ),
           ),
@@ -145,8 +166,8 @@ class EditProfilePage extends StatelessWidget {
                 if (value!.isEmpty) {
                   return '전화번호가 빈값 입니다.';
                 }
-                // 사용자가 입력한 text가 핸드폰 전화번호, 일반 전화번호 형식에 만족하지 않는 경우...
-                // 또는 핸드폰 전화번호, 일반 전화번호 형식을 만족하지만 하이픈(-)이 있는 경우 ...
+                /* 사용자가 입력한 text가 핸드폰 전화번호, 일반 전화번호 형식에 만족하지 않는 경우...
+                   또는 핸드폰 전화번호, 일반 전화번호 형식을 만족하지만 하이픈(-)이 있는 경우 ... */
                 else if (!value.isPhoneNumber || value.contains('-')) {
                   return '전화번호 정규식에 적합하지 않습니다.';
                 }
@@ -156,7 +177,7 @@ class EditProfilePage extends StatelessWidget {
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: '하이픈(-)을 제외한 전화번호',
-                hintText: '전화번호 입니다.',
+                helperText: '* 필수 입력값 입니다.',
               ),
             ),
           ),
@@ -195,8 +216,8 @@ class EditProfilePage extends StatelessWidget {
           automaticallyImplyLeading: false,
           leading: IconButton(
             onPressed: () {
-              // 이전 페이지로 가는 메소드
-              // 이미지, 이름 또는 설명 중에 바뀐 부분이 있으면 값을 초기화 한다.
+              /* 이전 페이지로 가는 메소드
+                 이미지, 이름 또는 설명 중에 바뀐 부분이 있으면 값을 초기화 한다. */
               SettingsController.to.getBackEditProfilePage();
             },
             icon: const Padding(
@@ -216,10 +237,11 @@ class EditProfilePage extends StatelessWidget {
             children: [
               SizedBox(height: 30.h),
 
-              // Image와 프로필 사진을 변경하는 Button이 있는 Widget
-              imageBox(),
+              /* 현재 프로필 사진을 보여주고 
+                 프로필 사진 변경하는 Button을 클릭하도록 제공한다.*/
+              imageAndChangeImageButton(),
 
-              SizedBox(height: 30.h),
+              SizedBox(height: 40.h),
 
               // 이름과 전화번호를 수정하는 부분
               editTwoTextField(),

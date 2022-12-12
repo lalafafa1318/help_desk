@@ -245,8 +245,7 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // snapshot.data!로 받은 IT 요청건 게시물을 PostListController의 itRequestPosts, itRequestUsers에 대입한다.
-  Widget prepareShowITRequestPosts(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
+  Widget prepareShowITRequestPosts(List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocITRequestPostsAndUsers(ultimateData),
       builder: (context, snapshot) {
@@ -429,11 +428,15 @@ class _PostListPageState extends State<PostListPage> {
                       color: Colors.white,
                       padding: EdgeInsets.all(16.r),
 
-                      // User 이미지
+                      // 사용자 이미지
                       avatar: GFAvatar(
                         radius: 30.r,
-                        backgroundImage:
-                            CachedNetworkImageProvider(userData.image),
+                        /* 사용자마다 회원가입할 떄 이미지를 넣었을 수 있고, 그렇게 하지 않을 수도 있다.
+                           만약 사용자 이미지가 null 값일 떄에 대한 처리를 해야 한다. */
+                        backgroundImage: userData.image == null
+                            ? Image.asset('assets/images/default_image.png')
+                                .image
+                            : CachedNetworkImageProvider(userData.image!),
                       ),
 
                       // User 이름
@@ -443,8 +446,8 @@ class _PostListPageState extends State<PostListPage> {
                       description: Container(
                         margin: EdgeInsets.only(top: 5.h),
                         child: Text(
-                          // postTime은 원래 초(Second)까지 존재하나
-                          // 화면에서는 분(Minute)까지 표시한다.
+                          /* postTime은 원래 초(Second)까지 존재하나
+                             화면에서는 분(Minute)까지 표시한다. */
                           postData.postTime.substring(0, 16),
                           style: TextStyle(fontSize: 10.sp),
                         ),

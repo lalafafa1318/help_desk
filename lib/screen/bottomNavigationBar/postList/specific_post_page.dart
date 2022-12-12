@@ -370,7 +370,9 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           padding: EdgeInsets.all(16.0.w),
           child: GFAvatar(
             radius: 30.r,
-            backgroundImage: CachedNetworkImageProvider(userData!.image),
+            backgroundImage: userData!.image == null
+                ? Image.asset('assets/images/default_image.png').image
+                : CachedNetworkImageProvider(userData!.image!),
           ),
         );
       },
@@ -675,10 +677,11 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     /* commentArray[index].whoWriteUserUid,
        commentUserArray[index].userName,
        commentUserArray[index].image를 간단하게 명명한다. */
-
     String whoWriteUserUid = commentArray[index].whoWriteUserUid;
     String userName = commentUserArray[index].userName;
-    String userImage = commentUserArray[index].image;
+    String? userImage = commentUserArray[index].image == null
+        ? null
+        : commentUserArray[index].image;
 
     return Row(
       children: [
@@ -692,12 +695,14 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   }
 
   // Avatar를 제공한다.
-  Widget commentAvatar(String userImage) {
+  Widget commentAvatar(String? userImage) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: GFAvatar(
         radius: 15.r,
-        backgroundImage: CachedNetworkImageProvider(userImage),
+        backgroundImage: userImage == null
+            ? Image.asset('assets/images/default_image.png').image
+            : CachedNetworkImageProvider(userImage),
       ),
     );
   }

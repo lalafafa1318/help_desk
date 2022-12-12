@@ -9,7 +9,7 @@ class UserModel {
   String userName;
 
   // 활동사진
-  String image;
+  String? image;
 
   // Uid
   String userUid;
@@ -56,7 +56,9 @@ class UserModel {
           (element) => element.toString() == mapData['userType'].toString(),
         ),
         userName = mapData['userName'].toString(),
-        image = mapData['image'].toString(),
+        /* 사용자가 회원가입 할 떄 이미지를 올리지 않았다면 DataBase에는 null 값으로 등록되어있다. 따라서 가져올 때 null 값으로 가져와야 한다.
+           만약 이미지를 올렸다면 DataBase에 String 값으로 등록되어있다. 따라서 가져올 떄 String 값으로 가져온다  */
+        image = mapData['image'].toString() == 'null' ? null : mapData['image'].toString(),
         userUid = mapData['userUid'].toString(),
         commentNotificationPostUid = List<String>.from(mapData['commentNotificationPostUid'] as List),
         phoneNumber = mapData['phoneNumber'].toString();

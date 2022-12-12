@@ -64,6 +64,36 @@ class CommunicateFirebase {
     return uploadFileEvent;
   }
 
+  // EditProfilePage에서 수정한 Image를 Firebase Storage에 update하는 method
+  static Future<UploadTask> editProfilePageImageToStorage({
+    required File imageFile,
+    required String? image,
+    required String userUid,
+  }) async {
+    // ImageFile의 확장자(png, jpg) 가져오기
+    String imageFileExt = imageFile.toString().split('.').last.substring(0, 3);
+
+    /* 사용자에 대한 이미지가 null 값이 아닐 떄    
+       즉, 사용자가 회원 가입 했을 떄 이미지를 등록했었을 떄 
+       Firebase Storage에 이미지에 대한 파일이 존재하므로 이를 삭제하는 if문 */
+    if (image != null) {
+      // Firebase Stroage에 존재하던 파일을 삭제한다.
+      await _firebaseStorage
+          .refFromURL(SettingsController.to.settingUser!.image.toString())
+          .delete();
+    }
+
+    // image를 FirebaseStorage 어떤 경로에 배치할 지 정한다.
+    Reference storageReference = _firebaseStorage
+        .ref()
+        .child('users/$userUid/${UUidUtil.getUUid()}.$imageFileExt');
+
+    // image를 해당 경로에 저장한다.
+    UploadTask uploadFileEvent = storageReference.putFile(imageFile);
+
+    return uploadFileEvent;
+  }
+
   // PostingPage에서 image를 게시했으면 Firebase Storage에 upload하는 method
   static Map<String, dynamic> postingPageImageToStorage(
       {required RxList<File> imageList, required String userUid}) {
@@ -94,28 +124,6 @@ class CommunicateFirebase {
       'uploadTasks': uploadTasks,
       'postUUid': postUUid,
     };
-  }
-
-  // EditProfilePage에서 수정한 Image를 Firebase Storage에 update하는 method
-  static Future<UploadTask> editProfilePageImageToStorage(
-      {required File imageFile, required String userUid}) async {
-    // ImageFile의 확장자(png, jpg) 가져오기
-    String imageFileExt = imageFile.toString().split('.').last.substring(0, 3);
-
-    // Firebase Stroage에 존재하던 파일을 삭제한다.
-    await _firebaseStorage
-        .refFromURL(SettingsController.to.settingUser!.image.toString())
-        .delete();
-
-    // image를 FirebaseStorage 어떤 경로에 배치할 지 정한다.
-    Reference storageReference = _firebaseStorage
-        .ref()
-        .child('users/$userUid/${UUidUtil.getUUid()}.$imageFileExt');
-
-    // image를 해당 경로에 저장한다.
-    UploadTask uploadFileEvent = storageReference.putFile(imageFile);
-
-    return uploadFileEvent;
   }
 
   // Firebase Storage에 upload, update된 image를 download 하는 method

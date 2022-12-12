@@ -54,22 +54,30 @@ class SettingsPage extends StatelessWidget {
             dashPattern: const [5, 3],
             borderType: BorderType.RRect,
             radius: const Radius.circular(10),
-            // 이미지 입니다.
-            child: CachedNetworkImage(
-              imageUrl: controller.settingUser!.image.toString(),
-              imageBuilder: (context, imageProvider) => Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  image: DecorationImage(
-                    image: imageProvider,
+            /* 사용자마다 회원가입할 떄 이미지를 넣었을 수 있고, 그렇게 하지 않을 수도 있다.
+               만약 사용자 이미지가 null 값일 떄에 대한 처리를 해야 한다. */
+            child: SettingsController.to.settingUser!.image == null
+                ? Image.asset(
+                    'assets/images/default_image.png',
+                    height: 100.h,
                     fit: BoxFit.cover,
+                  )
+                : CachedNetworkImage(
+                    imageUrl: controller.settingUser!.image.toString(),
+                    imageBuilder: (context, imageProvider) => Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        image: DecorationImage(
+                          image: imageProvider,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    placeholder: (context, url) =>
+                        const Center(child: CircularProgressIndicator()),
+                    errorWidget: (context, url, error) =>
+                        const Icon(Icons.error),
                   ),
-                ),
-              ),
-              placeholder: (context, url) =>
-                  const Center(child: CircularProgressIndicator()),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
-            ),
           ),
         ),
 
@@ -77,7 +85,6 @@ class SettingsPage extends StatelessWidget {
 
         // 이름
         Text(
-          // '${SettingsController.to.settingUser!.userName}',
           '${controller.settingUser!.userName}',
           style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w400),
         ),

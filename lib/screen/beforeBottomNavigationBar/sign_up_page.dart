@@ -70,13 +70,13 @@ class _SignUpPageState extends State<SignUpPage> {
   // ImageBox 입니다.
   Widget imageBox() {
     return Container(
-      margin: EdgeInsets.only(top: 40.h),
+      margin: EdgeInsets.only(top: 30.h),
       child: Column(
         children: [
           // 이미지 입니다.
           SizedBox(
-            width: 150.w,
-            height: 150.h,
+            width: 125.w,
+            height: 125.h,
             child: DottedBorder(
               strokeWidth: 2,
               color: Colors.grey,
@@ -85,16 +85,14 @@ class _SignUpPageState extends State<SignUpPage> {
               radius: Radius.circular(10.r),
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(10.r),
                   image: DecorationImage(
                     fit: BoxFit.cover,
                     image: imageFile == null
                         ? Image.asset(
                             'assets/images/default_image.png',
                           ).image
-                        : Image.file(
-                            imageFile!,
-                          ).image,
+                        : Image.file(imageFile!).image,
                   ),
                 ),
               ),
@@ -103,10 +101,18 @@ class _SignUpPageState extends State<SignUpPage> {
 
           SizedBox(height: 20.h),
 
+          // 프로필 수정 페이지에서 이미지는 선택 입력 값이다. 따라서 이를 사용자에게 알려주기 위해 Text로 표시한다.
+          Text(
+            '* 선택 입력값 입니다.',
+            style: TextStyle(color: Colors.grey[600], fontSize: 12.sp),
+          ),
+
+          SizedBox(height: 10.h),
+
           // 이미지 변경하는 Button 입니다.
           ElevatedButton(
             onPressed: () async {
-              // 스마트폰 갤러리를 연다다.
+              // 스마트폰 갤러리를 연다.
               XFile? xFile =
                   await imagePicker.pickImage(source: ImageSource.gallery);
 
@@ -152,7 +158,7 @@ class _SignUpPageState extends State<SignUpPage> {
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: '이름',
-                hintText: 'Name 입니다.',
+                helperText: '* 필수 입력값 입니다.',
               ),
             ),
           ),
@@ -182,7 +188,7 @@ class _SignUpPageState extends State<SignUpPage> {
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: '하이픈(-)을 제외한 전화번호',
-                hintText: '전화번호 입니다.',
+                helperText: '* 필수 입력값 입니다.',
               ),
             ),
           ),
@@ -213,12 +219,12 @@ class _SignUpPageState extends State<SignUpPage> {
     // 사용자가 입력한 이름과 전화번호를 검증한다.
     bool validResult = _formKey.currentState!.validate();
 
-    // 이미지를 게시하고, 이름, 전화번호 검증이 통과됐으면 ...
-    if (imageFile != null && validResult) {
+    // 회원 가입할 떄 이름, 전화번호가 필수 입력값이므로 검증에 통과했을 경우
+    if (validResult) {
       // DataBase에 User 정보 올리기
       registerUser();
     }
-    //
+    // 검증에 통과하지 못했을 경우
     else {
       // Toast Message 띄우기
       ToastUtil.showToastMessage('검증을 통과하지 못했습니다.\n다시 입력해주세요');
@@ -227,25 +233,34 @@ class _SignUpPageState extends State<SignUpPage> {
 
   // User 정보를 Firebase Storage와 Database에 저장하는 method
   Future<void> registerUser() async {
+    /* 회원가입할 떄 이미지를 올렸을 떄 Firebase Storage와 관련된 변수들을 정의한다.    
+         (230 ~ 231줄)  */
+    UploadTask uploadFileEvent;
+    String imageUrl = '';
+
+    // 로딩 바를 띄운다.
     EasyLoading.show(
         status: '사용자 정보를\n등록하고 있습니다.', maskType: EasyLoadingMaskType.black);
 
-    // SignUpPage에 image를 Firebase Storage에 upload하는 method
-    UploadTask uploadFileEvent = CommunicateFirebase.signUpPageImageToStroage(
-      imageFile: imageFile!,
-      userUid: widget.userUid,
-    );
+    // 회원가입할 떄 이미지를 올렸을 떄 Firebase Stroage에 image를 upload 한다.
+    if (imageFile != null) {
+      // SignUpPage에 image를 Firebase Storage에 upload하는 method
+      uploadFileEvent = CommunicateFirebase.signUpPageImageToStroage(
+        imageFile: imageFile!,
+        userUid: widget.userUid,
+      );
 
-    // Firebase Storage에 저장된 image를 download하는 method
-    String imageUrl =
-        await CommunicateFirebase.imageDownloadUrl(uploadFileEvent);
+      // Firebase Storage에 저장된 image를 download하는 method
+      imageUrl = await CommunicateFirebase.imageDownloadUrl(uploadFileEvent);
+    }
 
     // Firebase Database에 저장될 UserModel 객체
     UserModel user = UserModel(
       // 회원가입을 하면 userType을 GENERALUSER (일반 사용자)로 default한다.
       userType: UserClassification.GENERALUSER,
       userName: nameTextController!.text,
-      image: imageUrl,
+      // 사용자가 회원가입할 떄 이미지를 게시하지 않았다면 null 값이 들어간다.
+      image: imageFile == null ? null : imageUrl,
       userUid: widget.userUid,
       // 회원 가입할 떄 commentNotificationPostUid 속성은 무조건 []이다.
       commentNotificationPostUid: [],
@@ -296,20 +311,20 @@ class _SignUpPageState extends State<SignUpPage> {
           body: SingleChildScrollView(
             child: Column(
               children: [
+                SizedBox(height: 30.h),
+
                 // 활동사진을 입력하는 부분
                 imageBox(),
 
-                SizedBox(height: 80.h),
+                SizedBox(height: 40.h),
 
-                // 이름과 설명을 입력하는 부분
+                // 이름과 전화번호를 입력하는 부분
                 twoTextFormField(),
 
-                SizedBox(height: 80.h),
+                SizedBox(height: 40.h),
 
                 // 회원가입 하기 버튼을 입력하는 부분
                 signUpButton(),
-
-                SizedBox(height: 80.h),
               ],
             ),
           ),
