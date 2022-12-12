@@ -7,7 +7,8 @@ import 'package:help_desk/utils/toast_util.dart';
 
 class BottomNavigationBarController extends GetxController {
   /* BottomNavigationBar selectedIndex 
-     0 : PostListPage, 1 : PostingPage, 2 : NotificationPage, 3 : SettingsPage */
+     0 : PostListPage, 1 : PostingPage, 2 : NotificationPage, 3 : SettingsPage
+     enum값으로 분류할 수 있던 것을 그렇게 하지 못해 아쉽다. */
   RxInt selectedIndex = 0.obs;
 
   // BottomNaviagtionBar History 적용

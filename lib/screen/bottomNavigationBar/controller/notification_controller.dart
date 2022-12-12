@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
@@ -22,7 +21,8 @@ import 'package:intl/intl.dart';
 
 // 알림 목록을 관리하는 controller 입니다.
 class NotificationController extends GetxController {
-  /* 일반 요청자, IT 담당자(IT 1실, 2실)가 댓글 알림 신청했을 떄 바탕이 되는 데이터 */
+  /* 일반 요청자, IT 담당자(IT 1실, 2실)가 댓글 알림 신청했을 떄 바탕이 되는 데이터 
+     (27 ~ 34줄) */
 
   // 사용자가 알림 신청한 게시물 Uid를 담는 배열
   List<String> commentNotificationPostUidList = [];
@@ -33,7 +33,8 @@ class NotificationController extends GetxController {
   // Database에 저장된 commentNotifications에 있는 데이터를 가져와 저장하는 배열
   List<NotificationModel> commentNotificationModelList = [];
 
-  /* IT 담당자(IT 1실, 2실)가 담당하는 시스템이 명시된 게시물이 업로드 됐을 떄 알림 받기 위해 바탕이 되는 데이터 */
+  /* IT 담당자(IT 1실, 2실)가 담당하는 시스템이 명시된 게시물이 업로드 됐을 떄 알림 받기 위해 바탕이 되는 데이터
+     (39 ~ 50줄) */
 
   // DataBase에 저장된 requestNotifications에 있는 데이터를 가져와 저장하는 배열
   List<NotificationModel> requestNotificationModelList = [];
@@ -48,7 +49,8 @@ class NotificationController extends GetxController {
   // IT 2실 관리자가 담당하는 시스템을 가진 게시물 총 개수
   int it2UserProcessITRequestPostsSize = 0;
 
-  /* Flutter Local Notification과 관련된 부분 */
+  /* Flutter Local Notification과 관련된 부분 
+     (55 ~ 59줄) */
 
   // Flutter Local Notification initalize를 위해 필요한 변수
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -56,7 +58,8 @@ class NotificationController extends GetxController {
   // 요청 알림 또는 댓글 알림이 왔을 떄 가장 최근 시간에 온 알림을 저장하는 변수
   late NotificationModel recentNotificationModel;
 
-  /* 각종 기타 설정 */
+  /* 각종 기타 설정
+     (65 ~ 69줄) */
 
   // IT 담당자의 경우, 알림 페이지에서 요청 알림 목록을 클릭했는지, 댓글 알림 목록을 클릭했는지 판별하는 변수
   NotificationClassification notificationClassification =
@@ -64,6 +67,7 @@ class NotificationController extends GetxController {
   // FirebaseFiresStore과 관련된 하나의 객체만 쓰기 위해서 설정했다.
   final FirebaseFirestore firebaseFirestore =
       CommunicateFirebase.getFirebaseFirestoreInstnace();
+
 
   // Controller를 더 쉽게 사용할 수 있도록 하는 get method
   static NotificationController get to => Get.find();
@@ -76,7 +80,7 @@ class NotificationController extends GetxController {
     );
   }
 
-  /* 위 필드의 commentNotificationPostUidList의 성분,즉 사용자가 알림 신청한 게시물 uid를 이용한다.
+  /* 위 필드의 commentNotificationPostUidList의 성분, 즉 사용자가 알림 신청한 게시물 uid를 이용한다.
      게시물 uid를 이용하여 DataBase에 게시물에 대한 댓글 개수를 찾는다. 다음으로 위 필드인 commentCount에 값을 대입한다 */
   Future<void> getPostCommentCount() async {
     for (int i = 0; i < commentNotificationPostUidList.length; i++) {
@@ -174,7 +178,7 @@ class NotificationController extends GetxController {
 
   // DataBase에서 IT 1실 담당자가 처리해야 하는 시스템이 명시된 IT 요청건 게시물 총 개수를 가져오는 method
   Future<void> getIT1UserProcessITRequestPostsSize() async {
-    // DataBase에서 IT 1실 관리자가 처리해야 하는 시스템이 명시된 IT 요청거 게시물 총 개수를 가져온다.
+    // DataBase에서 IT 1실 관리자가 처리해야 하는 시스템이 명시된 IT 요청건 게시물 총 개수를 가져온다.
     QuerySnapshot<Map<String, dynamic>> result =
         await firebaseFirestore.collection('itRequestPosts').where(
       'sysClassficationCode',
@@ -593,8 +597,7 @@ class NotificationController extends GetxController {
   }
 
   // Flutter Loal Notification을 show하는 method
-  Future<void> showGroupNotifications(
-      {required String title, required String body}) async {
+  Future<void> showGroupNotifications({required String title, required String body}) async {
     /* 그룹 알림으로 띄우기 위해서 필요한 변수 설정 */
     const String groupKey = 'com.example.help_Desk';
     const String groupChannelId = 'help_Desk ID';
@@ -635,7 +638,7 @@ class NotificationController extends GetxController {
     );
 
     /* 그룹화된 알림을 설정하고 보여준다.
-       (638번 ~ 664번 줄) */
+       (642번 ~ 668번 줄) */
     InboxStyleInformation inboxStyleInformation = const InboxStyleInformation(
       [],
       contentTitle: '',
@@ -714,7 +717,7 @@ class NotificationController extends GetxController {
   @override
   void onClose() async {
     /* 사용자에게 주어졌던 모든 알림을 삭제하고 이를 ToastMessage로 전달한다. 
-       (716 ~ 717번) */
+       (721 ~ 722번 줄) */
     await flutterLocalNotificationsPlugin.cancelAll();
     ToastUtil.showToastMessage('모든 알림을 삭제했습니다.');
 

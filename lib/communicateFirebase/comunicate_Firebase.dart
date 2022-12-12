@@ -48,8 +48,7 @@ class CommunicateFirebase {
   }
 
   // SignUpPage에 있는 Image를 Firebase Storage에 upload하는 method
-  static UploadTask signUpPageImageToStroage(
-      {required File imageFile, required String userUid}) {
+  static UploadTask signUpPageImageToStroage({required File imageFile, required String userUid}) {
     // ImageFile의 확장자(png, jpg) 가져오기
     String imageFileExt = imageFile.toString().split('.').last.substring(0, 3);
 
@@ -95,8 +94,7 @@ class CommunicateFirebase {
   }
 
   // PostingPage에서 image를 게시했으면 Firebase Storage에 upload하는 method
-  static Map<String, dynamic> postingPageImageToStorage(
-      {required RxList<File> imageList, required String userUid}) {
+  static Map<String, dynamic> postingPageImageToStorage({required RxList<File> imageList, required String userUid}) {
     // UploadTask을 관리하는 배열 입니다.
     List<UploadTask> uploadTasks = [];
 
@@ -322,8 +320,7 @@ class CommunicateFirebase {
   }
 
   // Database에 IT 요청건 게시물(itRequestPosts)의 whoWriteCommentThePost 속성에 사용자 uid를 추가하는 method
-  static Future<void> addWhoWriteCommentThePost(
-      PostModel postData, String userUid) async {
+  static Future<void> addWhoWriteCommentThePost(PostModel postData, String userUid) async {
     // 반환 타입이 DocumentReference으로 DataBase에 게시물 데이터에 접근하는 method
     DocumentReference<Map<String, dynamic>> documentReference =
         documentReferenceGetPost(postData.postUid);
@@ -437,8 +434,7 @@ class CommunicateFirebase {
   }
 
   // Database에 comment을 삭제한다.
-  static Future<void> deleteComment(
-      CommentModel comment, PostModel postData) async {
+  static Future<void> deleteComment(CommentModel comment, PostModel postData) async {
     // Database의 comemnt을 가져온다.
     DocumentReference<Map<String, dynamic>> commentReference =
         getComment(comment, postData);

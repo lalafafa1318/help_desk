@@ -15,7 +15,8 @@ class LoginPage extends StatelessWidget {
           await AuthController.to.googleLogin();
         },
         icon: Image.asset(
-            'assets/images/google.png'), //icon data for elevated button
+          'assets/images/google.png',
+        ), //icon data for elevated button
         label:
             const Text('Google Login', style: TextStyle(color: Colors.black)),
         style: ElevatedButton.styleFrom(
@@ -35,8 +36,8 @@ class LoginPage extends StatelessWidget {
         },
         icon: Image.asset(
             'assets/images/facebook-logo-2019.png'), //icon data for elevated button
-        label: const Text('Facebook Login',
-            style: TextStyle(color: Colors.white)),
+        label:
+            const Text('Facebook Login', style: TextStyle(color: Colors.white)),
         style: ElevatedButton.styleFrom(
           primary: Colors.blueAccent, //elevated btton background color
         ),
@@ -116,7 +117,7 @@ class LoginPage extends StatelessWidget {
               // appleLoginButton(),
 
               // SizedBox(height: 50.0.h),
-              
+
               twitterLoginButton(),
             ],
           ),

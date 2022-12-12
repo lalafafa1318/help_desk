@@ -15,7 +15,7 @@ class CommentModel {
   // 댓글 Uid
   String commentUid;
 
-  // 댓글을 작성한 사용자 Uid
+  // 댓글 작성한 사용자 Uid
   String whoWriteUserUid;
 
   // 처리상태 

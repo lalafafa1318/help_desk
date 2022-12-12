@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/bindingController/binding_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
+import 'package:help_desk/const/departmentClassification.dart';
 import 'package:help_desk/const/userClassification.dart';
 import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/screen/beforeBottomNavigationBar/splash_page.dart';
@@ -42,6 +43,11 @@ class _SignUpPageState extends State<SignUpPage> {
 
   // 이름과 관련된 TextFormField Text를 저장하는 Field
   TextEditingController? nameTextController;
+
+  /* 부서명
+     회원가입할 때 부서명은 ETHICALMANAGEMENT(윤리경영실)이 default로 보이게 된다. */
+  DepartmentClassification departmentClassification =
+      DepartmentClassification.ETHICALMANAGEMENT;
 
   // 전화번호와 관련된 TextFormField Text를 저장하는 Field
   TextEditingController? telTextController;
@@ -136,8 +142,8 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  // 이름과 전화번호 관련된 TextFormField를 보여준다.
-  Widget twoTextFormField() {
+  // 이름, 부서명 그리고 전화번호 관련된 TextFormField를 보여준다.
+  Widget threeTextFormField() {
     return Form(
       key: _formKey,
       child: Column(
@@ -163,7 +169,35 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
           ),
 
-          SizedBox(height: 16.h),
+          SizedBox(height: 15.h),
+
+          // 부서명 DropdownMenu
+          DropdownButton(
+            value: departmentClassification.name,
+            style: TextStyle(color: Colors.black, fontSize: 15.sp),
+            items: DepartmentClassification.values.map((element) {
+              // enum의 값을 화면에 표시할 값으로 변환한다.
+              String realText = element.asText;
+
+              return DropdownMenuItem(
+                value: element.name,
+                child: Text(realText),
+              );
+            }).toList(),
+            // 사용자가 Dropdown 메뉴를 변경했을 떄
+            onChanged: (String? element) {
+              // 전체 화면을 재랜더링 한다.
+              setState(() {
+                departmentClassification =
+                    DepartmentClassification.values.firstWhere(
+                  (DepartmentClassification enumValue) =>
+                      enumValue.name == element,
+                );
+              });
+            },
+          ),
+
+          SizedBox(height: 15.h),
 
           // 전화번호 TextFormField
           Container(
@@ -284,6 +318,14 @@ class _SignUpPageState extends State<SignUpPage> {
     SettingsController.to.didSignUp = true;
   }
 
+  // 회원가입 페이지에서 이전 가기로 가는 method
+  Future<void> onWillPop() async {
+    await CommunicateFirebase.logout();
+
+    // Splash를 다시 보여줘서 앱을 시작한다.
+    await Get.offAll(() => const Splash());
+  }
+
   @override
   Widget build(BuildContext context) {
     print('현재 페이지 : ${Get.currentRoute}');
@@ -292,10 +334,8 @@ class _SignUpPageState extends State<SignUpPage> {
       // 사용자가 이전 가기를 눌렀을 떄
       child: WillPopScope(
         onWillPop: () async {
-          await CommunicateFirebase.logout();
-
-          // Splash를 다시 보여줘서 앱을 시작한다.
-          await Get.offAll(() => const Splash());
+          // SignUpPage에서 이전으로 간다.
+          await onWillPop();
 
           return true;
         },
@@ -304,6 +344,17 @@ class _SignUpPageState extends State<SignUpPage> {
           appBar: AppBar(
             backgroundColor: Colors.white,
             automaticallyImplyLeading: false,
+            // 이전 가기 아이콘
+            leading: IconButton(
+              onPressed: () async {
+                // SignUpPage에서 이전으로 간다.
+                await onWillPop();
+              },
+              icon: const Padding(
+                padding: EdgeInsets.all(7.5),
+                child: Icon(Icons.arrow_back, color: Colors.black),
+              ),
+            ),
             centerTitle: true,
             title: const Text('회원가입', style: TextStyle(color: Colors.black)),
             elevation: 0.5,
@@ -318,8 +369,8 @@ class _SignUpPageState extends State<SignUpPage> {
 
                 SizedBox(height: 40.h),
 
-                // 이름과 전화번호를 입력하는 부분
-                twoTextFormField(),
+                // 이름과 부서명 그리고 전화번호를 입력하는 부분
+                threeTextFormField(),
 
                 SizedBox(height: 40.h),
 
