@@ -11,7 +11,7 @@ class UserModel {
   // 활동사진
   String? image;
 
-  // Uid
+  // User Uid
   String userUid;
 
   // 사용자가 게시물 알림 신청했을 떄 해당 게시물 Uid

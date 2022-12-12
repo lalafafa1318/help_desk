@@ -60,8 +60,7 @@ class PostListController extends GetxController {
   }
 
   // snapshot.data!로 받은 IT 요청건 게시물을 PostListController의 itRequestPosts, itRequestUsers에 대입하는 method
-  Future<List<PostModel>> allocITRequestPostsAndUsers(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) async {
+  Future<List<PostModel>> allocITRequestPostsAndUsers(List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) async {
     // IT 요청건 게시물과 사용자 정보를 담는 배열을 clear한다.
     itRequestPosts.clear();
     itRequestUsers.clear();

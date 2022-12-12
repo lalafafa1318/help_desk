@@ -328,7 +328,9 @@ class CommunicateFirebase {
     DocumentReference<Map<String, dynamic>> documentReference =
         documentReferenceGetPost(postData.postUid);
 
-    // 여러 사용자가 동시에 접근하여 대량의 트래픽이 발생할 경우를 대비해 transaction을 이용한다.
+    /* 여러 사용자가 동시에 접근하여 대량의 트래픽이 발생할 경우를 대비해 transaction을 이용한다. 
+       왜냐하면 DataBase에 IT 요청건 게시물(itRequestPosts)의 whoWriteCommentThePost 속성은 다른 사용자들이 언제든지 접근할 수 
+       있는 속성이기 떄문이다. 의도하지 않은 update가 되는 것을 방지한다. */
     await _firebaseFirestore.runTransaction(
       maxAttempts: 5,
       (transaction) async {
@@ -383,6 +385,8 @@ class CommunicateFirebase {
     Map<String, dynamic> commentAndUser = {};
     // 여러 comment를 저장하는 배열을 생성한다.
     List<CommentModel> commentArray = [];
+    // 댓글에 대한 사용자 정보를 비동기 처리로 한번에 받는 배열
+    List<Future<DocumentSnapshot<Map<String, dynamic>>>> commentUserDataFuture = [];
     // 여러 commen에 대한 사용자 정보를 저장하는 배열을 생성한다.
     List<UserModel> commentUserArray = [];
 
@@ -401,14 +405,28 @@ class CommunicateFirebase {
       },
     );
 
-    // comment의 whoWriteUserUid 속성을 참고하여  Database에서 사용자 정보(Users)를 가져온다.
+    /* comment의 whoWriteUserUid 속성을 참고하여 
+       비동기 처리로 comment 대한 사용자 정보를 DataBase에 동시에 요청하고 userDataFutures 배열에 추가하는 for문 */
     for (CommentModel comment in commentArray) {
-      DocumentSnapshot<Map<String, dynamic>> user = await _firebaseFirestore
-          .collection('users')
-          .doc(comment.whoWriteUserUid)
-          .get();
+      commentUserDataFuture.add(
+        _firebaseFirestore
+            .collection('users')
+            .doc(comment.whoWriteUserUid)
+            .get(),
+      );
+    }
 
-      commentUserArray.add(UserModel.fromMap(user.data()!));
+    // 댓글에 대한 사용자 정보를 동시에 요청해서 받은 것을 순서대로 저장한다.
+    List<DocumentSnapshot<Map<String, dynamic>>> commentUserDataSequential =
+        await Future.wait<DocumentSnapshot<Map<String, dynamic>>>(
+            commentUserDataFuture);
+
+    // 순서대로 저장한 userDataSequential 배열을 바탕으로 위 commentArray 배열을 추가하는 for문
+    for (int i = 0; i < commentUserDataSequential.length; i++) {
+      // 댓글에 대한 사용자 정보를 담고 있는 commentUserArray에 사용자 정보를 추가한다.
+      commentUserArray.add(
+        UserModel.fromMap(commentUserDataSequential[i].data()!),
+      );
     }
 
     // Map에 commentArray와 comentUserArray을 추가한다.

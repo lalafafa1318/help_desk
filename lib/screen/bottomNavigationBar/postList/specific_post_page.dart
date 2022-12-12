@@ -585,7 +585,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                   }
 
                   /* 데이터가 왔고 빈 값이 아닌 경우에 대한 설정 
-                     (599 ~ 621줄) */
+                     (590 ~ 613줄) */
 
                   /* SpecificPostPage 위 필드의 commentArray를 clear()한다.
                      SpecificPostPage 위 필드의 commentUserArray를 clear() 한다. */
@@ -1155,7 +1155,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           }
 
           /* 일반 사용자, IT 담당자가 답변 정보 입력 할 수 있는 모든 조건을 충족한다. -> 검증 완료
-             (1166 ~ 1174줄) */
+             (1160 ~ 1169줄) */
 
           // Database에 comment(댓글)을 추가한다.
           await PostListController.to.addComment(text, postData!);
