@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:getwidget/components/button/gf_button.dart';
 import 'package:getwidget/types/gf_button_type.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
+import 'package:help_desk/const/departmentClassification.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/settings/edit_profile_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/settings/what_i_comment_page.dart';
@@ -85,26 +86,27 @@ class SettingsPage extends StatelessWidget {
 
         // 이름
         Text(
-          '${controller.settingUser!.userName}',
+          controller.settingUser!.userName,
           style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w400),
         ),
 
         SizedBox(height: 10.h),
 
-        // 설명 - Expandable Text
-        SizedBox(
-          width: 150.w,
-          height: 75.h,
-          child: ExpandableText(
-            controller.settingUser!.phoneNumber,
-            expandText: 'show more',
-            collapseText: 'show less',
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            linkColor: Colors.blue,
-            style: const TextStyle(color: Colors.grey),
-          ),
+        // 부서명
+        Text(
+          controller.settingUser!.department.asText,
+          style: const TextStyle(color: Colors.grey),
         ),
+
+        SizedBox(height: 10.h),
+
+        // 전화번호
+        Text(
+          controller.settingUser!.phoneNumber,
+          style: const TextStyle(color: Colors.grey),
+        ),
+
+        SizedBox(height: 10.h),
       ],
     );
   }
@@ -277,10 +279,12 @@ class SettingsPage extends StatelessWidget {
           backgroundColor: const Color(0xFFf2eeed),
           body: Column(
             children: [
-              SizedBox(height: 50.h),
+              SizedBox(height: 40.h),
 
               // 아바타 View + Edit outline Button
               topView(controller),
+
+              SizedBox(height: 10.h),
 
               // 기능 view
               functionView(),

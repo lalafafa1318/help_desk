@@ -5,6 +5,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
+import 'package:help_desk/const/departmentClassification.dart';
 import 'package:help_desk/const/userClassification.dart';
 import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
@@ -13,27 +14,34 @@ import 'package:help_desk/utils/toast_util.dart';
 import 'package:image_picker/image_picker.dart';
 
 class SettingsController extends GetxController {
-  /* 사용자가 회원가입 절차를 거쳤는지 아닌지 판단, 사용자 계정 정보를 담는 데이터  */
+  /* 사용자가 회원가입 절차를 거쳤는지 아닌지 판단, 사용자 계정 정보를 담는 데이터  
+     (21 ~ 23줄) */
 
   // 사용자가 회원가입 절차를 거쳤는지 아닌지를 판별하는 상태 변수
   bool didSignUp = true;
   // 사용자 계정을 나타내는 인스턴스  AuthController의 사용자 정보를 복제했다.
   UserModel? settingUser;
 
-  /* EditProfilePage에서 활용되는 데이터 */
+  /* EditProfilePage에서 활용되는 데이터
+     (28 ~ 41줄) */
 
   /* 수정한 이미지에 대한 Field 
-     (27 ~ 28줄) */
-  ImagePicker imagePicker = ImagePicker();
+     (28 ~ 29줄) */
+  final ImagePicker imagePicker = ImagePicker();
   File? editImage;
   // 이름, 전화번호 관련된 TextFormField Validation을 위한 Field
   final GlobalKey<FormState> editFormKey = GlobalKey<FormState>();
   // 이름과 관련된 TextFormField Text를 저장하는 Field
   TextEditingController? nameTextController;
+  /* 부서명
+     프로필 수정할 때 부서명은 ETHICALMANAGEMENT(윤리경영실)이 default로 보이게 된다. */
+  DepartmentClassification departmentClassification =
+      DepartmentClassification.ETHICALMANAGEMENT;
   // 전화번호와 관련된 TextFormField Text를 저장하는 Field
   TextEditingController? telTextController;
 
-  /* whatIWrotePage, whatICommentPage에서 관리하는 데이터 */
+  /* whatIWrotePage, whatICommentPage에서 관리하는 데이터 
+     (46 ~ 53줄) */
 
   // 사용자가 작성한 IT 요청건 게시물을 담는 배열
   List<PostModel> whatIWroteITRequestPosts = [];
@@ -100,7 +108,7 @@ class SettingsController extends GetxController {
       // EditProfilePage에 있는 image를 Firebase Storage에 upload하는 method
       updateFileEvent = await CommunicateFirebase.editProfilePageImageToStorage(
         imageFile: editImage!,
-        image : settingUser!.image,
+        image: settingUser!.image,
         userUid: settingUser!.userUid.toString(),
       );
 
@@ -116,6 +124,7 @@ class SettingsController extends GetxController {
           : settingUser!.userType == UserClassification.IT1USER
               ? UserClassification.IT1USER
               : UserClassification.IT2USER,
+      department: departmentClassification,
       userName: nameTextController!.text,
       /* 프로필 수정 페이지에서 사용자가 이미지를 변경했다면 변경한 이미지로 들어간다.
          만약 변경하지 않았다면 원래대로 들어간다. */
@@ -154,10 +163,13 @@ class SettingsController extends GetxController {
 
   // EditProfilePage에서 사용했던 데이터를 초기화하는 method
   void clearEditProfileData() {
-    // 이미지와 이름, 전화번호를 초기화 한다.
+    // 이미지와 이름, 전화번호를 초기화 한다. 
     editImage = null;
     nameTextController!.text = '';
     telTextController!.text = '';
+
+    // 프로필 수정할 떄 부서명을 다시 ETHICALMANAGEMENT (윤리경영실)로 설정한다.
+    departmentClassification = DepartmentClassification.ETHICALMANAGEMENT;
   }
 
   // 내가 작성한 IT 요청건 게시물을 가져오는 method

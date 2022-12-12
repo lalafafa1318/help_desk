@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:getwidget/components/dropdown/gf_dropdown.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
 import 'package:help_desk/bindingController/binding_controller.dart';
 import 'package:help_desk/communicateFirebase/comunicate_Firebase.dart';
@@ -16,7 +17,6 @@ import 'package:help_desk/screen/beforeBottomNavigationBar/splash_page.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/main_page.dart';
 import 'package:help_desk/utils/toast_util.dart';
-
 import 'package:image_picker/image_picker.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -142,8 +142,8 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  // 이름, 부서명 그리고 전화번호 관련된 TextFormField를 보여준다.
-  Widget threeTextFormField() {
+  // 이름과 전화번호를 입력하고, 부서명을 Dropdown으로 보여준다.
+  Widget threeRequiredInput() {
     return Form(
       key: _formKey,
       child: Column(
@@ -169,35 +169,55 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
           ),
 
-          SizedBox(height: 15.h),
+          SizedBox(height: 20.h),
 
-          // 부서명 DropdownMenu
-          DropdownButton(
-            value: departmentClassification.name,
-            style: TextStyle(color: Colors.black, fontSize: 15.sp),
-            items: DepartmentClassification.values.map((element) {
-              // enum의 값을 화면에 표시할 값으로 변환한다.
-              String realText = element.asText;
+          // 부서명 Dropdown
+          SizedBox(
+            width: 265.w,
+            height: 50.h,
+            child: DropdownButtonHideUnderline(
+              child: GFDropdown(
+                padding: const EdgeInsets.all(10),
+                borderRadius: BorderRadius.circular(5.r),
+                border: const BorderSide(color: Colors.black26, width: 1),
+                dropdownButtonColor: Colors.white,
+                value: departmentClassification.name,
+                items: DepartmentClassification.values
+                    .map((DepartmentClassification element) {
+                  // enum의 값을 화면에 표시할 값으로 변환한다.
+                  String realText = element.asText;
 
-              return DropdownMenuItem(
-                value: element.name,
-                child: Text(realText),
-              );
-            }).toList(),
-            // 사용자가 Dropdown 메뉴를 변경했을 떄
-            onChanged: (String? element) {
-              // 전체 화면을 재랜더링 한다.
-              setState(() {
-                departmentClassification =
-                    DepartmentClassification.values.firstWhere(
-                  (DepartmentClassification enumValue) =>
-                      enumValue.name == element,
-                );
-              });
-            },
+                  return DropdownMenuItem(
+                    value: element.name,
+                    child: Text(realText),
+                  );
+                }).toList(),
+                onChanged: (element) {
+                  setState(() {
+                    departmentClassification =
+                        DepartmentClassification.values.firstWhere(
+                      (DepartmentClassification enumValue) =>
+                          enumValue.name == element,
+                    );
+                  });
+                },
+              ),
+            ),
           ),
 
-          SizedBox(height: 15.h),
+          SizedBox(height: 10.h),
+
+          Container(
+            margin: EdgeInsets.only(right: 60.w),
+            width: ScreenUtil().screenWidth / 2,
+            child: Text(
+              '* 필수 입력값 입니다.',
+              textAlign: TextAlign.left,
+              style: TextStyle(color: Colors.grey[600], fontSize: 11.sp),
+            ),
+          ),
+
+          SizedBox(height: 20.h),
 
           // 전화번호 TextFormField
           Container(
@@ -292,6 +312,7 @@ class _SignUpPageState extends State<SignUpPage> {
     UserModel user = UserModel(
       // 회원가입을 하면 userType을 GENERALUSER (일반 사용자)로 default한다.
       userType: UserClassification.GENERALUSER,
+      department: departmentClassification,
       userName: nameTextController!.text,
       // 사용자가 회원가입할 떄 이미지를 게시하지 않았다면 null 값이 들어간다.
       image: imageFile == null ? null : imageUrl,
@@ -369,13 +390,15 @@ class _SignUpPageState extends State<SignUpPage> {
 
                 SizedBox(height: 40.h),
 
-                // 이름과 부서명 그리고 전화번호를 입력하는 부분
-                threeTextFormField(),
+                // 이름과 전화번호를 입력하고, 부서명을 Dropdown으로 보여준다.
+                threeRequiredInput(),
 
                 SizedBox(height: 40.h),
 
                 // 회원가입 하기 버튼을 입력하는 부분
                 signUpButton(),
+
+                SizedBox(height: 10.h),
               ],
             ),
           ),

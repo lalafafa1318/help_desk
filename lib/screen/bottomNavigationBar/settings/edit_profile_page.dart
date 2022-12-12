@@ -4,6 +4,8 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:getwidget/components/dropdown/gf_dropdown.dart';
+import 'package:help_desk/const/departmentClassification.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/utils/toast_util.dart';
 import 'package:image_picker/image_picker.dart';
@@ -125,8 +127,8 @@ class EditProfilePage extends StatelessWidget {
     );
   }
 
-  // 이름과 전화번호 관련된 TextFormField를 보여준다.
-  Widget editTwoTextField() {
+  // 이름과 전화번호를 입력하고 부서명에 대한 Dropdown을 보여준다.
+  Widget editThreeRequiredInput() {
     return Form(
       key: SettingsController.to.editFormKey,
       child: Column(
@@ -152,7 +154,61 @@ class EditProfilePage extends StatelessWidget {
             ),
           ),
 
-          SizedBox(height: 16.h),
+          SizedBox(height: 20.h),
+
+          // 부서명 Dropdown
+          GetBuilder<SettingsController>(
+            id: 'changeDepartment',
+            builder: (controller) {
+              return SizedBox(
+                width: 265.w,
+                height: 50.h,
+                child: DropdownButtonHideUnderline(
+                  child: GFDropdown(
+                    padding: const EdgeInsets.all(10),
+                    borderRadius: BorderRadius.circular(5.r),
+                    border: const BorderSide(color: Colors.black26, width: 1),
+                    dropdownButtonColor: Colors.white,
+                    value: SettingsController.to.departmentClassification.name,
+                    items: DepartmentClassification.values
+                        .map((DepartmentClassification element) {
+                      // enum의 값을 화면에 표시할 값으로 변환한다.
+                      String realText = element.asText;
+
+                      return DropdownMenuItem(
+                        value: element.name,
+                        child: Text(realText),
+                      );
+                    }).toList(),
+                    onChanged: (element) {
+                      SettingsController.to.departmentClassification =
+                          DepartmentClassification.values.firstWhere(
+                        (DepartmentClassification enumValue) =>
+                            enumValue.name == element,
+                      );
+
+                      // id가 changeDepartment인 GetBuilder만 재랜더링 한다.
+                      SettingsController.to.update(['changeDepartment']);
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+
+          SizedBox(height: 10.h),
+
+          Container(
+            margin: EdgeInsets.only(right: 60.w),
+            width: ScreenUtil().screenWidth / 2,
+            child: Text(
+              '* 필수 입력값 입니다.',
+              textAlign: TextAlign.left,
+              style: TextStyle(color: Colors.grey[600], fontSize: 11.sp),
+            ),
+          ),
+
+          SizedBox(height: 20.h),
 
           // 전화번호 TextFormField
           Container(
@@ -243,8 +299,8 @@ class EditProfilePage extends StatelessWidget {
 
               SizedBox(height: 40.h),
 
-              // 이름과 전화번호를 수정하는 부분
-              editTwoTextField(),
+              // 이름과 전화번호를 입력하고 부서명에 대한 Dropdown을 보여준다.
+              editThreeRequiredInput(),
 
               SizedBox(height: 40.h),
 
