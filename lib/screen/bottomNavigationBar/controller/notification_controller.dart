@@ -68,7 +68,6 @@ class NotificationController extends GetxController {
   final FirebaseFirestore firebaseFirestore =
       CommunicateFirebase.getFirebaseFirestoreInstnace();
 
-
   // Controller를 더 쉽게 사용할 수 있도록 하는 get method
   static NotificationController get to => Get.find();
 
@@ -183,13 +182,18 @@ class NotificationController extends GetxController {
         await firebaseFirestore.collection('itRequestPosts').where(
       'sysClassficationCode',
       whereIn: [
-        'SysClassification.WICS',
-        'SysClassification.ICMS',
-        'SysClassification.SALES',
-        'SysClassification.EXPENSIVE',
-        'SysClassification.NGOS',
-        'SysClassification.NCCS',
-        'SysClassification.NCCSSB',
+        // 문서중앙화
+        'SysClassification.CDOC',
+        // 그룹메일
+        'SysClassification.MAIL',
+        // S-NAC(네트워크 접근제어)
+        'SysClassification.SNAC',
+        // NetHelper(PC 보안)
+        'SysClassification.NETH',
+        // SSL-VPN(재택원격접속)
+        'SysClassification.SSLVPN',
+        // N-Talk(사내메신저)
+        'SysClassification.TALK',
       ],
     ).get();
 
@@ -206,17 +210,37 @@ class NotificationController extends GetxController {
     QuerySnapshot<Map<String, dynamic>> result =
         await firebaseFirestore.collection('itRequestPosts').where(
       'sysClassficationCode',
-      whereIn: [
-        'SysClassification.HOMEPAGE',
+      arrayContains: [
+        // PC 고장
+        'SysClassification.PC_BROKEN',
+        // NBUS(통합업무지원)
+        'SysClassification.NBUS',
+        // NEOS-C(일반채권)
+        'SysClassification.NEOSC',
+        // NEOS-K(금융채권)
+        'SysClassification.NEOSK',
+        // NEOS-A(상사채권)
+        'SysClassification.NEOSA',
+        // NICS(주문접수)
+        'SysClassification.NICS',
+        // NIS_NSCS(퍼미션)
+        'SysClassification.NIS_NSCS',
+        // NIS_SCM(홈쇼핑)
+        'SysClassification.NIS_SCM',
+        // NSCS(2차콜)
         'SysClassification.NSCS',
-        'SysClassification.ARM',
-        'SysClassification.SERVER',
-        'SysClassification.NETWORK',
-        'SysClassification.CALL_INFRASTRUCTURE',
-        'SysClassification.SECURITY',
-        'SysClassification.DOC_CENTRALIZATION',
-        'SysClassification.PERSONAL_EQUIPMENT',
-        'SysClassification.ETC',
+        // NCIP
+        'SysClassification.NCIP_IN',
+        // NCCS(서류접수대행)
+        'SysClassification.NCCS',
+        // N-GOS(채권자 소개)
+        'SysClassification.NGOS',
+        // WICS
+        'SysClassification.WICS',
+        // ICMS
+        'SysClassification.ICMS',
+        // NCS(코드스캐너)
+        'SysClassification.VSCN',
       ],
     ).get();
 
@@ -233,13 +257,18 @@ class NotificationController extends GetxController {
     it1UserListen = firebaseFirestore
         .collection('itRequestPosts')
         .where('sysClassficationCode', whereIn: [
-          'SysClassification.WICS',
-          'SysClassification.ICMS',
-          'SysClassification.SALES',
-          'SysClassification.EXPENSIVE',
-          'SysClassification.NGOS',
-          'SysClassification.NCCS',
-          'SysClassification.NCCSSB',
+          // 문서중앙화
+          'SysClassification.CDOC',
+          // 그룹메일
+          'SysClassification.MAIL',
+          // S-NAC(네트워크 접근제어)
+          'SysClassification.SNAC',
+          // NetHelper(PC 보안)
+          'SysClassification.NETH',
+          // SSL-VPN(재택원격접속)
+          'SysClassification.SSLVPN',
+          // N-Talk(사내메신저)
+          'SysClassification.TALK',
         ])
         .snapshots()
         .listen((QuerySnapshot<Map<String, dynamic>> event) async {
@@ -278,8 +307,7 @@ class NotificationController extends GetxController {
 
               // NotificationModel을 만든다.
               NotificationModel noti = NotificationModel(
-                title:
-                    '${user.data()!['userName'].toString()} - ${recentITRequestPost.data()['postTitle'].toString()}',
+                title: '${user.data()!['userName'].toString()}님의 요청건',
                 body:
                     'IT1실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentITRequestPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
                 notiUid: UUidUtil.getUUid(),
@@ -295,8 +323,7 @@ class NotificationController extends GetxController {
               // Flutter Local Notification을 띄운다.
               await showGroupNotifications(
                 // 게시물 작성자 - 댓글이 작성된 게시물 제목
-                title:
-                    '${user.data()!['userName'].toString()} - ${recentITRequestPost.data()['postTitle'].toString()}',
+                title: '${user.data()!['userName'].toString()}님의 요청건',
                 // 게시물 시스템 분류 코드를 나타낸다.
                 body:
                     'IT1실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentITRequestPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
@@ -322,16 +349,36 @@ class NotificationController extends GetxController {
     it2UserListen = firebaseFirestore
         .collection('itRequestPosts')
         .where('sysClassficationCode', whereIn: [
-          'SysClassification.HOMEPAGE',
+          // PC 고장
+          'SysClassification.PC_BROKEN',
+          // NBUS(통합업무지원)
+          'SysClassification.NBUS',
+          // NEOS-C(일반채권)
+          'SysClassification.NEOSC',
+          // NEOS-K(금융채권)
+          'SysClassification.NEOSK',
+          // NEOS-A(상사채권)
+          'SysClassification.NEOSA',
+          // NICS(주문접수)
+          'SysClassification.NICS',
+          // NIS_NSCS(퍼미션)
+          'SysClassification.NIS_NSCS',
+          // NIS_SCM(홈쇼핑)
+          'SysClassification.NIS_SCM',
+          // NSCS(2차콜)
           'SysClassification.NSCS',
-          'SysClassification.ARM',
-          'SysClassification.SERVER',
-          'SysClassification.NETWORK',
-          'SysClassification.CALL_INFRASTRUCTURE',
-          'SysClassification.SECURITY',
-          'SysClassification.DOC_CENTRALIZATION',
-          'SysClassification.PERSONAL_EQUIPMENT',
-          'SysClassification.ETC',
+          // NCIP
+          'SysClassification.NCIP_IN',
+          // NCCS(서류접수대행)
+          'SysClassification.NCCS',
+          // N-GOS(채권자 소개)
+          'SysClassification.NGOS',
+          // WICS
+          'SysClassification.WICS',
+          // ICMS
+          'SysClassification.ICMS',
+          // NCS(코드스캐너)
+          'SysClassification.VSCN',
         ])
         .snapshots()
         .listen((QuerySnapshot<Map<String, dynamic>> event) async {
@@ -370,8 +417,7 @@ class NotificationController extends GetxController {
 
               // NotificationModel을 만든다.
               NotificationModel noti = NotificationModel(
-                title:
-                    '${user.data()!['userName'].toString()} - ${recentITRequestPost.data()['postTitle'].toString()}',
+                title: '${user.data()!['userName'].toString()}님의 요청건',
                 body:
                     'IT2실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentITRequestPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
                 notiUid: UUidUtil.getUUid(),
@@ -387,8 +433,7 @@ class NotificationController extends GetxController {
               // Flutter Local Notification을 띄운다.
               await showGroupNotifications(
                 // 게시물 작성자 - 댓글이 작성된 게시물 제목
-                title:
-                    '${user.data()!['userName'].toString()} - ${recentITRequestPost.data()['postTitle'].toString()}',
+                title: '${user.data()!['userName'].toString()}님의 요청건',
                 // 게시물 시스템 분류 코드를 나타낸다.
                 body:
                     'IT2실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentITRequestPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
@@ -597,7 +642,8 @@ class NotificationController extends GetxController {
   }
 
   // Flutter Loal Notification을 show하는 method
-  Future<void> showGroupNotifications({required String title, required String body}) async {
+  Future<void> showGroupNotifications(
+      {required String title, required String body}) async {
     /* 그룹 알림으로 띄우기 위해서 필요한 변수 설정 */
     const String groupKey = 'com.example.help_Desk';
     const String groupChannelId = 'help_Desk ID';

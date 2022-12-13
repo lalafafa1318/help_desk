@@ -15,8 +15,9 @@ import 'package:intl/intl.dart';
 
 // PostingPage의 상태 변수와 메서드를 관리하는 controller 입니다.
 class PostingController extends GetxController {
-  // 시스템 분류 코드 DropDown에서 무엇을 Tab했는가 나타내는 변수
-  SysClassification sSelectedValue = SysClassification.WICS;
+  /* 시스템 분류 코드 DropDown에서 무엇을 Tab했는가 나타내는 변수 
+     처음에 보일 떄는 PC_BROKEN (PC 고장)이 default로 보이게 한다.*/
+  SysClassification sSelectedValue = SysClassification.PC_BROKEN;
 
   // 이미지를 담는 List
   RxList<File> imageList = <File>[].obs;
@@ -198,8 +199,8 @@ class PostingController extends GetxController {
 
   // PostingController에 관리되고 있는 상태 변수 초기화 하는 method
   void initPostingElement() {
-    // PostingPaged에서 시스템 분류 코드를 WICS로 초기화 한다.
-    sSelectedValue = SysClassification.WICS;
+    // PostingPaged에서 시스템 분류 코드를 PC_BROKEN(PC 고장)으로 초기화 한다.
+    sSelectedValue = SysClassification.PC_BROKEN;
 
     // PostingController에서 쓰이는 상태 변수를 clear한다.
     imageList.clear();

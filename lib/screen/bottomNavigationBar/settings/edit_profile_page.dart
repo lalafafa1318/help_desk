@@ -306,6 +306,8 @@ class EditProfilePage extends StatelessWidget {
 
               // 프로필 수정하기 버튼을 입력하는 부분
               editProfileButton(),
+
+              SizedBox(height: 10.h),
             ],
           ),
         ),

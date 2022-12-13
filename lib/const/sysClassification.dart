@@ -2,40 +2,48 @@
 enum SysClassification {
   // 시스템 전체
   ALL,
-  // WICS (IT 1실이 담당하고 있다고 가정)
-  WICS,
-  // ICMS (IT 1실이 담당하고 있다고 가정)
-  ICMS,
-  // 매출  (IT 1실이 담당하고 있다고 가정)
-  SALES,
-  // 고액  (IT 1실이 담당하고 있다고 가정)
-  EXPENSIVE,
-  // NGOS  (IT 1실이 담당하고 있다고 가정)
-  NGOS,
-  // NCCS  (IT 1실이 담당하고 있다고 가정)
-  NCCS,
-  // NCCSSB  (IT 1실이 담당하고 있다고 가정)
-  NCCSSB,
-  // 홈페이지 (IT 2실이 담당하고 있다고 가정)
-  HOMEPAGE,
-  // NSCS   (IT 2실이 담당하고 있다고 가정)
+  // PC 고장 (IT2실 담당)
+  PC_BROKEN,
+  // NBUS(통합업무지원) (IT2실 담당)
+  NBUS,
+  // NEOS-C(일반채권) (IT2실 담당)
+  NEOSC,
+  // NEOS-K(금융채권) (IT2실 담당)
+  NEOSK,
+  // NEOS-A(상사채권) (IT2실 담당)
+  NEOSA,
+  // NIS(주문접수) (IT2실 담당)
+  NIS,
+  // NIS_NSCS(퍼미션) (IT2실 담당)
+  NIS_NSCS,
+  // NIS_SCM(홈쇼핑) (IT2실 담당)
+  NIS_SCM,
+  // NSCS(2차콜) (IT2실 담당)
   NSCS,
-  // ARM    (IT 2실이 담당하고 있다고 가정)
-  ARM,
-  // 서버    (IT 2실이 담당하고 있다고 가정)
-  SERVER,
-  // 네트워크  (IT 2실이 담당하고 있다고 가정)
-  NETWORK,
-  // 콜인프라  (IT 2실이 담당하고 있다고 가정)
-  CALL_INFRASTRUCTURE, 
-  // 보안     (IT 2실이 담당하고 있다고 가정)
-  SECURITY,
-  // 문서중앙화  (IT 2실이 담당하고 있다고 가정)
-  DOC_CENTRALIZATION,
-  // 개인장비(PC등)  (IT 2실이 담당하고 있다고 가정)
-  PERSONAL_EQUIPMENT,
-  // 기타  (IT 2실이 담당하고 있다고 가정)
-  ETC,
+  // NCIP (IT2실 담당)
+  NCIP_IN,
+  // NCCS(서류접수대행) (IT2실 담당)
+  NCCS,
+  // N-GOS(채권자소개) (IT2실 담당)
+  NGOS,
+  // WICS (IT2실 담당)
+  WICS,
+  // ICMS (IT2실 담당)
+  ICMS,
+  // 문서중앙화 (IT1실 담당)
+  CDOC,
+  // 그룹메일 (IT1실 담당)
+  MAIL,
+  // S-NAC(네트워크 접근제어) (IT1실 담당)
+  SNAC,
+  // NetHelper(PC 보안) (IT1실 담당)
+  NETH,
+  // SSL-VPN(재택원격접속) (IT1실 담당)
+  SSLVPN,
+  // N-Talk(사내메신저) (IT1실 담당)
+  TALK,
+  // NCS(코드스캐너) (IT2실 담당)
+  VSCN,
 }
 
 // 처리상태 분류 코드를 판별해 화면에 표시하는 Text로 변환하는 확장 Method
@@ -44,40 +52,48 @@ extension SysclassificationExtension on SysClassification {
     switch (this) {
       case SysClassification.ALL:
         return '시스템 전체';
+      case SysClassification.PC_BROKEN:
+        return 'PC 고장';
+      case SysClassification.NBUS:
+        return 'NBUS(통합업무지원)';
+      case SysClassification.NEOSC:
+        return 'NEOS-C(일반채권)';
+      case SysClassification.NEOSK:
+        return 'NEOS-K(금융채권)';
+      case SysClassification.NEOSA:
+        return 'NEOS-A(상사채권)';
+      case SysClassification.NIS:
+        return 'NIS(주문접수)';
+      case SysClassification.NIS_NSCS:
+        return 'NIS_NSCS(퍼미션)';
+      case SysClassification.NIS_SCM:
+        return 'NIS_SCM(홈쇼핑)';
+      case SysClassification.NSCS:
+        return 'NSCS(2차콜)';
+      case SysClassification.NCIP_IN:
+        return 'NCIP';
+      case SysClassification.NCCS:
+        return 'NCCS(서류접수대행)';
+      case SysClassification.NGOS:
+        return 'N-GOS(채권자소개)';
       case SysClassification.WICS:
         return 'WICS';
       case SysClassification.ICMS:
         return 'ICMS';
-      case SysClassification.SALES:
-        return '매출';
-      case SysClassification.EXPENSIVE:
-        return '고액';
-      case SysClassification.NGOS:
-        return 'NGOS';
-      case SysClassification.NCCS:
-        return 'NCCS';
-      case SysClassification.NCCSSB:
-        return 'NCCSSB';
-      case SysClassification.HOMEPAGE:
-        return '홈페이지';
-      case SysClassification.NSCS:
-        return 'NSCS';
-      case SysClassification.ARM:
-        return 'ARM';
-      case SysClassification.SERVER:
-        return '서버';
-      case SysClassification.NETWORK:
-        return '네트워크';
-      case SysClassification.CALL_INFRASTRUCTURE:
-        return '콜인프라';
-      case SysClassification.SECURITY:
-        return '보안';
-      case SysClassification.DOC_CENTRALIZATION:
+      case SysClassification.CDOC:
         return '문서중앙화';
-      case SysClassification.PERSONAL_EQUIPMENT:
-        return '개인장비';
+      case SysClassification.MAIL:
+        return '그룹메일';
+      case SysClassification.SNAC:
+        return 'S-NAC(네트워크 접근제어)';
+      case SysClassification.NETH:
+        return 'NetHelper(PC 보안)';
+      case SysClassification.SSLVPN:
+        return 'SSL-VPN(재택원격접속)';
+      case SysClassification.TALK:
+        return 'N-Talk(사내메신저)';
       default:
-        return '기타';
+        return 'NCS(코드스캐너)';
     }
   }
 }
