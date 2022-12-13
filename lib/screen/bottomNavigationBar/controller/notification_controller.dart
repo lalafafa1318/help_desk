@@ -45,9 +45,13 @@ class NotificationController extends GetxController {
   int it1UserProcessITRequestPostsSize = 0;
 
   // 장애 처리현황 게시물에서 IT 2실이 담당하는 시스템을 가진 게시물이 업로드 되는지 확인하는 변수
-  late StreamSubscription<QuerySnapshot<Map<String, dynamic>>> it2UserListen;
+  late StreamSubscription<QuerySnapshot<Map<String, dynamic>>>
+      it2UserListenPart1;
+  late StreamSubscription<QuerySnapshot<Map<String, dynamic>>>
+      it2UserListenPart2;
   // IT 2실 관리자가 담당하는 시스템을 가진 게시물 총 개수
-  int it2UserProcessITRequestPostsSize = 0;
+  int it2UserProcessITRequestPostsSizePart1 = 0;
+  int it2UserProcessITRequestPostsSizePart2 = 0;
 
   /* Flutter Local Notification과 관련된 부분 
      (55 ~ 59줄) */
@@ -136,7 +140,7 @@ class NotificationController extends GetxController {
               // NotificationModel을 만든다.
               NotificationModel noti = NotificationModel(
                 title:
-                    '${user.data()!['userName'].toString()} - ${postPath.data()!['postTitle'].toString()}',
+                    '${user.data()!['userName'].toString()}님 게시물에 대한 댓글 알림',
                 body:
                     '새로운 댓글이 달렸어요 : ${comments.docs.last.data()['content'].toString()}',
                 notiUid: UUidUtil.getUUid(),
@@ -153,7 +157,7 @@ class NotificationController extends GetxController {
               await showGroupNotifications(
                 // 댓글이 작성된 게시물 작성자 - 댓글이 작성된 게시물 제목
                 title:
-                    '${user.data()!['userName'].toString()} - ${postPath.data()!['postTitle'].toString()}',
+                    '${user.data()!['userName'].toString()}님 게시물에 대한 댓글 알림',
                 // 댓글 내용
                 body:
                     '새로운 댓글이 달렸어요 : ${comments.docs.last.data()['content'].toString()}',
@@ -204,13 +208,14 @@ class NotificationController extends GetxController {
         'it1UserProcessITRequestPostsSize : $it1UserProcessITRequestPostsSize');
   }
 
-  // DataBase에서 IT 2실 담당자가 처리해야 하는 시스템이 명시된 IT 요청건 게시물 총 개수를 가져오는 method
-  Future<void> getIT2UserProcessITRequestPostsSize() async {
+  // DataBase에서 IT 2실 담당자가 처리해야 하는 시스템이 명시된 IT 요청건 게시물 총 개수를 가져오는 method (Part1)
+  Future<void> getIT2UserProcessITRequestPostsSizePart1() async {
     // DataBase에서 IT 2실 관리자가 처리해야 하는 시스템이 명시된 IT 요청거 게시물 총 개수를 가져온다.
     QuerySnapshot<Map<String, dynamic>> result =
         await firebaseFirestore.collection('itRequestPosts').where(
       'sysClassficationCode',
-      arrayContains: [
+      // whereIn에는 최대 10개 element가 들어가기 떄문에 어쩔 수 없이 10개만 배치했다.
+      whereIn: [
         // PC 고장
         'SysClassification.PC_BROKEN',
         // NBUS(통합업무지원)
@@ -231,6 +236,24 @@ class NotificationController extends GetxController {
         'SysClassification.NSCS',
         // NCIP
         'SysClassification.NCIP_IN',
+      ],
+    ).get();
+
+    it2UserProcessITRequestPostsSizePart1 = result.size;
+
+    // log
+    print(
+        'it2UserProcessITRequestPostsSizePart1 : $it2UserProcessITRequestPostsSizePart1');
+  }
+
+  // DataBase에서 IT 2실 담당자가 처리해야 하는 시스템이 명시된 IT 요청건 게시물 총 개수를 가져오는 method (Part2)
+  Future<void> getIT2UserProcessITRequestPostsSizePart2() async {
+    // DataBase에서 IT 2실 관리자가 처리해야 하는 시스템이 명시된 IT 요청거 게시물 총 개수를 가져온다.
+    QuerySnapshot<Map<String, dynamic>> result =
+        await firebaseFirestore.collection('itRequestPosts').where(
+      'sysClassficationCode',
+      // whereIn에는 최대 10개 element가 들어가기 떄문에 어쩔 수 없었다.
+      whereIn: [
         // NCCS(서류접수대행)
         'SysClassification.NCCS',
         // N-GOS(채권자 소개)
@@ -244,11 +267,11 @@ class NotificationController extends GetxController {
       ],
     ).get();
 
-    it2UserProcessITRequestPostsSize = result.size;
+    it2UserProcessITRequestPostsSizePart2 = result.size;
 
     // log
     print(
-        'it2UserProcessITRequestPostsSize : $it2UserProcessITRequestPostsSize');
+        'it2UserProcessITRequestPostsSizePart2 : $it2UserProcessITRequestPostsSizePart2');
   }
 
   /* 사용자 자격이 IT 1실 관리자이다.
@@ -307,7 +330,7 @@ class NotificationController extends GetxController {
 
               // NotificationModel을 만든다.
               NotificationModel noti = NotificationModel(
-                title: '${user.data()!['userName'].toString()}님의 요청건',
+                title: '${user.data()!['userName'].toString()}님의 요청건 알림',
                 body:
                     'IT1실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentITRequestPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
                 notiUid: UUidUtil.getUUid(),
@@ -323,7 +346,7 @@ class NotificationController extends GetxController {
               // Flutter Local Notification을 띄운다.
               await showGroupNotifications(
                 // 게시물 작성자 - 댓글이 작성된 게시물 제목
-                title: '${user.data()!['userName'].toString()}님의 요청건',
+                title: '${user.data()!['userName'].toString()}님의 요청건 알림',
                 // 게시물 시스템 분류 코드를 나타낸다.
                 body:
                     'IT1실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentITRequestPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
@@ -344,9 +367,9 @@ class NotificationController extends GetxController {
   }
 
   /* 사용자 자격이 IT 2실 관리자이다.
-     일반 요청자가 IT 2실 관리자가 담당하는 시스템과 관련된 게시물을 업로드할 떄 listen한다. */
-  Future<void> it2UserListenITRequestPosts() async {
-    it2UserListen = firebaseFirestore
+     일반 요청자가 IT 2실 관리자가 담당하는 시스템과 관련된 게시물을 업로드할 떄 listen한다. (Part1) */
+  Future<void> it2UserListenITRequestPostsPart1() async {
+    it2UserListenPart1 = firebaseFirestore
         .collection('itRequestPosts')
         .where('sysClassficationCode', whereIn: [
           // PC 고장
@@ -369,21 +392,11 @@ class NotificationController extends GetxController {
           'SysClassification.NSCS',
           // NCIP
           'SysClassification.NCIP_IN',
-          // NCCS(서류접수대행)
-          'SysClassification.NCCS',
-          // N-GOS(채권자 소개)
-          'SysClassification.NGOS',
-          // WICS
-          'SysClassification.WICS',
-          // ICMS
-          'SysClassification.ICMS',
-          // NCS(코드스캐너)
-          'SysClassification.VSCN',
         ])
         .snapshots()
         .listen((QuerySnapshot<Map<String, dynamic>> event) async {
           // 일반 요청자가 IT 2실이 담당하는 시스템을 적용한 게시물을 업로드할 떄 알림을 보낸다.
-          if (it2UserProcessITRequestPostsSize < event.size) {
+          if (it2UserProcessITRequestPostsSizePart1 < event.size) {
             // sort를 하기 위해 데이터 타입을 List<QueryDocumentSnapshot<Map<String, dynamic>>> 으로 만든다.
             List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = event.docs;
 
@@ -417,7 +430,7 @@ class NotificationController extends GetxController {
 
               // NotificationModel을 만든다.
               NotificationModel noti = NotificationModel(
-                title: '${user.data()!['userName'].toString()}님의 요청건',
+                title: '${user.data()!['userName'].toString()}님의 요청건 알림',
                 body:
                     'IT2실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentITRequestPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
                 notiUid: UUidUtil.getUUid(),
@@ -433,7 +446,7 @@ class NotificationController extends GetxController {
               // Flutter Local Notification을 띄운다.
               await showGroupNotifications(
                 // 게시물 작성자 - 댓글이 작성된 게시물 제목
-                title: '${user.data()!['userName'].toString()}님의 요청건',
+                title: '${user.data()!['userName'].toString()}님의 요청건 알림',
                 // 게시물 시스템 분류 코드를 나타낸다.
                 body:
                     'IT2실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentITRequestPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
@@ -448,8 +461,98 @@ class NotificationController extends GetxController {
                   .set(NotificationModel.toMap(noti));
             }
           }
-          // it2UserProcessITRequestPostsSize의 값을 최신의 값으로 업데이트 한다.
-          it2UserProcessITRequestPostsSize = event.size;
+          // it2UserProcessITRequestPostsSizePart1의 값을 최신의 값으로 업데이트 한다.
+          it2UserProcessITRequestPostsSizePart1 = event.size;
+        });
+  }
+
+  /* 사용자 자격이 IT 2실 관리자이다.
+     일반 요청자가  IT 2실 관리자가 담당하는 시스템과 관련된 게시물을 업로드할 떄 listen한다. (Part2) */
+  Future<void> it2UserListenITRequestPostsPart2() async {
+    it2UserListenPart2 = firebaseFirestore
+        .collection('itRequestPosts')
+        .where('sysClassficationCode', whereIn: [
+          // NCCS(서류접수대행)
+          'SysClassification.NCCS',
+          // N-GOS(채권자 소개)
+          'SysClassification.NGOS',
+          // WICS
+          'SysClassification.WICS',
+          // ICMS
+          'SysClassification.ICMS',
+          // NCS(코드스캐너)
+          'SysClassification.VSCN',
+        ])
+        .snapshots()
+        .listen((QuerySnapshot<Map<String, dynamic>> event) async {
+          // 일반 요청자가 IT 2실이 담당하는 시스템을 적용한 게시물을 업로드할 떄 알림을 보낸다.
+          if (it2UserProcessITRequestPostsSizePart2 < event.size) {
+            // sort를 하기 위해 데이터 타입을 List<QueryDocumentSnapshot<Map<String, dynamic>>> 으로 만든다.
+            List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = event.docs;
+
+            /* DataBase에 있는 obsPosts에 대한 postTime 속성을 오름차순으로 정렬한다.
+               즉, 가장 오래된 postTime은 맨 앞에, 가장 최근 postTime은 맨 뒤에 배치될 것이다. */
+            docs.sort(
+              (
+                QueryDocumentSnapshot<Map<String, dynamic>> a,
+                QueryDocumentSnapshot<Map<String, dynamic>> b,
+              ) =>
+                  a.data()['postTime'].toString().compareTo(
+                        b.data()['postTime'].toString(),
+                      ),
+            );
+
+            // 가장 최근 postTime을 가진 게시물을 가져온다.
+            QueryDocumentSnapshot<Map<String, dynamic>> recentITRequestPost =
+                docs.last;
+
+            /* 그럴 일은 가능성이 낮겠지만 IT 2실 담당자 자격의 자신이 IT 1실 담당자가 관리하는 시스템 관련 게시물을 올렸을 떄는 이하 if문을 실행하지 않도록 한다.
+               즉 나 자신 말고 다른 사람이 IT 2실 담당자가 관리하는 시스템 관련 게시물을 올렸을 때, 이하 if문을 실행한다. */
+            if (recentITRequestPost.data()['userUid'] !=
+                SettingsController.to.settingUser!.userUid) {
+              // Flutter Local Notification을 띄울 떄 title에 게시물 업로드한 사용자를 보여주기 위해서 DataBase에 사용자 정보를 가져온다.
+              String userUid = recentITRequestPost.data()['userUid'].toString();
+              DocumentSnapshot<Map<String, dynamic>> user =
+                  await firebaseFirestore
+                      .collection('users')
+                      .doc(userUid)
+                      .get();
+
+              // NotificationModel을 만든다.
+              NotificationModel noti = NotificationModel(
+                title: '${user.data()!['userName'].toString()}님의 요청건 알림',
+                body:
+                    'IT2실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentITRequestPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
+                notiUid: UUidUtil.getUUid(),
+                belongNotiPostUid:
+                    recentITRequestPost.data()['postUid'].toString(),
+                notiTime:
+                    DateFormat('yy/MM/dd - HH:mm:ss').format(DateTime.now()),
+              );
+
+              // 요청 알림 또는 댓글 알림이 왔을 떄 가장 최근 시간에 온 알림을 저장하는 변수
+              recentNotificationModel = noti;
+
+              // Flutter Local Notification을 띄운다.
+              await showGroupNotifications(
+                // 게시물 작성자 - 댓글이 작성된 게시물 제목
+                title: '${user.data()!['userName'].toString()}님의 요청건 알림',
+                // 게시물 시스템 분류 코드를 나타낸다.
+                body:
+                    'IT2실 담당자가 처리해야 할 요청건이 게시되었습니다.\n시스템은 ${SysClassification.values.firstWhere((element) => element.toString() == recentITRequestPost.data()['sysClassficationCode'].toString()).asText} 입니다.',
+              );
+
+              // Database에 requestNotifications에 알림 데이터를 저장한다.
+              await firebaseFirestore
+                  .collection('users')
+                  .doc(SettingsController.to.settingUser!.userUid)
+                  .collection('requestNotifications')
+                  .doc(noti.notiUid)
+                  .set(NotificationModel.toMap(noti));
+            }
+          }
+          // it2UserProcessITRequestPostsSizePart2의 값을 최신의 값으로 업데이트 한다.
+          it2UserProcessITRequestPostsSizePart2 = event.size;
         });
   }
 
@@ -469,8 +572,7 @@ class NotificationController extends GetxController {
   }
 
   // DataBase에 requestNotifications에 있는 알림 기록을 가져올지, commentNotifications에 있는 알림 기록을 가져올지 결정하는 method
-  Future<List<NotificationModel>> getRequestORCommentNotificationModelList(
-      String userUid) async {
+  Future<List<NotificationModel>> getRequestORCommentNotificationModelList(String userUid) async {
     /* 사용자 자격이 일반 요청자인지, IT 담당자인지 확인한다.
        일반 요청자는 무조건 DataBase에 commentNotifications에 있는 알림 기록을 가져온다.
        IT 담당자는 DataBase에 requestNotifications에 있는 알림 기록을 가져오기도 하고, DataBase에 commentNotifications을 가져오기도 한다. */
@@ -642,8 +744,7 @@ class NotificationController extends GetxController {
   }
 
   // Flutter Loal Notification을 show하는 method
-  Future<void> showGroupNotifications(
-      {required String title, required String body}) async {
+  Future<void> showGroupNotifications({required String title, required String body}) async {
     /* 그룹 알림으로 띄우기 위해서 필요한 변수 설정 */
     const String groupKey = 'com.example.help_Desk';
     const String groupChannelId = 'help_Desk ID';
@@ -739,22 +840,32 @@ class NotificationController extends GetxController {
 
         /* 사용자 자격이 IT 1실, 2실 관리자 일 떄
            DataBase에서 IT 1실 담당자가 처리해야 하는 시스템이 명시된 IT 요청건 게시물 총 개수를 가져온다.
-           DataBase에서 IT 2실 담당자가 처리해야 하는 시스템이 명시된 IT 요청건 게시물 총 개수를 가져온다. */
+           DataBase에서 IT 2실 담당자가 처리해야 하는 시스템이 명시된 IT 요청건 게시물 총 개수를 가져온다.(Part1) */
         AuthController.to.user.value.userType == UserClassification.GENERALUSER
             ? null
             : AuthController.to.user.value.userType ==
                     UserClassification.IT1USER
                 ? await getIT1UserProcessITRequestPostsSize()
-                : await getIT2UserProcessITRequestPostsSize();
+                : await getIT2UserProcessITRequestPostsSizePart1();
+
+        // 사용자 자격이 IT 2실 관리자일 떄 DataBase에서 IT 2실 담당자가 처리해야 하는 시스템이 명시된 IT 요청건 게시물 총 개수를 가져온다. (Part2)
+        AuthController.to.user.value.userType == UserClassification.IT2USER
+            ? getIT2UserProcessITRequestPostsSizePart2()
+            : null;
 
         /* 사용자 자격이 IT 1실, 2실 관리자이고
-          일반 요청자가 IT 1실, 2실 관리자가 담당하는 시스템과 관련된 게시물을 업로드할 떄 listen한다. */
+           일반 요청자가 IT 1실, 2실 관리자가 담당하는 시스템과 관련된 게시물을 업로드할 떄 listen한다. */
         AuthController.to.user.value.userType == UserClassification.GENERALUSER
             ? null
             : AuthController.to.user.value.userType ==
                     UserClassification.IT1USER
                 ? await it1UserListenITRequestPosts()
-                : await it2UserListenITRequestPosts();
+                : await it2UserListenITRequestPostsPart1();
+
+        // 사용자 자격이 IT 2실 관리자일 떄 일반 요청자가 시스템과 관련된 게시물을 업로드할 떄 listen한다. */
+        AuthController.to.user.value.userType == UserClassification.IT2USER
+            ? await it2UserListenITRequestPostsPart2()
+            : null;
       },
     );
   }
@@ -776,7 +887,8 @@ class NotificationController extends GetxController {
     /* 사용자 자격이 IT 2실 담당자이면,
        장애 처리현황 게시물에서 IT 2실이 담당하는 시스템을 가진 게시물이 업로드 되는지 listen 하던 것을 cancel 한다. */
     if (AuthController.to.user.value.userType == UserClassification.IT2USER) {
-      it2UserListen.cancel();
+      it2UserListenPart1.cancel();
+      it2UserListenPart2.cancel();
     }
 
     // 사용자가 알림 신청 했던 게시물의 변동 사항을 실시간으로 listen 하던 것을 취소한다.

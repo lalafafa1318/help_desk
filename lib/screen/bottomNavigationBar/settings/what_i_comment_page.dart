@@ -203,7 +203,7 @@ class _WhatICommentPageState extends State<WhatICommentPage> {
                       children: [
                         // 시스템 분류 코드
                         Container(
-                          width: 100.w,
+                          width: 160.w,
                           height: 25.h,
                           decoration: BoxDecoration(
                             color: Colors.grey[300],

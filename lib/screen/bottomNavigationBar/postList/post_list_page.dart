@@ -245,7 +245,8 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // snapshot.data!로 받은 IT 요청건 게시물을 PostListController의 itRequestPosts, itRequestUsers에 대입한다.
-  Widget prepareShowITRequestPosts(List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
+  Widget prepareShowITRequestPosts(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocITRequestPostsAndUsers(ultimateData),
       builder: (context, snapshot) {
@@ -374,7 +375,7 @@ class _PostListPageState extends State<PostListPage> {
                       children: [
                         // 시스템 분류 코드
                         Container(
-                          width: 100.w,
+                          width: 160.w,
                           height: 25.h,
                           decoration: BoxDecoration(
                             color: Colors.grey[300],

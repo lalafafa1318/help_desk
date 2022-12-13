@@ -231,12 +231,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(width: 5.w),
-
         // 시스템 분류 코드
         sysClassification(),
 
-        SizedBox(width: 20.w),
+        SizedBox(width: 10.w),
 
         // 처리상태 분류 코드
         proClassification(),
@@ -255,7 +253,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
         // 시스템 분류 코드
         Container(
-          width: 100.w,
+          width: 150.w,
           height: 20.h,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(5.r),
@@ -286,7 +284,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
             print('showProclssification - 재랜더링 호출');
 
             return Container(
-              width: 100.w,
+              width: 60.w,
               height: 20.h,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(5.r),

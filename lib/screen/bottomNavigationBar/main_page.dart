@@ -48,26 +48,26 @@ class MainPage extends GetView<BottomNavigationBarController> {
                 // PostList ItemBar
                 BottomNavyBarItem(
                   icon: const Icon(Icons.search),
-                  title: const Text('PostList'),
+                  title: const Text('게시글 목록'),
                   activeColor: Colors.red,
                 ),
 
                 // Posting ItemBar
                 BottomNavyBarItem(
                     icon: const Icon(PhosphorIcons.pencil),
-                    title: const Text('Posting'),
+                    title: const Text('게시글 쓰기'),
                     activeColor: Colors.purpleAccent),
 
                 // Notifications ItemBar
                 BottomNavyBarItem(
                     icon: const Icon(Icons.message),
-                    title: const Text('Notifications'),
+                    title: const Text('알림'),
                     activeColor: Colors.pink),
 
                 // Settings ItemBar
                 BottomNavyBarItem(
                     icon: const Icon(Icons.settings),
-                    title: const Text('Settings'),
+                    title: const Text('설정'),
                     activeColor: Colors.blue),
               ],
             ),
