@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:help_desk/const/causeObsClassification.dart';
+import 'package:help_desk/const/departmentClassification.dart';
 import 'package:help_desk/const/proClassification.dart';
 import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/const/sysClassification.dart';
@@ -305,7 +306,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
   Widget tel() {
     return Row(
       children: [
-        SizedBox(width: 20.w),
+        SizedBox(width: 18.w),
 
         // 전화번호 Text
         const Text('휴대폰'),
@@ -324,7 +325,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
                     postData!.phoneNumber);
               },
               child: Container(
-                width: 120.w,
+                width: 150.w,
                 height: 20.h,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(5.r),
@@ -342,8 +343,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // Avatar와 UserName 그리고 PostTime을 제공한다.
-  Widget showAvatarAndUserNameAndPostTime() {
+  // Avatar와 부서명, UserName 그리고 PostTime을 제공한다.
+  Widget showAvatarAndDepartmentAndUserNameAndPostTime() {
     return SizedBox(
       width: ScreenUtil().screenWidth,
       child: Row(
@@ -351,8 +352,8 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           // Avatar을 제공한다.
           showAvatar(),
 
-          // UserName과 PostTime을 제공한다.
-          showUserNameAndPostTime(),
+          // 부서명과 UserName 그리고 PostTime을 제공한다.
+          showDepartmentAndUserNameAndPostTime(),
         ],
       ),
     );
@@ -377,13 +378,18 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // UserName과 PostTime을 제공하는 Widget 입니다.
-  Widget showUserNameAndPostTime() {
+  // 부서명과 UserName 그리고 PostTime을 제공하는 Widget 입니다.
+  Widget showDepartmentAndUserNameAndPostTime() {
     return Container(
-      margin: EdgeInsets.only(bottom: 10.h),
+      margin: EdgeInsets.only(bottom: 5.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 부서명을 제공하는 Widget 입니다.
+          showDepartment(),
+
+          SizedBox(height: 5.h),
+
           // UserName을 제공하는 Widget 입니다.
           showUserName(),
 
@@ -393,6 +399,26 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           showPostTime(),
         ],
       ),
+    );
+  }
+
+  // 부서명을 제공하는 Widget 입니다.
+  Widget showDepartment() {
+    return GetBuilder<PostListController>(
+      id: 'showDepartment',
+      builder: (controller) {
+        print('showDepartment - 재랜더링 호출');
+        return SizedBox(
+          width: 300.w,
+          child: Text(
+            userData!.department.asText,
+            style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 10.sp,
+                fontWeight: FontWeight.w500),
+          ),
+        );
+      },
     );
   }
 
@@ -406,7 +432,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
           width: 300.w,
           child: Text(
             userData!.userName,
-            style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
           ),
         );
       },
@@ -630,12 +656,12 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar와 UserName 그리고 처리상태를 제공한다.
+          // Avatar와 부서명과 UserName 그리고 처리상태를 제공한다.
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Avatar와 UserName을 제공한다.
-              commentAvatarAndUserName(index),
+              // Avatar와 부서명 그리고 UserName을 제공한다.
+              commentAvatarAndDepartmentAndUserName(index),
 
               // 처리상태를 제공한다.
               commentProclassification(index),
@@ -670,24 +696,41 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // Avatar와 UserName을 제공한다.
-  Widget commentAvatarAndUserName(int index) {
+  // Avatar와 부서명 그리고 UserName을 제공한다.
+  Widget commentAvatarAndDepartmentAndUserName(int index) {
     /* commentArray[index].whoWriteUserUid,
+       commentUserArray[index].image
        commentUserArray[index].userName,
-       commentUserArray[index].image를 간단하게 명명한다. */
+       commentUserArray[index].department를 간단하게 명명한다. */
     String whoWriteUserUid = commentArray[index].whoWriteUserUid;
-    String userName = commentUserArray[index].userName;
     String? userImage = commentUserArray[index].image == null
         ? null
         : commentUserArray[index].image;
+    String department = commentUserArray[index].department.asText;
+    String userName = commentUserArray[index].userName;
 
     return Row(
       children: [
         // Avatar를 제공한다.
         commentAvatar(userImage),
 
-        // UserName을 제공한다.
-        commentUserName(whoWriteUserUid, userName),
+        // 부서명과 UserName를 제공한다.
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 10.h),
+
+            // 부서명을 제공한다.
+            commentDepartment(department),
+
+            SizedBox(height: 2.5.h),
+
+            // UserName을 제공한다.
+            commentUserName(whoWriteUserUid, userName),
+
+            SizedBox(height: 5.h),
+          ],
+        )
       ],
     );
   }
@@ -701,6 +744,18 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
         backgroundImage: userImage == null
             ? Image.asset('assets/images/default_image.png').image
             : CachedNetworkImageProvider(userImage),
+      ),
+    );
+  }
+
+  // 부서명을 제공한다.
+  Widget commentDepartment(String department) {
+    return Text(
+      department,
+      style: TextStyle(
+        color: Colors.grey[600],
+        fontSize: 9.sp,
+        fontWeight: FontWeight.w500,
       ),
     );
   }
@@ -1431,7 +1486,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
 
   // SpecificPostPage에서 변경 가능성이 존재하는 데이터를 업데이트하는 method
   Future<void> update() async {
-    // DataBase에서 게시글 작성한 사람(Users)에 대한 image, userName에 대한 데이터를 받아와서 위 필드인 userData에 업데이트 한다.
+    // DataBase에서 게시글 작성한 사람(Users)에 대한 image, department 그리고  userName에 대한 데이터를 받아와서 위 필드인 userData에 업데이트 한다.
     await updateUser();
 
     /* DataBase에서 게시물(itRequestPosts)에 대한 proStatus, phoneNumber, whoWriteCommentThePost에 대한 데이터를 받아와서
@@ -1444,7 +1499,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     /* 전체 화면을 재랜더링 하지 않는다. 필요한 부분만 재랜더링 한다.
       1. 게시물에 대한 처리상태가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
       2. 게시물을 작성한 사용자의 전화번호가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
-      3. 사용자 Avatar와 이름이 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
+      3. 사용자 Avatar와 부서명 그리고 이름이 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
       4. 게시물에 대한 댓글 수가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
       5. 댓글 데이터가 업데이트 됐을 가능성을 대비하여 최신의 데이터를 보여줄 수 있도록 재랜더링 한다.
       6. 답변 정보 입력에 댓글 입력하는 부분을 빈칸으로 다시 만든다.
@@ -1454,6 +1509,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
       'showProclassification',
       'showTel',
       'showAvatar',
+      'showDepartment',
       'showUserName',
       'showCommentNum',
       'showCommentListView',
@@ -1461,7 +1517,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     ]);
   }
 
-  /* DataBase에서 게시글 작성한 사람(User)에 대한 image, userName 속성에 접근한다.
+  /* DataBase에서 게시글 작성한 사람(User)에 대한 image, department, userName 속성에 접근한다.
      그 다음 위 필드 userData에 업데이트 한다. */
   Future<void> updateUser() async {
     print('SpecificPostPage - updateUserData() 호출');
@@ -1469,8 +1525,9 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     // DataBase에 게시글 작성한 사람(User) 정보를 가져온다.
     UserModel user = await PostListController.to.getUser(userData!.userUid);
 
-    // UserData의 image, userName 속성에 값을 업데이트 한다.
+    // UserData의 image,department, userName 속성에 값을 업데이트 한다.
     userData!.image = user.image;
+    userData!.department = user.department;
     userData!.userName = user.userName;
   }
 
@@ -1599,10 +1656,10 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
               // 전화번호를 제공한다.
               tel(),
 
-              SizedBox(height: 10.h),
+              SizedBox(height: 20.h),
 
-              // Avatar와 UserName, PostTime을 표시한다.
-              showAvatarAndUserNameAndPostTime(),
+              // Avatar와 부서명, UserName, PostTime을 표시한다.
+              showAvatarAndDepartmentAndUserNameAndPostTime(),
 
               // PostContent, PostPhoto(있으면 보여주고 없으면 보여주지 않기), PostCommentNum를 보여준다.
               showContentAndPhotoAndCommentNum(),

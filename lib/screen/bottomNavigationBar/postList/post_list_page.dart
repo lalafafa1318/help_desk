@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:help_desk/authentication/controller/auth_controller.dart';
+import 'package:help_desk/const/departmentClassification.dart';
 import 'package:help_desk/const/proClassification.dart';
 import 'package:help_desk/const/sysClassification.dart';
 import 'package:help_desk/model/post_model.dart';
@@ -245,8 +246,7 @@ class _PostListPageState extends State<PostListPage> {
   }
 
   // snapshot.data!로 받은 IT 요청건 게시물을 PostListController의 itRequestPosts, itRequestUsers에 대입한다.
-  Widget prepareShowITRequestPosts(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
+  Widget prepareShowITRequestPosts(List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData) {
     return FutureBuilder<List<PostModel>>(
       future: PostListController.to.allocITRequestPostsAndUsers(ultimateData),
       builder: (context, snapshot) {
@@ -440,8 +440,25 @@ class _PostListPageState extends State<PostListPage> {
                             : CachedNetworkImageProvider(userData.image!),
                       ),
 
+                      // 부서명
+                      title: Text(
+                        userData.department.asText,
+                        style: TextStyle(
+                          fontSize: 10.sp,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+
                       // User 이름
-                      titleText: userData.userName,
+                      subTitle: Text(
+                        userData.userName,
+                        style: TextStyle(
+                          fontSize: 15.sp,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
 
                       // 게시물 올린 날짜
                       description: Container(

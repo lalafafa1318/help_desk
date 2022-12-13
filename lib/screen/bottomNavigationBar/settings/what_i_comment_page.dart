@@ -6,6 +6,7 @@ import 'package:getwidget/components/avatar/gf_avatar.dart';
 import 'package:getwidget/components/card/gf_card.dart';
 import 'package:getwidget/components/list_tile/gf_list_tile.dart';
 import 'package:getwidget/position/gf_position.dart';
+import 'package:help_desk/const/departmentClassification.dart';
 import 'package:help_desk/const/proClassification.dart';
 import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/const/sysClassification.dart';
@@ -267,8 +268,25 @@ class _WhatICommentPageState extends State<WhatICommentPage> {
                             : CachedNetworkImageProvider(userData.image!),
                       ),
 
+                      // 부서명
+                      title: Text(
+                        userData.department.asText,
+                        style: TextStyle(
+                          fontSize: 10.sp,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+
                       // User 이름
-                      titleText: userData.userName,
+                      subTitle: Text(
+                        userData.userName,
+                        style: TextStyle(
+                          fontSize: 15.sp,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
 
                       // 게시물 올린 날짜
                       description: Container(

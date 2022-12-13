@@ -40,7 +40,7 @@ enum DepartmentClassification {
   STRATEGICBUSINESS2OFFICE,
 }
 
-// 장애원인 분류 코드를 판별해 화면에 표시하는 Text로 변환하는 확장 Method
+// 부서명을 판별해 화면에 표시하는 Text로 변환하는 확장 Method
 extension DepartmentClassificationExtension on DepartmentClassification {
   String get asText {
     switch (this) {

@@ -90,7 +90,7 @@ class EditProfilePage extends StatelessWidget {
     );
   }
 
-  // Network를 통해 Image를 가져오는 Widget
+  // 사용자 정보의 image 속성을 통해 HTTPS으로 Image를 가져오는 Widget
   Widget getNetworkImage() {
     return CachedNetworkImage(
       imageUrl: SettingsController.to.settingUser!.image.toString(),
@@ -109,7 +109,7 @@ class EditProfilePage extends StatelessWidget {
     );
   }
 
-  // SmartPhone Gallery를 통해 Image를 가져오는 Widget
+  // SmartPhone Gallery에서 선택한 Image를 가져오는 Widget
   Widget getGalleryImage(double width, double height) {
     return Container(
       decoration: BoxDecoration(

@@ -6,6 +6,7 @@ import 'package:getwidget/components/avatar/gf_avatar.dart';
 import 'package:getwidget/components/card/gf_card.dart';
 import 'package:getwidget/components/list_tile/gf_list_tile.dart';
 import 'package:getwidget/position/gf_position.dart';
+import 'package:help_desk/const/departmentClassification.dart';
 import 'package:help_desk/const/proClassification.dart';
 import 'package:help_desk/const/sysClassification.dart';
 import 'package:help_desk/model/post_model.dart';
@@ -444,8 +445,25 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
                             : CachedNetworkImageProvider(userModel.image!),
                       ),
 
-                      // 사용자 이름
-                      titleText: userModel.userName,
+                      // 부서명
+                      title: Text(
+                        userModel.department.asText,
+                        style: TextStyle(
+                          fontSize: 10.sp,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+
+                      // User 이름
+                      subTitle: Text(
+                        userModel.userName,
+                        style: TextStyle(
+                          fontSize: 15.sp,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
 
                       // 게시물 올린 날짜
                       description: Container(

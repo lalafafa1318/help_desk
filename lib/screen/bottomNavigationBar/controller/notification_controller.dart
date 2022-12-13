@@ -210,7 +210,7 @@ class NotificationController extends GetxController {
 
   // DataBase에서 IT 2실 담당자가 처리해야 하는 시스템이 명시된 IT 요청건 게시물 총 개수를 가져오는 method (Part1)
   Future<void> getIT2UserProcessITRequestPostsSizePart1() async {
-    // DataBase에서 IT 2실 관리자가 처리해야 하는 시스템이 명시된 IT 요청거 게시물 총 개수를 가져온다.
+    // DataBase에서 IT 2실 관리자가 처리해야 하는 시스템이 명시된 IT 요청건 게시물 총 개수를 가져온다.
     QuerySnapshot<Map<String, dynamic>> result =
         await firebaseFirestore.collection('itRequestPosts').where(
       'sysClassficationCode',
@@ -248,7 +248,7 @@ class NotificationController extends GetxController {
 
   // DataBase에서 IT 2실 담당자가 처리해야 하는 시스템이 명시된 IT 요청건 게시물 총 개수를 가져오는 method (Part2)
   Future<void> getIT2UserProcessITRequestPostsSizePart2() async {
-    // DataBase에서 IT 2실 관리자가 처리해야 하는 시스템이 명시된 IT 요청거 게시물 총 개수를 가져온다.
+    // DataBase에서 IT 2실 관리자가 처리해야 하는 시스템이 명시된 IT 요청건 게시물 총 개수를 가져온다.
     QuerySnapshot<Map<String, dynamic>> result =
         await firebaseFirestore.collection('itRequestPosts').where(
       'sysClassficationCode',
@@ -850,7 +850,7 @@ class NotificationController extends GetxController {
 
         // 사용자 자격이 IT 2실 관리자일 떄 DataBase에서 IT 2실 담당자가 처리해야 하는 시스템이 명시된 IT 요청건 게시물 총 개수를 가져온다. (Part2)
         AuthController.to.user.value.userType == UserClassification.IT2USER
-            ? getIT2UserProcessITRequestPostsSizePart2()
+            ? await getIT2UserProcessITRequestPostsSizePart2()
             : null;
 
         /* 사용자 자격이 IT 1실, 2실 관리자이고
@@ -872,7 +872,7 @@ class NotificationController extends GetxController {
 
   // NotificationController가 메모리에 내려갈 떄 호출되는 method
   @override
-  void onClose() async {
+  Future<void> onClose() async {
     /* 사용자에게 주어졌던 모든 알림을 삭제하고 이를 ToastMessage로 전달한다. 
        (721 ~ 722번 줄) */
     await flutterLocalNotificationsPlugin.cancelAll();
