@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -16,7 +15,7 @@ import 'package:help_desk/screen/bottomNavigationBar/settings/what_i_wrote_page.
 class SettingsPage extends StatelessWidget {
   const SettingsPage({Key? key}) : super(key: key);
 
-  // 아바타 view(name, description 포함)  + Edit Outlined Button view
+  // 이미지 + Edit Outlined Button view
   Widget topView(SettingsController controller) {
     return SizedBox(
       width: ScreenUtil().screenWidth,
@@ -40,7 +39,7 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  // 아바타 view 입니다.(name, description 포함)
+  // 이미지를 보여준다.
   Widget showAvatarView(SettingsController controller) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -138,12 +137,12 @@ class SettingsPage extends StatelessWidget {
 
             Divider(height: 3.h, thickness: 1.w),
 
-            // 내가 쓴 글 이동 페이지 칸
+            // 내가 업로드한 IT 요청건 게시물 이동 페이지 칸
             writeView(),
 
             Divider(height: 3.h, thickness: 1.w),
 
-            // 내가 댓글 단 글 이동 페이지 칸
+            // 내가 댓글 작성한 IT 요청건 게시물 이동 페이지 칸
             commentView(),
 
             const Divider(height: 3, thickness: 1),
@@ -184,11 +183,11 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  //  내가 쓴 글 칸
+  //  내가 업로드한 IT 요청건 게시물 칸
   Widget writeView() {
     return GestureDetector(
       onTap: () {
-        // 내가 쓴 글 페이지 칸을 클릭하면 Routing
+        // 내가 업로드한 IT 요청건 게시물칸을 클릭하면 Routing
         Get.to(() => const WhatIWrotePage());
       },
       child: SizedBox(
@@ -213,11 +212,11 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  //  내가 댓글 단 글 칸
+  //  내가 댓글 작성한 IT 요청건 게시물 칸
   Widget commentView() {
     return GestureDetector(
       onTap: () {
-        // 내가 댓글 단 글 페이지 칸을 클릭하면 Routing
+        // 내가 댓글 작성한 IT 요청건 게시물칸을 클릭하면 Routing
         Get.to(() => const WhatICommentPage());
       },
       child: SizedBox(
@@ -247,8 +246,8 @@ class SettingsPage extends StatelessWidget {
     return SizedBox(
       height: 50.h,
       child: InkWell(
-        onTap: () {
-          AuthController.to.logout();
+        onTap: () async {
+          await AuthController.to.logout();
         },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -274,7 +273,7 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<SettingsController>(
       id: 'showProfile',
-      builder: (controller) {
+      builder: (SettingsController controller) {
         return Scaffold(
           backgroundColor: const Color(0xFFf2eeed),
           body: Column(

@@ -24,6 +24,8 @@ class WhatICommentPage extends StatefulWidget {
 }
 
 class _WhatICommentPageState extends State<WhatICommentPage> {
+  /* Pager에 대한 setting 변수 
+     (29 ~ 36줄) */
   // PostListPage의 Pager의 현재 번호
   int pagerCurrentPage = 0;
 
@@ -68,6 +70,7 @@ class _WhatICommentPageState extends State<WhatICommentPage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(height: 250.h),
+        
         // 금지 아이콘
         const Icon(
           Icons.info_outline,

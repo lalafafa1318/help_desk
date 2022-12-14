@@ -27,7 +27,8 @@ class PostListPage extends StatefulWidget {
 }
 
 class _PostListPageState extends State<PostListPage> {
-  // Pager에 대한 setting
+  /* Pager에 대한 setting 변수
+    (32 ~ 39w줄) */
   // PostListPage의 Pager의 현재 번호
   int pagerCurrentPage = 0;
 

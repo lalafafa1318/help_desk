@@ -25,7 +25,8 @@ class KeywordPostListPage extends StatefulWidget {
 }
 
 class _KeywordPostListPageState extends State<KeywordPostListPage> {
-  // Pager에 대한 Field Setting
+  /* Pager에 대한 Setting 변수 
+     (30 ~ 37줄) */
   // PostListPage의 Pager의 현재 번호
   int pagerCurrentPage = 0;
 
@@ -367,7 +368,7 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
               child: Text('${index + 1}'),
             ),
 
-            // 조건에 맞느 IT 요청건 게시물의 몸통 부분이다.
+            // 조건에 맞는 IT 요청건 게시물의 몸통 부분이다.
             Expanded(
               flex: 1,
               child: Column(
@@ -529,7 +530,9 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
                                   color: Colors.blue[300],
                                   size: 15.sp,
                                 ),
+
                                 SizedBox(width: 5.w),
+                                
                                 Text(postModel.whoWriteCommentThePost.length
                                     .toString()),
                               ],

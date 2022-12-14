@@ -34,7 +34,7 @@ class NotificationController extends GetxController {
   List<NotificationModel> commentNotificationModelList = [];
 
   /* IT 담당자(IT 1실, 2실)가 담당하는 시스템이 명시된 게시물이 업로드 됐을 떄 알림 받기 위해 바탕이 되는 데이터
-     (39 ~ 50줄) */
+     (39 ~ 54줄) */
 
   // DataBase에 저장된 requestNotifications에 있는 데이터를 가져와 저장하는 배열
   List<NotificationModel> requestNotificationModelList = [];
@@ -874,7 +874,7 @@ class NotificationController extends GetxController {
   @override
   Future<void> onClose() async {
     /* 사용자에게 주어졌던 모든 알림을 삭제하고 이를 ToastMessage로 전달한다. 
-       (721 ~ 722번 줄) */
+       (878 ~ 879번 줄) */
     await flutterLocalNotificationsPlugin.cancelAll();
     ToastUtil.showToastMessage('모든 알림을 삭제했습니다.');
 
@@ -885,7 +885,7 @@ class NotificationController extends GetxController {
     }
 
     /* 사용자 자격이 IT 2실 담당자이면,
-       장애 처리현황 게시물에서 IT 2실이 담당하는 시스템을 가진 게시물이 업로드 되는지 listen 하던 것을 cancel 한다. */
+       IT 요청건 게시물에서 IT 2실이 담당하는 시스템을 가진 게시물이 업로드 되는지 listen 하던 것을 cancel 한다. */
     if (AuthController.to.user.value.userType == UserClassification.IT2USER) {
       it2UserListenPart1.cancel();
       it2UserListenPart2.cancel();

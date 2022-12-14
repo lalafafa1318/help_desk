@@ -24,6 +24,8 @@ class WhatIWrotePage extends StatefulWidget {
 }
 
 class _WhatIWrotePageState extends State<WhatIWrotePage> {
+  /* Pager에 대한 setting 변수
+     (29 ~ 36줄)) */
   // PostListPage의 Pager의 현재 번호
   int pagerCurrentPage = 0;
 
@@ -482,6 +484,7 @@ class _WhatIWrotePageState extends State<WhatIWrotePage> {
           child: FloatingActionButton(
             backgroundColor: Colors.grey,
             onPressed: () {
+              // 전체 화면을 재랜더링 한다.
               setState(() {
                 // PostListPage의 Pager의 현재 번호
                 pagerCurrentPage = 0;

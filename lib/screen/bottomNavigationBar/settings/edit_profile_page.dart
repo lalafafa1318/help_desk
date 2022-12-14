@@ -204,7 +204,7 @@ class EditProfilePage extends StatelessWidget {
             child: Text(
               '* 필수 입력값 입니다.',
               textAlign: TextAlign.left,
-              style: TextStyle(color: Colors.grey[600], fontSize: 11.sp),
+              style: TextStyle(color: Colors.grey[600], fontSize: 12.sp),
             ),
           ),
 

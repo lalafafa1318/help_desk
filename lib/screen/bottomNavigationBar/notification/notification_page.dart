@@ -149,10 +149,10 @@ class NotificationPage extends StatelessWidget {
 
     // index를 통해 해당하는 NotificationModel을 가져온다.
     NotificationModel notificationModel = notificationModelList[index];
-
-    // PostListController.to.itRequestPosts를 간단하게 명명한다.
+ 
+    /* NotificationModel과 관련된 IT 요청건 게시물이 어떤 것인지 for문을 통해 확인한다. 
+       (155 ~ 161줄) */   
     List<PostModel> itRequestPosts = PostListController.to.itRequestPosts;
-    // NotificationModel과 관련된 IT 요청건 게시물이 어떤 것인지 확인한다. 이는 index를 통해 확인한다.
     for (int i = 0; i < itRequestPosts.length; i++) {
       if (itRequestPosts[i].postUid == notificationModel.belongNotiPostUid) {
         idx = i;
@@ -248,7 +248,7 @@ class NotificationPage extends StatelessWidget {
           child: ListTile(
             // 요청 알림이나 댓글 알림 본 내용을 Tap 했을 떄 
             onTap: () {
-              // 요청 알림 또는 댓글 알림과 관련된 게시물을 찾지 못한 경우...
+              // 요청 알림 또는 댓글 알림과 관련된 IT 요청건 게시물을 찾지 못한 경우...
               if (idx == -1) {
                 SettingsController.to.settingUser!.userType ==
                         UserClassification.GENERALUSER
@@ -260,7 +260,7 @@ class NotificationPage extends StatelessWidget {
                         : ToastUtil.showToastMessage(
                             '게시물이 삭제되어\n이동할 수 없습니다 :)');
               }
-              // 요청 알림 또는 댓글 알림과 관련된 게시물을 찾은 경우 ...
+              // 요청 알림 또는 댓글 알림과 관련된 IT 요청건 게시물을 찾은 경우 ...
               else {
                 /* SpecificPostPage로 Routing
                     argument 0번쨰 : PostListController의 itRequestPosts와 itRequestUsers들을 담고 있는 배열의 index
