@@ -785,7 +785,7 @@ class NotificationController extends GetxController {
     );
 
     /* 그룹화된 알림을 설정하고 보여준다.
-       (642번 ~ 668번 줄) */
+       (789번 ~ 815번 줄) */
     InboxStyleInformation inboxStyleInformation = const InboxStyleInformation(
       [],
       contentTitle: '',

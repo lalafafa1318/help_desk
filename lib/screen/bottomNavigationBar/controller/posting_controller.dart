@@ -25,10 +25,9 @@ class PostingController extends GetxController {
   // 내용 String
   RxString contentString = ''.obs;
 
-  // Camera,Gallery에서 image를 가져오기 위한 변수
+  // Camera, Gallery에서 image를 가져오기 위한 변수
   final ImagePicker imagePicker = ImagePicker();
 
-  // Method
   // Controller를 더 쉽게 사용할 수 있도록 하는 get method
   static PostingController get to => Get.find();
 
@@ -165,7 +164,7 @@ class PostingController extends GetxController {
       }
 
       /* 업로드한 이미지가 0개이든, 1개 이상이든 이하 공통 작업
-         (168 ~ 196줄) */
+         (169 ~ 196줄) */
       print('게시물 업로드 Validation 통과');
 
       // PostModel을 생성한다.

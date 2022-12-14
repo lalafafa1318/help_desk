@@ -3,6 +3,7 @@
     
    <!-- 인터넷 사용 권한 설정-->
   <uses-permission android:name="android.permission.INTERNET"/>
+   <!-- 인터넷 사용 권한 설정 -->
   
    <application
         android:label="help_desk"
@@ -34,11 +35,12 @@
                 <category android:name="android.intent.category.BROWSABLE" /> 
                 <data android:scheme="twittercallback2"/> 
             </intent-filter>
+            <!-- Twitter 로고인을 위한 설정 -->
 
         </activity>
 
 
-        <!-- Facebook Auth를 위한 코드 -->
+        <!-- Facebook 로고인을 위한 설정 -->
         <meta-data android:name="com.facebook.sdk.ApplicationId"
                   android:value="@string/facebook_app_id"/>
 
@@ -56,8 +58,7 @@
                       <data android:scheme="@string/fb_login_protocol_scheme" />
                   </intent-filter>
         </activity>
-
-        
+        <!-- Facebook 로고인를 위한 설정 -->
 
         <meta-data
             android:name="flutterEmbedding"
