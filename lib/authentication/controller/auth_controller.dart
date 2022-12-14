@@ -58,8 +58,7 @@ class AuthController extends GetxController {
   }
 
   // DataBase에서 userUid가 있는지 확인하는 method
-  Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(
-      String uid) async {
+  Future<QuerySnapshot<Map<String, dynamic>>> getFireBaseUserUid(String uid) async {
     QuerySnapshot<Map<String, dynamic>> userData =
         await CommunicateFirebase.getFireBaseUserUid(uid);
     return userData;
@@ -142,7 +141,9 @@ class AuthController extends GetxController {
   Future<void> twitterLogin() async {
     // Loading 한다.
     EasyLoading.show(
-        status: 'Twitter\n로고인 중 입니다.', maskType: EasyLoadingMaskType.black);
+      status: 'Twitter\n로고인 중 입니다.',
+      maskType: EasyLoadingMaskType.black,
+    );
 
     final TwitterLogin twitterLogin = TwitterLogin(
       /// Consumer API keys
@@ -162,6 +163,7 @@ class AuthController extends GetxController {
     /// If you want to implement Twitter account switching, set [force_login] to true
     /// login(forceLogin: true);
     final AuthResult authResult = await twitterLogin.login();
+
     switch (authResult.status) {
       // Twitter 로고인에 성공했을 경우
       case TwitterLoginStatus.loggedIn:
@@ -195,7 +197,7 @@ class AuthController extends GetxController {
   // Google, Facebook, Twitter Logout 진행하는 method
   Future<void> logout() async {
     // Widget Tree 상에서 이전 페이지가 SignUpPage인 경우
-    if (SettingsController.to.didSignUp) {
+    if (SettingsController.to.didSignUp == true) {
       // 기존 controller들을 메모리에서 내리고 계정을 Logout하는 method
       await initControllerAndLogout();
 
