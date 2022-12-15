@@ -63,7 +63,7 @@ class NotificationController extends GetxController {
   late NotificationModel recentNotificationModel;
 
   /* 각종 기타 설정
-     (65 ~ 69줄) */
+     (65 ~ 73줄) */
 
   // IT 담당자의 경우, 알림 페이지에서 요청 알림 목록을 클릭했는지, 댓글 알림 목록을 클릭했는지 판별하는 변수
   NotificationClassification notificationClassification =
@@ -139,8 +139,7 @@ class NotificationController extends GetxController {
 
               // NotificationModel을 만든다.
               NotificationModel noti = NotificationModel(
-                title:
-                    '${user.data()!['userName'].toString()}님 게시물에 대한 댓글 알림',
+                title: '${user.data()!['userName'].toString()}님 게시물에 대한 댓글 알림',
                 body:
                     '새로운 댓글이 달렸어요 : ${comments.docs.last.data()['content'].toString()}',
                 notiUid: UUidUtil.getUUid(),
@@ -156,8 +155,7 @@ class NotificationController extends GetxController {
               // Flutter Local Notification 전송
               await showGroupNotifications(
                 // 댓글이 작성된 게시물 작성자 - 댓글이 작성된 게시물 제목
-                title:
-                    '${user.data()!['userName'].toString()}님 게시물에 대한 댓글 알림',
+                title: '${user.data()!['userName'].toString()}님 게시물에 대한 댓글 알림',
                 // 댓글 내용
                 body:
                     '새로운 댓글이 달렸어요 : ${comments.docs.last.data()['content'].toString()}',
@@ -216,8 +214,10 @@ class NotificationController extends GetxController {
       'sysClassficationCode',
       // whereIn에는 최대 10개 element가 들어가기 떄문에 어쩔 수 없이 10개만 배치했다.
       whereIn: [
-        // PC 고장
-        'SysClassification.PC_BROKEN',
+        // 사무기기(PC)
+        'SysClassification.OFFICEEQUIPMENT_PC',
+        // 사무기기(복합기)
+        'SysClassification.OFFICEEQUIPMENT_ALLINONE',
         // NBUS(통합업무지원)
         'SysClassification.NBUS',
         // NEOS-C(일반채권)
@@ -234,8 +234,6 @@ class NotificationController extends GetxController {
         'SysClassification.NIS_SCM',
         // NSCS(2차콜)
         'SysClassification.NSCS',
-        // NCIP
-        'SysClassification.NCIP_IN',
       ],
     ).get();
 
@@ -254,13 +252,15 @@ class NotificationController extends GetxController {
       'sysClassficationCode',
       // whereIn에는 최대 10개 element가 들어가기 떄문에 어쩔 수 없었다.
       whereIn: [
+        // NCIP(고객사보안점검대행)
+        'SysClassification.NCIP_IN',
         // NCCS(서류접수대행)
         'SysClassification.NCCS',
         // N-GOS(채권자 소개)
         'SysClassification.NGOS',
-        // WICS
+        // WICS(채권관리)
         'SysClassification.WICS',
-        // ICMS
+        // ICMS(채권관리지원)
         'SysClassification.ICMS',
         // NCS(코드스캐너)
         'SysClassification.VSCN',
@@ -372,8 +372,10 @@ class NotificationController extends GetxController {
     it2UserListenPart1 = firebaseFirestore
         .collection('itRequestPosts')
         .where('sysClassficationCode', whereIn: [
-          // PC 고장
-          'SysClassification.PC_BROKEN',
+          // 사무기기(PC)
+          'SysClassification.OFFICEEQUIPMENT_PC',
+          // 사무기기(복합기)
+          'SysClassification.OFFICEEQUIPMENT_ALLINONE',
           // NBUS(통합업무지원)
           'SysClassification.NBUS',
           // NEOS-C(일반채권)
@@ -390,8 +392,6 @@ class NotificationController extends GetxController {
           'SysClassification.NIS_SCM',
           // NSCS(2차콜)
           'SysClassification.NSCS',
-          // NCIP
-          'SysClassification.NCIP_IN',
         ])
         .snapshots()
         .listen((QuerySnapshot<Map<String, dynamic>> event) async {
@@ -467,18 +467,20 @@ class NotificationController extends GetxController {
   }
 
   /* 사용자 자격이 IT 2실 관리자이다.
-     일반 요청자가  IT 2실 관리자가 담당하는 시스템과 관련된 게시물을 업로드할 떄 listen한다. (Part2) */
+     일반 요청자가 IT 2실 관리자가 담당하는 시스템과 관련된 게시물을 업로드할 떄 listen한다. (Part2) */
   Future<void> it2UserListenITRequestPostsPart2() async {
     it2UserListenPart2 = firebaseFirestore
         .collection('itRequestPosts')
         .where('sysClassficationCode', whereIn: [
+          // NCIP(고객사보안점검대행)
+          'SysClassification.NCIP_IN',
           // NCCS(서류접수대행)
           'SysClassification.NCCS',
           // N-GOS(채권자 소개)
           'SysClassification.NGOS',
-          // WICS
+          // WICS(채권관리)
           'SysClassification.WICS',
-          // ICMS
+          // ICMS(채권관리지원)
           'SysClassification.ICMS',
           // NCS(코드스캐너)
           'SysClassification.VSCN',
@@ -744,7 +746,8 @@ class NotificationController extends GetxController {
   }
 
   // Flutter Loal Notification을 show하는 method
-  Future<void> showGroupNotifications({required String title, required String body}) async {
+  Future<void> showGroupNotifications(
+      {required String title, required String body}) async {
     /* 그룹 알림으로 띄우기 위해서 필요한 변수 설정 */
     const String groupKey = 'com.example.help_Desk';
     const String groupChannelId = 'help_Desk ID';
@@ -785,7 +788,7 @@ class NotificationController extends GetxController {
     );
 
     /* 그룹화된 알림을 설정하고 보여준다.
-       (789번 ~ 815번 줄) */
+       (792번 ~ 818번 줄) */
     InboxStyleInformation inboxStyleInformation = const InboxStyleInformation(
       [],
       contentTitle: '',
@@ -874,7 +877,7 @@ class NotificationController extends GetxController {
   @override
   Future<void> onClose() async {
     /* 사용자에게 주어졌던 모든 알림을 삭제하고 이를 ToastMessage로 전달한다. 
-       (878 ~ 879번 줄) */
+       (881 ~ 882번 줄) */
     await flutterLocalNotificationsPlugin.cancelAll();
     ToastUtil.showToastMessage('모든 알림을 삭제했습니다.');
 

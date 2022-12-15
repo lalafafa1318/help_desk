@@ -13,6 +13,7 @@ import 'package:help_desk/model/post_model.dart';
 import 'package:help_desk/model/user_model.dart';
 import 'package:help_desk/const/routeDistinction.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/postList_controller.dart';
+import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/postList/specific_post_page.dart';
 import 'package:number_paginator/number_paginator.dart';
 
@@ -26,7 +27,7 @@ class KeywordPostListPage extends StatefulWidget {
 
 class _KeywordPostListPageState extends State<KeywordPostListPage> {
   /* Pager에 대한 Setting 변수 
-     (30 ~ 37줄) */
+     (31 ~ 38줄) */
   // PostListPage의 Pager의 현재 번호
   int pagerCurrentPage = 0;
 
@@ -64,15 +65,9 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
         return DropdownButton(
           value: PostListController.to.sSelectedValue.name,
           style: TextStyle(color: Colors.black, fontSize: 13.sp),
-          items: SysClassification.values.map((element) {
-            // enum의 값을 화면에 표시할 값으로 변환한다.
-            String realText = element.asText;
-
-            return DropdownMenuItem(
-              value: element.name,
-              child: Text(realText),
-            );
-          }).toList(),
+          // 사용자 소속에 따라 시스템 분류 코드를 제한적으로 보여준다.
+          items: SettingsController.to.settingUser!.department.showSysDropdwon,
+  
           onChanged: (element) {
             // PostListController의 sSelectedValue의 값을 바꾼다.
             PostListController.to.sSelectedValue = SysClassification.values
@@ -247,6 +242,7 @@ class _KeywordPostListPageState extends State<KeywordPostListPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SizedBox(height: 200.h),
+        
         // 금지 아이콘
         const Icon(
           Icons.info_outline,

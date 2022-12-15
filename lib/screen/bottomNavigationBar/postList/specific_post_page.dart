@@ -971,7 +971,7 @@ class _SpecificPostPageState extends State<SpecificPostPage> {
     );
   }
 
-  // 답변 정보 입력에 처리상태, 장애원인, 처리일자, 처리시간을 보여준다. -> 일반 요청자는 보이지 않는다, IT 담당자에게만 보여진다.
+  // 답변 정보 입력에 처리상태, 장애원인, 처리일자, 처리시간을 보여준다. -> IT 담당자에게만 보여진다.
   Widget onlyShowITUserInAnswerInformationInput() {
     return Column(
       children: [

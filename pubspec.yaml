@@ -106,7 +106,7 @@ dependencies:
   flutter_slidable: ^2.0.0
 
   # expandable_text 
-  expandable_text: ^2.3.0
+  # expandable_text: ^2.3.0
 
   # intl
   intl: ^0.17.0

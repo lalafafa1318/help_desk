@@ -271,10 +271,10 @@ class EditProfilePage extends StatelessWidget {
           backgroundColor: Colors.white,
           automaticallyImplyLeading: false,
           leading: IconButton(
-            onPressed: () {
+            onPressed: () async {
               /* 이전 페이지로 가는 메소드
                  이미지, 이름 또는 설명 중에 바뀐 부분이 있으면 값을 초기화 한다. */
-              SettingsController.to.getBackEditProfilePage();
+              await SettingsController.to.getBackEditProfilePage();
             },
             icon: const Padding(
               padding: EdgeInsets.all(7.5),

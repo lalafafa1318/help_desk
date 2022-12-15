@@ -23,10 +23,9 @@ class SettingsController extends GetxController {
   UserModel? settingUser;
 
   /* EditProfilePage에서 활용되는 데이터
-     (28 ~ 41줄) */
+     (28 ~ 40줄) */
 
-  /* 수정한 이미지에 대한 Field 
-     (28 ~ 29줄) */
+  // 수정한 이미지와 관련된 변수 
   final ImagePicker imagePicker = ImagePicker();
   File? editImage;
   // 이름, 전화번호 관련된 TextFormField Validation을 위한 Field
@@ -41,7 +40,7 @@ class SettingsController extends GetxController {
   TextEditingController? telTextController;
 
   /* whatIWrotePage, whatICommentPage에서 관리하는 데이터 
-     (46 ~ 53줄) */
+     (45 ~ 52줄) */
 
   // 사용자가 작성한 IT 요청건 게시물을 담는 배열
   List<PostModel> whatIWroteITRequestPosts = [];
@@ -56,9 +55,14 @@ class SettingsController extends GetxController {
   static SettingsController get to => Get.find();
 
   // EditProfilePage 에서 이전 가기를 눌렀을 떄 호출되는 method
-  void getBackEditProfilePage() {
+  Future<void> getBackEditProfilePage() async {
+    // 키보드 내리기
+    FocusManager.instance.primaryFocus?.unfocus();
+
     // 프로필 수정할 페이지에서 사용했던 데이터를 초기화한다.
     clearEditProfileData();
+
+    await Future.delayed(const Duration(milliseconds: 30));
 
     // 이전 가기
     Get.back();
@@ -163,7 +167,7 @@ class SettingsController extends GetxController {
 
   // EditProfilePage에서 사용했던 데이터를 초기화하는 method
   void clearEditProfileData() {
-    // 이미지와 이름, 전화번호를 초기화 한다. 
+    // 이미지와 이름, 전화번호를 초기화 한다.
     editImage = null;
     nameTextController!.text = '';
     telTextController!.text = '';

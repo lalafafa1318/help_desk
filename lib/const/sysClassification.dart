@@ -1,9 +1,12 @@
 // 시스템 분류 코드를 판별하는 enum
+
 enum SysClassification {
   // 시스템 전체
   ALL,
-  // PC 고장 (IT2실 담당)
-  PC_BROKEN,
+  // 사무기기(PC) (IT2실 담당)
+  OFFICEEQUIPMENT_PC,
+  // 사무기기(복합기) (IT2실 담당)
+  OFFICEEQUIPMENT_ALLINONE,
   // NBUS(통합업무지원) (IT2실 담당)
   NBUS,
   // NEOS-C(일반채권) (IT2실 담당)
@@ -20,15 +23,15 @@ enum SysClassification {
   NIS_SCM,
   // NSCS(2차콜) (IT2실 담당)
   NSCS,
-  // NCIP (IT2실 담당)
+  // NCIP(고객사보안점검대행) (IT2실 담당)
   NCIP_IN,
   // NCCS(서류접수대행) (IT2실 담당)
   NCCS,
   // N-GOS(채권자소개) (IT2실 담당)
   NGOS,
-  // WICS (IT2실 담당)
+  // WICS(채권관리) (IT2실 담당)
   WICS,
-  // ICMS (IT2실 담당)
+  // ICMS(채권관리지원) (IT2실 담당)
   ICMS,
   // 문서중앙화 (IT1실 담당)
   CDOC,
@@ -52,8 +55,10 @@ extension SysclassificationExtension on SysClassification {
     switch (this) {
       case SysClassification.ALL:
         return '시스템 전체';
-      case SysClassification.PC_BROKEN:
-        return 'PC 고장';
+      case SysClassification.OFFICEEQUIPMENT_PC:
+        return '사무기기(PC)';
+      case SysClassification.OFFICEEQUIPMENT_ALLINONE:
+        return '사무기기(복합기)';
       case SysClassification.NBUS:
         return 'NBUS(통합업무지원)';
       case SysClassification.NEOSC:
@@ -71,15 +76,15 @@ extension SysclassificationExtension on SysClassification {
       case SysClassification.NSCS:
         return 'NSCS(2차콜)';
       case SysClassification.NCIP_IN:
-        return 'NCIP';
+        return 'NCIP(고객사보안점검대행)';
       case SysClassification.NCCS:
         return 'NCCS(서류접수대행)';
       case SysClassification.NGOS:
         return 'N-GOS(채권자소개)';
       case SysClassification.WICS:
-        return 'WICS';
+        return 'WICS(채권관리)';
       case SysClassification.ICMS:
-        return 'ICMS';
+        return 'ICMS(채권관리지원)';
       case SysClassification.CDOC:
         return '문서중앙화';
       case SysClassification.MAIL:

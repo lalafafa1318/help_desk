@@ -28,7 +28,7 @@ class PostListPage extends StatefulWidget {
 
 class _PostListPageState extends State<PostListPage> {
   /* Pager에 대한 setting 변수
-    (32 ~ 39w줄) */
+    (32 ~ 39줄) */
   // PostListPage의 Pager의 현재 번호
   int pagerCurrentPage = 0;
 
@@ -66,19 +66,15 @@ class _PostListPageState extends State<PostListPage> {
         return DropdownButton(
           value: PostListController.to.sSelectedValue.name,
           style: TextStyle(color: Colors.black, fontSize: 13.sp),
-          items: SysClassification.values.map((element) {
-            // enum의 값을 화면에 표시할 값으로 변환한다.
-            String realText = element.asText;
-
-            return DropdownMenuItem(
-              value: element.name,
-              child: Text(realText),
-            );
-          }).toList(),
+          // 사용자 소속에 따라 시스템 분류 코드를 제한적으로 보여준다.
+          items: SettingsController.to.settingUser!.department.showSysDropdwon,
+          
           onChanged: (element) {
             // PostListController의 sSelectedValue의 값을 바꾼다.
             PostListController.to.sSelectedValue = SysClassification.values
                 .firstWhere((enumValue) => enumValue.name == element);
+
+            print('변경된 값 : ${PostListController.to.sSelectedValue}');
 
             // 시스템 분류 코드를 결정하는 Dropdown만 재랜더링 한다.
             PostListController.to.update(['sysClassificationDropdown']);
@@ -606,8 +602,8 @@ class _PostListPageState extends State<PostListPage> {
   // 전체적으로 화면을 build
   @override
   Widget build(BuildContext context) {
-    print('dd : ${Get.currentRoute}');
     print('PostListPage - build() 실행');
+    // print('dd : ${SysClassification.values}');
     print('PostListPage userType : ${AuthController.to.user.value.userType}');
 
     return Scaffold(

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:getwidget/components/border/gf_border.dart';
 import 'package:getwidget/types/gf_border_type.dart';
+import 'package:help_desk/const/departmentClassification.dart';
 import 'package:help_desk/const/sysClassification.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/bottomNavigationBar_controller.dart';
 import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controller.dart';
@@ -36,19 +37,10 @@ class PostingPage extends StatelessWidget {
               return DropdownButton(
                 value: PostingController.to.sSelectedValue.name,
                 style: TextStyle(color: Colors.black, fontSize: 13.sp),
-                // Dropdown에 "시스템 전체"는 보여주지 않는다.
-                // "시스템 전체"는 검색 용도에만 쓰인다.
-                items: SysClassification.values
-                    .where((element) => element != SysClassification.ALL)
-                    .map((element) {
-                  // enum 값을 화면에 표시할 값으로 변환한다.
-                  String realText = element.asText;
-
-                  return DropdownMenuItem(
-                    value: element.name,
-                    child: Text(realText),
-                  );
-                }).toList(),
+                /* Dropdown에 "시스템 전체"는 보여주지 않는다.
+                   "시스템 전체"는 검색 용도에만 쓰인다. */
+                items: SettingsController.to.settingUser!.department.showPostingSysDropdwon,
+    
                 onChanged: (element) {
                   // controller에 있는 값을 바꾼다.
                   PostingController.to.sSelectedValue = SysClassification.values

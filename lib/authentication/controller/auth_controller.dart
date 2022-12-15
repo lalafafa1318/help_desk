@@ -17,7 +17,6 @@ import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controll
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/utils/connect_util.dart';
 import 'package:help_desk/utils/toast_util.dart';
-import 'package:help_desk/utils/variable_util.dart';
 import 'package:twitter_login/entity/auth_result.dart';
 import 'package:twitter_login/twitter_login.dart';
 
@@ -147,10 +146,10 @@ class AuthController extends GetxController {
 
     final TwitterLogin twitterLogin = TwitterLogin(
       /// Consumer API keys
-      apiKey: VariableUtil.TWITTER_API_KEY,
+      apiKey: 'Lo89QcePX9iCE2G2Q9u02jSzh',
 
       /// Consumer API Secret keys
-      apiSecretKey: VariableUtil.TWITTER_API_SECRET_KEY,
+      apiSecretKey: 'SmAF5jgnMYkGqX7k9GvdmQf7J5QIiNU39oMtipj3OT8ueQzPTJ',
 
       /// Registered Callback URLs in TwitterApp
       /// Android is a deeplink
