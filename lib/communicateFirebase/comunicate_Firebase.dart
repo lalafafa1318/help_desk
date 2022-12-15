@@ -181,7 +181,7 @@ class CommunicateFirebase {
         userType == UserClassification.IT2USER) return data.docs;
 
     /* 사용자가 일반 요청자라면? -> 사용자가 작성한 IT 요청건 게시물만 가져온다. 
-       (182번 ~ 193번 줄) */
+       (186번 ~ 197번 줄) */
 
     // removeWhere()를 쓰기 위해서 데이터 타입을 List<QueryDocumentSnapshot<Map<String, dynamic>>>으로 변환한다.
     List<QueryDocumentSnapshot<Map<String, dynamic>>> ultimateData = data.docs;
@@ -274,7 +274,7 @@ class CommunicateFirebase {
     }
 
     /* IT 요청건 게시물에 대한 댓글이 있으면 댓글을 삭제한다. 
-       (274줄 ~ 286줄) */
+       (278줄 ~ 296줄) */
     QuerySnapshot<Map<String, dynamic>> comments = await _firebaseFirestore
         .collection('itRequestPosts')
         .doc(postData.postUid)
