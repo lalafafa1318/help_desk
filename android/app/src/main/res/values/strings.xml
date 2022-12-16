@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Facebook 로고인 제공을 위한 설정 -->
-    <string name="app_name">attemptLogin</string>    
-    <string name="facebook_app_id">3261744130770555</string>
-    <string name="fb_login_protocol_scheme">fb3261744130770555</string>
+    <string name="app_name">nice-help-desk</string>    
+    <string name="facebook_app_id">5659424064166616</string>
+    <string name="fb_login_protocol_scheme">fb5659424064166616</string>
+    <string name="facebook_client_token">aeeb8fc966d2dddc46509bcdb42f550a</string>
     <!-- Facebook 로고인 제공을 위한 설정 -->
 </resources>
