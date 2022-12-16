@@ -54,7 +54,7 @@ class NotificationController extends GetxController {
   int it2UserProcessITRequestPostsSizePart2 = 0;
 
   /* Flutter Local Notification과 관련된 부분 
-     (55 ~ 59줄) */
+     (59 ~ 63줄) */
 
   // Flutter Local Notification initalize를 위해 필요한 변수
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -63,7 +63,7 @@ class NotificationController extends GetxController {
   late NotificationModel recentNotificationModel;
 
   /* 각종 기타 설정
-     (65 ~ 73줄) */
+     (68 ~ 73줄) */
 
   // IT 담당자의 경우, 알림 페이지에서 요청 알림 목록을 클릭했는지, 댓글 알림 목록을 클릭했는지 판별하는 변수
   NotificationClassification notificationClassification =
@@ -748,7 +748,8 @@ class NotificationController extends GetxController {
   // Flutter Loal Notification을 show하는 method
   Future<void> showGroupNotifications(
       {required String title, required String body}) async {
-    /* 그룹 알림으로 띄우기 위해서 필요한 변수 설정 */
+    /* 그룹 알림으로 띄우기 위해서 필요한 변수 설정   
+       사실 string값을 아무렇게 줘도 되는 것 같다. */
     const String groupKey = 'com.example.help_Desk';
     const String groupChannelId = 'help_Desk ID';
     const String groupChannelName = 'help_Desk Name';
@@ -788,7 +789,7 @@ class NotificationController extends GetxController {
     );
 
     /* 그룹화된 알림을 설정하고 보여준다.
-       (792번 ~ 818번 줄) */
+       (793번 ~ 818번 줄) */
     InboxStyleInformation inboxStyleInformation = const InboxStyleInformation(
       [],
       contentTitle: '',
