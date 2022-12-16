@@ -19,6 +19,7 @@ import 'package:number_paginator/number_paginator.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 // 게시판 목록 class 입니다.
+// 게시판 목록 class 입니다.
 class PostListPage extends StatefulWidget {
   const PostListPage({Key? key}) : super(key: key);
 
