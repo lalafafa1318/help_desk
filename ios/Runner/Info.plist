@@ -48,8 +48,8 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 
-	<!-- FaceBook 로고인 인증 IOS 설정-->
-	<key>CFBundleURLTypes</key>
+	<!-- FaceBook 로고인 인증 IOS 설정 (예전 꺼 )-->
+	<!-- <key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLSchemes</key>
@@ -73,9 +73,41 @@
 	<array>
 		<string>fbapi</string>
 		<string>fb-messenger-share-api</string>
-	</array>
-	<!-- FaceBook 로고인 인증 IOS 설정  -->
+	</array> -->
+	<!-- FaceBook 로고인 인증 IOS 설정 (예전 꺼 )  -->
 
+
+
+
+
+
+
+	<!-- FaceBook 로고인 인증 IOS 설정 (현재꺼)  -->
+	<key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>fb5659424064166616</string>
+      </array>
+      </dict>
+    </array>
+    
+    <key>FacebookAppID</key>
+    <string>5659424064166616</string>
+    
+    <key>FacebookClientToken</key>
+    <string>aeeb8fc966d2dddc46509bcdb42f550a</string>
+    
+    <key>FacebookDisplayName</key>
+    <string>attemptLogin</string>
+
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+      <string>fbapi</string>
+      <string>fb-messenger-share-api</string>
+    </array>
+	<!-- FaceBook 로고인 인증 IOS 설정(현재꺼)  -->
 
     <!-- ImagePicker IOS 설정 -->
 	<key>NSCameraUsageDescription</key>

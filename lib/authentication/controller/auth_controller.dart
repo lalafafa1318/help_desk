@@ -17,8 +17,6 @@ import 'package:help_desk/screen/bottomNavigationBar/controller/posting_controll
 import 'package:help_desk/screen/bottomNavigationBar/controller/settings_controller.dart';
 import 'package:help_desk/utils/connect_util.dart';
 import 'package:help_desk/utils/toast_util.dart';
-import 'package:twitter_login/entity/auth_result.dart';
-import 'package:twitter_login/twitter_login.dart';
 
 class AuthController extends GetxController {
   // User 정보를 관리하는 Field
@@ -136,64 +134,7 @@ class AuthController extends GetxController {
     }
   }
 
-  // Twitter Login 진행하는 method
-  Future<void> twitterLogin() async {
-    // Loading 한다.
-    EasyLoading.show(
-      status: 'Twitter\n로고인 중 입니다.',
-      maskType: EasyLoadingMaskType.black,
-    );
-
-    final TwitterLogin twitterLogin = TwitterLogin(
-      /// Consumer API keys
-      apiKey: 'Lo89QcePX9iCE2G2Q9u02jSzh',
-
-      /// Consumer API Secret keys
-      apiSecretKey: 'SmAF5jgnMYkGqX7k9GvdmQf7J5QIiNU39oMtipj3OT8ueQzPTJ',
-
-      /// Registered Callback URLs in TwitterApp
-      /// Android is a deeplink
-      /// iOS is a URLScheme
-      redirectURI: 'twittercallback2://',
-    );
-
-    /// Forces the user to enter their credentials
-    /// to ensure the correct users account is authorized.
-    /// If you want to implement Twitter account switching, set [force_login] to true
-    /// login(forceLogin: true);
-    final AuthResult authResult = await twitterLogin.login();
-
-    switch (authResult.status) {
-      // Twitter 로고인에 성공했을 경우
-      case TwitterLoginStatus.loggedIn:
-        OAuthCredential twitterAuthCredential = TwitterAuthProvider.credential(
-          accessToken: authResult.authToken!,
-          secret: authResult.authTokenSecret!,
-        );
-
-        print('twitterUserUid : $twitterAuthCredential');
-
-        await CommunicateFirebase.login(twitterAuthCredential);
-
-        print('Twitter 로고인 성공');
-        break;
-
-      // 사용자가 Twitter 로고인 페이지에서 나간 경우
-      case TwitterLoginStatus.cancelledByUser:
-        EasyLoading.dismiss();
-
-        print('사용자가 Twitter 로고인 페이지를 나갔습니다.');
-        break;
-      // 알 수 없는 이유로 Twitter 로고인 에러날 경우
-      case TwitterLoginStatus.error:
-      case null:
-        ToastUtil.showToastMessage('알 수 없는 이유로 Twitter 로고인이 취소되었습니다.');
-
-        break;
-    }
-  }
-
-  // Google, Facebook, Twitter Logout 진행하는 method
+  // Google, Facebook Logout 진행하는 method
   Future<void> logout() async {
     // Widget Tree 상에서 이전 페이지가 SignUpPage인 경우
     if (SettingsController.to.didSignUp == true) {

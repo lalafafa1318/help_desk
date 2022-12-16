@@ -50,20 +50,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCGMfWi27EGU9LYF54OCsAefmAB4Lq5vNg',
-    appId: '1:889387616330:android:9ec47b56abe886093a7eb3',
-    messagingSenderId: '889387616330',
-    projectId: 'help-desk-bc2ac',
-    storageBucket: 'help-desk-bc2ac.appspot.com',
+    apiKey: 'AIzaSyB9d90cWZUyv7hxKCUr29CtK2fFmej23oQ',
+    appId: '1:396702315488:android:7ecde41483dffae2583185',
+    messagingSenderId: '396702315488',
+    projectId: 'niceamc-help',
+    storageBucket: 'niceamc-help.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDisTFslOFmPAAC-GL98uyMhpwacFzhgNw',
-    appId: '1:889387616330:ios:e6cc1c70a9f4c3523a7eb3',
-    messagingSenderId: '889387616330',
-    projectId: 'help-desk-bc2ac',
-    storageBucket: 'help-desk-bc2ac.appspot.com',
-    iosClientId: '889387616330-6r2p8q17rq7p8ieap6066fa8cd96l5qh.apps.googleusercontent.com',
-    iosBundleId: 'com.example.helpDesk',
+    apiKey: 'AIzaSyDW6e7U8Jx9yTGJZl77DX_nVtpdTMXIsak',
+    appId: '1:396702315488:ios:88a6392880673d43583185',
+    messagingSenderId: '396702315488',
+    projectId: 'niceamc-help',
+    storageBucket: 'niceamc-help.appspot.com',
+    iosClientId: '396702315488-tdd9dnkkbobkki3jdkk71hvcv6t0m5vd.apps.googleusercontent.com',
+    iosBundleId: 'com.youngwoo.help-Desk',
   );
 }

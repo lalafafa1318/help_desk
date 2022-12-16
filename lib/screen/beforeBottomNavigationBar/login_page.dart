@@ -45,43 +45,6 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  // Apple Login Button
-  // Widget appleLoginButton() {
-  //   return Padding(
-  //     padding: EdgeInsets.symmetric(horizontal: 80.0.w),
-  //     child: ElevatedButton.icon(
-  //       onPressed: () {
-  //         print("You pressed Icon Elevated Button");
-  //       },
-  //       icon: Image.asset(
-  //           'assets/images/apple.png'), //icon data for elevated button
-  //       label: const Text('Apple Login',
-  //           style: const TextStyle(color: Colors.white)),
-  //       style: ElevatedButton.styleFrom(
-  //         primary: Colors.black, //elevated btton background color
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // Twitter Login Button
-  Widget twitterLoginButton() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 80.0.w),
-      child: ElevatedButton.icon(
-        onPressed: () async {
-          await AuthController.to.twitterLogin();
-        },
-        icon: Image.asset(
-            'assets/images/twitter.png'), //icon data for elevated button
-        label:
-            const Text('TwitterLogin', style: TextStyle(color: Colors.black)),
-        style: ElevatedButton.styleFrom(
-          primary: const Color(0xFF50BCDF), //elevated btton background color
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,19 +69,15 @@ class LoginPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // 구글 로고인
               googleLoginButton(),
 
-              SizedBox(height: 50.0.h),
+              SizedBox(height: 100.0.h),
 
+              // 페이스북 로고인
               facebookLoginButton(),
 
               SizedBox(height: 50.0.h),
-
-              // appleLoginButton(),
-
-              // SizedBox(height: 50.0.h),
-
-              twitterLoginButton(),
             ],
           ),
         ),
